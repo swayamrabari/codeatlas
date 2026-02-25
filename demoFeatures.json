@@ -1,0 +1,4037 @@
+{
+  "totalFiles": 73,
+  "frameworks": {
+    "backend": [],
+    "frontend": [
+      "React",
+      "Next.js"
+    ],
+    "database": [],
+    "tooling": [
+      "TypeScript",
+      "Tailwind CSS"
+    ]
+  },
+  "projectType": "frontend",
+  "relationshipStats": {
+    "totalRelationships": 60,
+    "importRelationships": 39,
+    "usesRelationships": 21,
+    "filesInGraph": 39
+  },
+  "relationships": [
+    {
+      "from": "app/layout.tsx",
+      "to": "app/globals.css",
+      "type": "imports"
+    },
+    {
+      "from": "app/search/layout.tsx",
+      "to": "app/search/children-wrapper.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "app/search/layout.tsx",
+      "to": "app/search/children-wrapper.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/carousel.tsx",
+      "to": "components/grid/tile.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/carousel.tsx",
+      "to": "components/grid/tile.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/cart/add-to-cart.tsx",
+      "to": "components/cart/cart-context.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/cart/add-to-cart.tsx",
+      "to": "components/cart/cart-context.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/actions.ts",
+      "type": "imports"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/cart-context.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/delete-item-button.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/edit-item-quantity-button.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/open-cart.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/actions.ts",
+      "type": "uses"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/cart-context.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/delete-item-button.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/edit-item-quantity-button.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/cart/modal.tsx",
+      "to": "components/cart/open-cart.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/grid/tile.tsx",
+      "to": "components/label.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/grid/tile.tsx",
+      "to": "components/label.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/label.tsx",
+      "to": "components/price.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/label.tsx",
+      "to": "components/price.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/navbar/index.tsx",
+      "to": "components/layout/navbar/search.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/navbar/index.tsx",
+      "to": "components/layout/navbar/mobile-menu.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/navbar/index.tsx",
+      "to": "components/layout/navbar/search.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/navbar/index.tsx",
+      "to": "components/layout/navbar/mobile-menu.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/navbar/mobile-menu.tsx",
+      "to": "components/layout/navbar/search.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/navbar/mobile-menu.tsx",
+      "to": "components/layout/navbar/search.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/search/collections.tsx",
+      "to": "components/layout/search/filter/index.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/search/collections.tsx",
+      "to": "components/layout/search/filter/index.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/search/filter/dropdown.tsx",
+      "to": "components/layout/search/filter/index.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/search/filter/dropdown.tsx",
+      "to": "components/layout/search/filter/item.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/search/filter/dropdown.tsx",
+      "to": "components/layout/search/filter/index.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/search/filter/dropdown.tsx",
+      "to": "components/layout/search/filter/item.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/search/filter/index.tsx",
+      "to": "components/layout/search/filter/item.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/search/filter/index.tsx",
+      "to": "components/layout/search/filter/dropdown.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/search/filter/index.tsx",
+      "to": "components/layout/search/filter/item.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/search/filter/index.tsx",
+      "to": "components/layout/search/filter/dropdown.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/layout/search/filter/item.tsx",
+      "to": "components/layout/search/filter/index.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/layout/search/filter/item.tsx",
+      "to": "components/layout/search/filter/index.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/logo-square.tsx",
+      "to": "components/icons/logo.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/logo-square.tsx",
+      "to": "components/icons/logo.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/opengraph-image.tsx",
+      "to": "components/icons/logo.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "components/opengraph-image.tsx",
+      "to": "components/icons/logo.tsx",
+      "type": "uses"
+    },
+    {
+      "from": "components/product/product-description.tsx",
+      "to": "components/product/variant-selector.tsx",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/fragments/cart.ts",
+      "to": "lib/shopify/fragments/product.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/fragments/product.ts",
+      "to": "lib/shopify/fragments/image.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/fragments/product.ts",
+      "to": "lib/shopify/fragments/seo.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/index.ts",
+      "to": "lib/shopify/mutations/cart.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/index.ts",
+      "to": "lib/shopify/queries/cart.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/index.ts",
+      "to": "lib/shopify/queries/collection.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/index.ts",
+      "to": "lib/shopify/queries/menu.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/index.ts",
+      "to": "lib/shopify/queries/page.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/index.ts",
+      "to": "lib/shopify/queries/product.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/index.ts",
+      "to": "lib/shopify/types.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/mutations/cart.ts",
+      "to": "lib/shopify/fragments/cart.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/queries/cart.ts",
+      "to": "lib/shopify/fragments/cart.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/queries/collection.ts",
+      "to": "lib/shopify/fragments/product.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/queries/collection.ts",
+      "to": "lib/shopify/fragments/seo.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/queries/page.ts",
+      "to": "lib/shopify/fragments/seo.ts",
+      "type": "imports"
+    },
+    {
+      "from": "lib/shopify/queries/product.ts",
+      "to": "lib/shopify/fragments/product.ts",
+      "type": "imports"
+    }
+  ],
+  "features": {},
+  "files": [
+    {
+      "path": ".env.example",
+      "type": "config",
+      "role": "Environment/tool config",
+      "category": "infrastructure",
+      "behavior": "config",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": ".gitignore",
+      "type": "config",
+      "role": "Environment/tool config",
+      "category": "infrastructure",
+      "behavior": "config",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\api\\revalidate\\route.ts",
+      "type": "route",
+      "role": "API route/handler",
+      "category": "backend",
+      "behavior": "api",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "revalidate"
+            ]
+          },
+          {
+            "path": "next/server",
+            "value": "next/server",
+            "type": "esm",
+            "imported": [
+              "NextRequest",
+              "NextResponse"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\error.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\globals.css",
+      "type": "style",
+      "role": "Stylesheet",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "tailwindcss",
+            "value": "tailwindcss",
+            "type": "esm",
+            "imported": [
+              "(side-effect)"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "app/layout.tsx"
+      ],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\layout.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 9,
+        "files": [
+          "app/globals.css"
+        ],
+        "items": [
+          {
+            "path": "components/cart/cart-context",
+            "value": "components/cart/cart-context",
+            "type": "esm",
+            "imported": [
+              "CartProvider"
+            ]
+          },
+          {
+            "path": "components/layout/navbar",
+            "value": "components/layout/navbar",
+            "type": "esm",
+            "imported": [
+              "Navbar"
+            ]
+          },
+          {
+            "path": "components/welcome-toast",
+            "value": "components/welcome-toast",
+            "type": "esm",
+            "imported": [
+              "WelcomeToast"
+            ]
+          },
+          {
+            "path": "geist/font/sans",
+            "value": "geist/font/sans",
+            "type": "esm",
+            "imported": [
+              "GeistSans"
+            ]
+          },
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getCart"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "ReactNode"
+            ]
+          },
+          {
+            "path": "sonner",
+            "value": "sonner",
+            "type": "esm",
+            "imported": [
+              "Toaster"
+            ]
+          },
+          {
+            "path": "lib/utils",
+            "value": "lib/utils",
+            "type": "esm",
+            "imported": [
+              "baseUrl"
+            ]
+          },
+          {
+            "path": "./globals.css",
+            "value": "./globals.css",
+            "type": "esm",
+            "imported": [
+              "(side-effect)"
+            ],
+            "resolvedPath": "app/globals.css"
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 2,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        },
+        {
+          "type": "es_named",
+          "name": "metadata",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "app\\opengraph-image.tsx",
+      "type": "page",
+      "role": "App router / page",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "components/opengraph-image",
+            "value": "components/opengraph-image",
+            "type": "esm",
+            "imported": [
+              "OpengraphImage"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        }
+      ]
+    },
+    {
+      "path": "app\\page.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 3,
+        "files": [],
+        "items": [
+          {
+            "path": "components/carousel",
+            "value": "components/carousel",
+            "type": "esm",
+            "imported": [
+              "Carousel"
+            ]
+          },
+          {
+            "path": "components/grid/three-items",
+            "value": "components/grid/three-items",
+            "type": "esm",
+            "imported": [
+              "ThreeItemGrid"
+            ]
+          },
+          {
+            "path": "components/layout/footer",
+            "value": "components/layout/footer",
+            "type": "esm",
+            "imported": [
+              "Footer"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "metadata",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "app\\product\\[handle]\\page.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 11,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Image"
+            ]
+          },
+          {
+            "path": "next",
+            "value": "next",
+            "type": "esm",
+            "imported": [
+              "Metadata"
+            ]
+          },
+          {
+            "path": "components/grid/tile",
+            "value": "components/grid/tile",
+            "type": "esm",
+            "imported": [
+              "GridTileImage"
+            ]
+          },
+          {
+            "path": "components/product/gallery",
+            "value": "components/product/gallery",
+            "type": "esm",
+            "imported": [
+              "Gallery"
+            ]
+          },
+          {
+            "path": "components/product/product-description",
+            "value": "components/product/product-description",
+            "type": "esm",
+            "imported": [
+              "ProductDescription"
+            ]
+          },
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "HIDDEN_PRODUCT_TAG"
+            ]
+          },
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getProduct",
+              "getProductRecommendations"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "notFound"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Suspense"
+            ]
+          },
+          {
+            "path": "components/layout/footer",
+            "value": "components/layout/footer",
+            "type": "esm",
+            "imported": [
+              "Footer"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        }
+      ]
+    },
+    {
+      "path": "app\\robots.ts",
+      "type": "page",
+      "role": "App router / page",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/utils",
+            "value": "lib/utils",
+            "type": "esm",
+            "imported": [
+              "baseUrl"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\search\\children-wrapper.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [],
+        "items": [
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "useSearchParams"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Fragment"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "app/search/layout.tsx"
+      ],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\search\\layout.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 6,
+        "files": [
+          "app/search/children-wrapper.tsx"
+        ],
+        "items": [
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "sorting"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Suspense"
+            ]
+          },
+          {
+            "path": "components/layout/footer",
+            "value": "components/layout/footer",
+            "type": "esm",
+            "imported": [
+              "Footer"
+            ]
+          },
+          {
+            "path": "components/layout/search/collections",
+            "value": "components/layout/search/collections",
+            "type": "esm",
+            "imported": [
+              "Collections"
+            ]
+          },
+          {
+            "path": "components/layout/search/filter",
+            "value": "components/layout/search/filter",
+            "type": "esm",
+            "imported": [
+              "FilterList"
+            ]
+          },
+          {
+            "path": "./children-wrapper",
+            "value": "./children-wrapper",
+            "type": "esm",
+            "imported": [
+              "ChildrenWrapper"
+            ],
+            "resolvedPath": "app/search/children-wrapper.tsx"
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\search\\loading.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "components/grid",
+            "value": "components/grid",
+            "type": "esm",
+            "imported": [
+              "Grid"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\search\\page.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "defaultSort",
+              "sorting"
+            ]
+          },
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getProducts"
+            ]
+          },
+          {
+            "path": "components/grid",
+            "value": "components/grid",
+            "type": "esm",
+            "imported": [
+              "Grid"
+            ]
+          },
+          {
+            "path": "components/layout/product-grid-items",
+            "value": "components/layout/product-grid-items",
+            "type": "esm",
+            "imported": [
+              "ProductGridItems"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 2,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        },
+        {
+          "type": "es_named",
+          "name": "metadata",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "app\\search\\[collection]\\opengraph-image.tsx",
+      "type": "page",
+      "role": "App router / page",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getCollection"
+            ]
+          },
+          {
+            "path": "components/opengraph-image",
+            "value": "components/opengraph-image",
+            "type": "esm",
+            "imported": [
+              "OpengraphImage"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        }
+      ]
+    },
+    {
+      "path": "app\\search\\[collection]\\page.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 6,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getCollection",
+              "getCollectionProducts"
+            ]
+          },
+          {
+            "path": "next",
+            "value": "next",
+            "type": "esm",
+            "imported": [
+              "Metadata"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "notFound"
+            ]
+          },
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "defaultSort",
+              "sorting"
+            ]
+          },
+          {
+            "path": "components/grid",
+            "value": "components/grid",
+            "type": "esm",
+            "imported": [
+              "Grid"
+            ]
+          },
+          {
+            "path": "components/layout/product-grid-items",
+            "value": "components/layout/product-grid-items",
+            "type": "esm",
+            "imported": [
+              "ProductGridItems"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        }
+      ]
+    },
+    {
+      "path": "app\\sitemap.ts",
+      "type": "page",
+      "role": "App router / page",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 3,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getCollections",
+              "getPages",
+              "getProducts"
+            ]
+          },
+          {
+            "path": "lib/utils",
+            "value": "lib/utils",
+            "type": "esm",
+            "imported": [
+              "baseUrl",
+              "validateEnvironmentVariables"
+            ]
+          },
+          {
+            "path": "next",
+            "value": "next",
+            "type": "esm",
+            "imported": [
+              "MetadataRoute"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 2,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        },
+        {
+          "type": "es_named",
+          "name": "dynamic",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "app\\[page]\\layout.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "components/layout/footer",
+            "value": "components/layout/footer",
+            "type": "esm",
+            "imported": [
+              "Footer"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "app\\[page]\\opengraph-image.tsx",
+      "type": "page",
+      "role": "App router / page",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getPage"
+            ]
+          },
+          {
+            "path": "components/opengraph-image",
+            "value": "components/opengraph-image",
+            "type": "esm",
+            "imported": [
+              "OpengraphImage"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        }
+      ]
+    },
+    {
+      "path": "app\\[page]\\page.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [],
+        "items": [
+          {
+            "path": "next",
+            "value": "next",
+            "type": "esm",
+            "imported": [
+              "Metadata"
+            ]
+          },
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getPage"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "notFound"
+            ]
+          },
+          {
+            "path": "components/prose",
+            "value": "components/prose",
+            "type": "esm",
+            "imported": [
+              "Prose"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        }
+      ]
+    },
+    {
+      "path": "components\\carousel.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 3,
+        "files": [
+          "components/grid/tile.tsx"
+        ],
+        "items": [
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getCollectionProducts"
+            ]
+          },
+          {
+            "path": "./grid/tile",
+            "value": "./grid/tile",
+            "type": "esm",
+            "imported": [
+              "GridTileImage"
+            ],
+            "resolvedPath": "components/grid/tile.tsx"
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\cart\\actions.ts",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 5,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "TAGS"
+            ]
+          },
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "addToCart",
+              "createCart",
+              "getCart",
+              "removeFromCart",
+              "updateCart"
+            ]
+          },
+          {
+            "path": "next/cache",
+            "value": "next/cache",
+            "type": "esm",
+            "imported": [
+              "updateTag"
+            ]
+          },
+          {
+            "path": "next/headers",
+            "value": "next/headers",
+            "type": "esm",
+            "imported": [
+              "cookies"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "redirect"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/cart/modal.tsx"
+      ],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\cart\\add-to-cart.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 7,
+        "files": [
+          "components/cart/cart-context.tsx"
+        ],
+        "items": [
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "PlusIcon"
+            ]
+          },
+          {
+            "path": "components/cart/actions",
+            "value": "components/cart/actions",
+            "type": "esm",
+            "imported": [
+              "addItem"
+            ]
+          },
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Product",
+              "ProductVariant"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "useSearchParams"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "useActionState"
+            ]
+          },
+          {
+            "path": "./cart-context",
+            "value": "./cart-context",
+            "type": "esm",
+            "imported": [
+              "useCart"
+            ],
+            "resolvedPath": "components/cart/cart-context.tsx"
+          },
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "AddToCart",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\cart\\cart-context.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Cart",
+              "CartItem",
+              "Product",
+              "ProductVariant"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "React",
+              "createContext",
+              "use",
+              "useContext",
+              "useMemo",
+              "useOptimistic"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/cart/add-to-cart.tsx",
+        "components/cart/modal.tsx"
+      ],
+      "exportsCount": 2,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "CartProvider",
+          "kind": "function"
+        },
+        {
+          "type": "es_named",
+          "name": "useCart",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\cart\\delete-item-button.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "CartItem"
+            ]
+          },
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "XMarkIcon"
+            ]
+          },
+          {
+            "path": "components/cart/actions",
+            "value": "components/cart/actions",
+            "type": "esm",
+            "imported": [
+              "removeItem"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "useActionState"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/cart/modal.tsx"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "DeleteItemButton",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\cart\\edit-item-quantity-button.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 5,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "CartItem"
+            ]
+          },
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "MinusIcon",
+              "PlusIcon"
+            ]
+          },
+          {
+            "path": "components/cart/actions",
+            "value": "components/cart/actions",
+            "type": "esm",
+            "imported": [
+              "updateItemQuantity"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "useActionState"
+            ]
+          },
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/cart/modal.tsx"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "EditItemQuantityButton",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\cart\\modal.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 16,
+        "files": [
+          "components/cart/actions.ts",
+          "components/cart/cart-context.tsx",
+          "components/cart/delete-item-button.tsx",
+          "components/cart/edit-item-quantity-button.tsx",
+          "components/cart/open-cart.tsx"
+        ],
+        "items": [
+          {
+            "path": "@headlessui/react",
+            "value": "@headlessui/react",
+            "type": "esm",
+            "imported": [
+              "Dialog",
+              "Transition"
+            ]
+          },
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "ShoppingCartIcon",
+              "XMarkIcon"
+            ]
+          },
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "DEFAULT_OPTION"
+            ]
+          },
+          {
+            "path": "lib/utils",
+            "value": "lib/utils",
+            "type": "esm",
+            "imported": [
+              "createUrl"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Fragment",
+              "useEffect",
+              "useRef",
+              "useState"
+            ]
+          },
+          {
+            "path": "react-dom",
+            "value": "react-dom",
+            "type": "esm",
+            "imported": [
+              "useFormStatus"
+            ]
+          },
+          {
+            "path": "./actions",
+            "value": "./actions",
+            "type": "esm",
+            "imported": [
+              "createCartAndSetCookie",
+              "redirectToCheckout"
+            ],
+            "resolvedPath": "components/cart/actions.ts"
+          },
+          {
+            "path": "./cart-context",
+            "value": "./cart-context",
+            "type": "esm",
+            "imported": [
+              "useCart"
+            ],
+            "resolvedPath": "components/cart/cart-context.tsx"
+          },
+          {
+            "path": "./delete-item-button",
+            "value": "./delete-item-button",
+            "type": "esm",
+            "imported": [
+              "DeleteItemButton"
+            ],
+            "resolvedPath": "components/cart/delete-item-button.tsx"
+          },
+          {
+            "path": "./edit-item-quantity-button",
+            "value": "./edit-item-quantity-button",
+            "type": "esm",
+            "imported": [
+              "EditItemQuantityButton"
+            ],
+            "resolvedPath": "components/cart/edit-item-quantity-button.tsx"
+          },
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          },
+          {
+            "path": "components/loading-dots",
+            "value": "components/loading-dots",
+            "type": "esm",
+            "imported": [
+              "LoadingDots"
+            ]
+          },
+          {
+            "path": "components/price",
+            "value": "components/price",
+            "type": "esm",
+            "imported": [
+              "Price"
+            ]
+          },
+          {
+            "path": "next/image",
+            "value": "next/image",
+            "type": "esm",
+            "imported": [
+              "Image"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          },
+          {
+            "path": "./open-cart",
+            "value": "./open-cart",
+            "type": "esm",
+            "imported": [
+              "OpenCart"
+            ],
+            "resolvedPath": "components/cart/open-cart.tsx"
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\cart\\open-cart.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [],
+        "items": [
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "ShoppingCartIcon"
+            ]
+          },
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/cart/modal.tsx"
+      ],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\grid\\index.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "Grid",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\grid\\three-items.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Product"
+            ]
+          },
+          {
+            "path": "components/grid/tile",
+            "value": "components/grid/tile",
+            "type": "esm",
+            "imported": [
+              "GridTileImage"
+            ]
+          },
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getCollectionProducts"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\grid\\tile.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 3,
+        "files": [
+          "components/label.tsx"
+        ],
+        "items": [
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          },
+          {
+            "path": "next/image",
+            "value": "next/image",
+            "type": "esm",
+            "imported": [
+              "Image"
+            ]
+          },
+          {
+            "path": "../label",
+            "value": "../label",
+            "type": "esm",
+            "imported": [
+              "Label"
+            ],
+            "resolvedPath": "components/label.tsx"
+          }
+        ]
+      },
+      "importedBy": [
+        "components/carousel.tsx"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "GridTileImage",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\icons\\logo.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/logo-square.tsx",
+        "components/opengraph-image.tsx"
+      ],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\label.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [
+          "components/price.tsx"
+        ],
+        "items": [
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          },
+          {
+            "path": "./price",
+            "value": "./price",
+            "type": "esm",
+            "imported": [
+              "Price"
+            ],
+            "resolvedPath": "components/price.tsx"
+          }
+        ]
+      },
+      "importedBy": [
+        "components/grid/tile.tsx"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "Label",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\layout\\footer-menu.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 5,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Menu"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "usePathname"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "useEffect",
+              "useState"
+            ]
+          },
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "FooterMenuItem",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\layout\\footer.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 5,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getMenu"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Suspense"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          },
+          {
+            "path": "components/layout/footer-menu",
+            "value": "components/layout/footer-menu",
+            "type": "esm",
+            "imported": [
+              "FooterMenu"
+            ]
+          },
+          {
+            "path": "components/logo-square",
+            "value": "components/logo-square",
+            "type": "esm",
+            "imported": [
+              "LogoSquare"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        }
+      ]
+    },
+    {
+      "path": "components\\layout\\navbar\\index.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 8,
+        "files": [
+          "components/layout/navbar/search.tsx",
+          "components/layout/navbar/mobile-menu.tsx"
+        ],
+        "items": [
+          {
+            "path": "./search",
+            "value": "./search",
+            "type": "esm",
+            "imported": [
+              "Search",
+              "SearchSkeleton"
+            ],
+            "resolvedPath": "components/layout/navbar/search.tsx"
+          },
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getMenu"
+            ]
+          },
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Menu"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Suspense"
+            ]
+          },
+          {
+            "path": "components/cart/modal",
+            "value": "components/cart/modal",
+            "type": "esm",
+            "imported": [
+              "CartModal"
+            ]
+          },
+          {
+            "path": "components/logo-square",
+            "value": "components/logo-square",
+            "type": "esm",
+            "imported": [
+              "LogoSquare"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          },
+          {
+            "path": "./mobile-menu",
+            "value": "./mobile-menu",
+            "type": "esm",
+            "imported": [
+              "MobileMenu"
+            ],
+            "resolvedPath": "components/layout/navbar/mobile-menu.tsx"
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\layout\\navbar\\mobile-menu.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 7,
+        "files": [
+          "components/layout/navbar/search.tsx"
+        ],
+        "items": [
+          {
+            "path": "./search",
+            "value": "./search",
+            "type": "esm",
+            "imported": [
+              "Search",
+              "SearchSkeleton"
+            ],
+            "resolvedPath": "components/layout/navbar/search.tsx"
+          },
+          {
+            "path": "@headlessui/react",
+            "value": "@headlessui/react",
+            "type": "esm",
+            "imported": [
+              "Dialog",
+              "Transition"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "usePathname",
+              "useSearchParams"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Fragment",
+              "Suspense",
+              "useEffect",
+              "useState"
+            ]
+          },
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "Bars3Icon",
+              "XMarkIcon"
+            ]
+          },
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Menu"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/layout/navbar/index.tsx"
+      ],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\layout\\navbar\\search.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 3,
+        "files": [],
+        "items": [
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "MagnifyingGlassIcon"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "useSearchParams"
+            ]
+          },
+          {
+            "path": "next/form",
+            "value": "next/form",
+            "type": "esm",
+            "imported": [
+              "Form"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/layout/navbar/index.tsx",
+        "components/layout/navbar/mobile-menu.tsx"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "SearchSkeleton",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\layout\\product-grid-items.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [],
+        "items": [
+          {
+            "path": "components/grid/tile",
+            "value": "components/grid/tile",
+            "type": "esm",
+            "imported": [
+              "GridTileImage"
+            ]
+          },
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Product"
+            ]
+          },
+          {
+            "path": "components/grid",
+            "value": "components/grid",
+            "type": "esm",
+            "imported": [
+              "Grid"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\layout\\search\\collections.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [
+          "components/layout/search/filter/index.tsx"
+        ],
+        "items": [
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Suspense"
+            ]
+          },
+          {
+            "path": "lib/shopify",
+            "value": "lib/shopify",
+            "type": "esm",
+            "imported": [
+              "getCollections"
+            ]
+          },
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          },
+          {
+            "path": "./filter",
+            "value": "./filter",
+            "type": "esm",
+            "imported": [
+              "FilterList"
+            ],
+            "resolvedPath": "components/layout/search/filter/index.tsx"
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\layout\\search\\filter\\dropdown.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 5,
+        "files": [
+          "components/layout/search/filter/index.tsx",
+          "components/layout/search/filter/item.tsx"
+        ],
+        "items": [
+          {
+            "path": ".",
+            "value": ".",
+            "type": "esm",
+            "imported": [
+              "ListItem"
+            ],
+            "resolvedPath": "components/layout/search/filter/index.tsx"
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "usePathname",
+              "useSearchParams"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "useEffect",
+              "useRef",
+              "useState"
+            ]
+          },
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "ChevronDownIcon"
+            ]
+          },
+          {
+            "path": "./item",
+            "value": "./item",
+            "type": "esm",
+            "imported": [
+              "FilterItem"
+            ],
+            "resolvedPath": "components/layout/search/filter/item.tsx"
+          }
+        ]
+      },
+      "importedBy": [
+        "components/layout/search/filter/index.tsx"
+      ],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\layout\\search\\filter\\index.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [
+          "components/layout/search/filter/item.tsx",
+          "components/layout/search/filter/dropdown.tsx"
+        ],
+        "items": [
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "SortFilterItem"
+            ]
+          },
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "Suspense"
+            ]
+          },
+          {
+            "path": "./item",
+            "value": "./item",
+            "type": "esm",
+            "imported": [
+              "FilterItem"
+            ],
+            "resolvedPath": "components/layout/search/filter/item.tsx"
+          },
+          {
+            "path": "./dropdown",
+            "value": "./dropdown",
+            "type": "esm",
+            "imported": [
+              "FilterItemDropdown"
+            ],
+            "resolvedPath": "components/layout/search/filter/dropdown.tsx"
+          }
+        ]
+      },
+      "importedBy": [
+        "components/layout/search/collections.tsx",
+        "components/layout/search/filter/dropdown.tsx",
+        "components/layout/search/filter/item.tsx"
+      ],
+      "exportsCount": 2,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "ListItem",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "PathFilterItem",
+          "kind": "type"
+        }
+      ]
+    },
+    {
+      "path": "components\\layout\\search\\filter\\item.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 6,
+        "files": [
+          "components/layout/search/filter/index.tsx"
+        ],
+        "items": [
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "SortFilterItem"
+            ]
+          },
+          {
+            "path": ".",
+            "value": ".",
+            "type": "esm",
+            "imported": [
+              "ListItem",
+              "PathFilterItem"
+            ],
+            "resolvedPath": "components/layout/search/filter/index.tsx"
+          },
+          {
+            "path": "lib/utils",
+            "value": "lib/utils",
+            "type": "esm",
+            "imported": [
+              "createUrl"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "usePathname",
+              "useSearchParams"
+            ]
+          },
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          },
+          {
+            "path": "next/link",
+            "value": "next/link",
+            "type": "esm",
+            "imported": [
+              "Link"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/layout/search/filter/dropdown.tsx",
+        "components/layout/search/filter/index.tsx"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "FilterItem",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\loading-dots.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "LoadingDots",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\logo-square.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [
+          "components/icons/logo.tsx"
+        ],
+        "items": [
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          },
+          {
+            "path": "./icons/logo",
+            "value": "./icons/logo",
+            "type": "esm",
+            "imported": [
+              "LogoIcon"
+            ],
+            "resolvedPath": "components/icons/logo.tsx"
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "components\\opengraph-image.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [
+          "components/icons/logo.tsx"
+        ],
+        "items": [
+          {
+            "path": "next/og",
+            "value": "next/og",
+            "type": "esm",
+            "imported": [
+              "ImageResponse"
+            ]
+          },
+          {
+            "path": "path",
+            "value": "path",
+            "type": "esm",
+            "imported": [
+              "join"
+            ]
+          },
+          {
+            "path": "fs/promises",
+            "value": "fs/promises",
+            "type": "esm",
+            "imported": [
+              "readFile"
+            ]
+          },
+          {
+            "path": "./icons/logo",
+            "value": "./icons/logo",
+            "type": "esm",
+            "imported": [
+              "LogoIcon"
+            ],
+            "resolvedPath": "components/icons/logo.tsx"
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 2,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "async",
+          "kind": "unknown"
+        },
+        {
+          "type": "es_named",
+          "name": "Props",
+          "kind": "type"
+        }
+      ]
+    },
+    {
+      "path": "components\\price.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/label.tsx"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "Price",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\product\\gallery.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 4,
+        "files": [],
+        "items": [
+          {
+            "path": "@heroicons/react/24/outline",
+            "value": "@heroicons/react/24/outline",
+            "type": "esm",
+            "imported": [
+              "ArrowLeftIcon",
+              "ArrowRightIcon"
+            ]
+          },
+          {
+            "path": "components/grid/tile",
+            "value": "components/grid/tile",
+            "type": "esm",
+            "imported": [
+              "GridTileImage"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "useRouter",
+              "useSearchParams"
+            ]
+          },
+          {
+            "path": "next/image",
+            "value": "next/image",
+            "type": "esm",
+            "imported": [
+              "Image"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "Gallery",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\product\\product-description.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 5,
+        "files": [
+          "components/product/variant-selector.tsx"
+        ],
+        "items": [
+          {
+            "path": "components/cart/add-to-cart",
+            "value": "components/cart/add-to-cart",
+            "type": "esm",
+            "imported": [
+              "AddToCart"
+            ]
+          },
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "Product"
+            ]
+          },
+          {
+            "path": "./variant-selector",
+            "value": "./variant-selector",
+            "type": "esm",
+            "imported": [
+              "VariantSelector"
+            ],
+            "resolvedPath": "components/product/variant-selector.tsx"
+          },
+          {
+            "path": "components/price",
+            "value": "components/price",
+            "type": "esm",
+            "imported": [
+              "Price"
+            ]
+          },
+          {
+            "path": "components/prose",
+            "value": "components/prose",
+            "type": "esm",
+            "imported": [
+              "Prose"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "ProductDescription",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\product\\variant-selector.tsx",
+      "type": "route",
+      "role": "API route handler",
+      "category": "frontend",
+      "behavior": "api",
+      "routes": [],
+      "imports": {
+        "count": 3,
+        "files": [],
+        "items": [
+          {
+            "path": "lib/shopify/types",
+            "value": "lib/shopify/types",
+            "type": "esm",
+            "imported": [
+              "ProductOption",
+              "ProductVariant"
+            ]
+          },
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "useRouter",
+              "useSearchParams"
+            ]
+          },
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [
+        "components/product/product-description.tsx"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "VariantSelector",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\prose.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "clsx",
+            "value": "clsx",
+            "type": "esm",
+            "imported": [
+              "clsx"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "Prose",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "components\\welcome-toast.tsx",
+      "type": "component",
+      "role": "UI component",
+      "category": "frontend",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [],
+        "items": [
+          {
+            "path": "react",
+            "value": "react",
+            "type": "esm",
+            "imported": [
+              "useEffect"
+            ]
+          },
+          {
+            "path": "sonner",
+            "value": "sonner",
+            "type": "esm",
+            "imported": [
+              "toast"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "WelcomeToast",
+          "kind": "function"
+        }
+      ]
+    },
+    {
+      "path": "lib\\constants.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 7,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "defaultSort",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "sorting",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "TAGS",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "HIDDEN_PRODUCT_TAG",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "DEFAULT_OPTION",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "SHOPIFY_GRAPHQL_API_ENDPOINT",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "SortFilterItem",
+          "kind": "type"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\fragments\\cart.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [
+          "lib/shopify/fragments/product.ts"
+        ],
+        "items": [
+          {
+            "path": "./product",
+            "value": "./product",
+            "type": "esm",
+            "imported": [
+              "productFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/product.ts"
+          }
+        ]
+      },
+      "importedBy": [
+        "lib/shopify/mutations/cart.ts",
+        "lib/shopify/queries/cart.ts"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "cartFragment",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\fragments\\image.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [
+        "lib/shopify/fragments/product.ts"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "imageFragment",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\fragments\\product.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [
+          "lib/shopify/fragments/image.ts",
+          "lib/shopify/fragments/seo.ts"
+        ],
+        "items": [
+          {
+            "path": "./image",
+            "value": "./image",
+            "type": "esm",
+            "imported": [
+              "imageFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/image.ts"
+          },
+          {
+            "path": "./seo",
+            "value": "./seo",
+            "type": "esm",
+            "imported": [
+              "seoFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/seo.ts"
+          }
+        ]
+      },
+      "importedBy": [
+        "lib/shopify/fragments/cart.ts",
+        "lib/shopify/queries/collection.ts",
+        "lib/shopify/queries/product.ts"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "productFragment",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\fragments\\seo.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [
+        "lib/shopify/fragments/product.ts",
+        "lib/shopify/queries/collection.ts",
+        "lib/shopify/queries/page.ts"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_default",
+          "name": "seoFragment",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\index.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 13,
+        "files": [
+          "lib/shopify/mutations/cart.ts",
+          "lib/shopify/queries/cart.ts",
+          "lib/shopify/queries/collection.ts",
+          "lib/shopify/queries/menu.ts",
+          "lib/shopify/queries/page.ts",
+          "lib/shopify/queries/product.ts",
+          "lib/shopify/types.ts"
+        ],
+        "items": [
+          {
+            "path": "lib/constants",
+            "value": "lib/constants",
+            "type": "esm",
+            "imported": [
+              "HIDDEN_PRODUCT_TAG",
+              "SHOPIFY_GRAPHQL_API_ENDPOINT",
+              "TAGS"
+            ]
+          },
+          {
+            "path": "lib/type-guards",
+            "value": "lib/type-guards",
+            "type": "esm",
+            "imported": [
+              "isShopifyError"
+            ]
+          },
+          {
+            "path": "lib/utils",
+            "value": "lib/utils",
+            "type": "esm",
+            "imported": [
+              "ensureStartsWith"
+            ]
+          },
+          {
+            "path": "next/cache",
+            "value": "next/cache",
+            "type": "esm",
+            "imported": [
+              "unstable_cacheLife as cacheLife",
+              "unstable_cacheTag as cacheTag",
+              "revalidateTag"
+            ]
+          },
+          {
+            "path": "next/headers",
+            "value": "next/headers",
+            "type": "esm",
+            "imported": [
+              "cookies",
+              "headers"
+            ]
+          },
+          {
+            "path": "next/server",
+            "value": "next/server",
+            "type": "esm",
+            "imported": [
+              "NextRequest",
+              "NextResponse"
+            ]
+          },
+          {
+            "path": "./mutations/cart",
+            "value": "./mutations/cart",
+            "type": "esm",
+            "imported": [
+              "addToCartMutation",
+              "createCartMutation",
+              "editCartItemsMutation",
+              "removeFromCartMutation"
+            ],
+            "resolvedPath": "lib/shopify/mutations/cart.ts"
+          },
+          {
+            "path": "./queries/cart",
+            "value": "./queries/cart",
+            "type": "esm",
+            "imported": [
+              "getCartQuery"
+            ],
+            "resolvedPath": "lib/shopify/queries/cart.ts"
+          },
+          {
+            "path": "./queries/collection",
+            "value": "./queries/collection",
+            "type": "esm",
+            "imported": [
+              "getCollectionProductsQuery",
+              "getCollectionQuery",
+              "getCollectionsQuery"
+            ],
+            "resolvedPath": "lib/shopify/queries/collection.ts"
+          },
+          {
+            "path": "./queries/menu",
+            "value": "./queries/menu",
+            "type": "esm",
+            "imported": [
+              "getMenuQuery"
+            ],
+            "resolvedPath": "lib/shopify/queries/menu.ts"
+          },
+          {
+            "path": "./queries/page",
+            "value": "./queries/page",
+            "type": "esm",
+            "imported": [
+              "getPageQuery",
+              "getPagesQuery"
+            ],
+            "resolvedPath": "lib/shopify/queries/page.ts"
+          },
+          {
+            "path": "./queries/product",
+            "value": "./queries/product",
+            "type": "esm",
+            "imported": [
+              "getProductQuery",
+              "getProductRecommendationsQuery",
+              "getProductsQuery"
+            ],
+            "resolvedPath": "lib/shopify/queries/product.ts"
+          },
+          {
+            "path": "./types",
+            "value": "./types",
+            "type": "esm",
+            "imported": [
+              "Cart",
+              "Collection",
+              "Connection",
+              "Image",
+              "Menu",
+              "Page",
+              "Product",
+              "ShopifyAddToCartOperation",
+              "ShopifyCart",
+              "ShopifyCartOperation",
+              "ShopifyCollection",
+              "ShopifyCollectionOperation",
+              "ShopifyCollectionProductsOperation",
+              "ShopifyCollectionsOperation",
+              "ShopifyCreateCartOperation",
+              "ShopifyMenuOperation",
+              "ShopifyPageOperation",
+              "ShopifyPagesOperation",
+              "ShopifyProduct",
+              "ShopifyProductOperation",
+              "ShopifyProductRecommendationsOperation",
+              "ShopifyProductsOperation",
+              "ShopifyRemoveFromCartOperation",
+              "ShopifyUpdateCartOperation"
+            ],
+            "resolvedPath": "lib/shopify/types.ts"
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "lib\\shopify\\mutations\\cart.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [
+          "lib/shopify/fragments/cart.ts"
+        ],
+        "items": [
+          {
+            "path": "../fragments/cart",
+            "value": "../fragments/cart",
+            "type": "esm",
+            "imported": [
+              "cartFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/cart.ts"
+          }
+        ]
+      },
+      "importedBy": [
+        "lib/shopify/index.ts"
+      ],
+      "exportsCount": 4,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "addToCartMutation",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "createCartMutation",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "editCartItemsMutation",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "removeFromCartMutation",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\queries\\cart.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [
+          "lib/shopify/fragments/cart.ts"
+        ],
+        "items": [
+          {
+            "path": "../fragments/cart",
+            "value": "../fragments/cart",
+            "type": "esm",
+            "imported": [
+              "cartFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/cart.ts"
+          }
+        ]
+      },
+      "importedBy": [
+        "lib/shopify/index.ts"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "getCartQuery",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\queries\\collection.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 2,
+        "files": [
+          "lib/shopify/fragments/product.ts",
+          "lib/shopify/fragments/seo.ts"
+        ],
+        "items": [
+          {
+            "path": "../fragments/product",
+            "value": "../fragments/product",
+            "type": "esm",
+            "imported": [
+              "productFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/product.ts"
+          },
+          {
+            "path": "../fragments/seo",
+            "value": "../fragments/seo",
+            "type": "esm",
+            "imported": [
+              "seoFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/seo.ts"
+          }
+        ]
+      },
+      "importedBy": [
+        "lib/shopify/index.ts"
+      ],
+      "exportsCount": 3,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "getCollectionQuery",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "getCollectionsQuery",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "getCollectionProductsQuery",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\queries\\menu.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [
+        "lib/shopify/index.ts"
+      ],
+      "exportsCount": 1,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "getMenuQuery",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\queries\\page.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [
+          "lib/shopify/fragments/seo.ts"
+        ],
+        "items": [
+          {
+            "path": "../fragments/seo",
+            "value": "../fragments/seo",
+            "type": "esm",
+            "imported": [
+              "seoFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/seo.ts"
+          }
+        ]
+      },
+      "importedBy": [
+        "lib/shopify/index.ts"
+      ],
+      "exportsCount": 2,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "getPageQuery",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "getPagesQuery",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\queries\\product.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [
+          "lib/shopify/fragments/product.ts"
+        ],
+        "items": [
+          {
+            "path": "../fragments/product",
+            "value": "../fragments/product",
+            "type": "esm",
+            "imported": [
+              "productFragment"
+            ],
+            "resolvedPath": "lib/shopify/fragments/product.ts"
+          }
+        ]
+      },
+      "importedBy": [
+        "lib/shopify/index.ts"
+      ],
+      "exportsCount": 3,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "getProductQuery",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "getProductsQuery",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "getProductRecommendationsQuery",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "lib\\shopify\\types.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [
+        "lib/shopify/index.ts"
+      ],
+      "exportsCount": 32,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "Maybe",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Connection",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Edge",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Cart",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "CartProduct",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "CartItem",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Collection",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Image",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Menu",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Money",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Page",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "Product",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ProductOption",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ProductVariant",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "SEO",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyCart",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyCollection",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyProduct",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyCartOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyCreateCartOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyAddToCartOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyRemoveFromCartOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyUpdateCartOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyCollectionOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyCollectionProductsOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyCollectionsOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyMenuOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyPageOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyPagesOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyProductOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyProductRecommendationsOperation",
+          "kind": "type"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyProductsOperation",
+          "kind": "type"
+        }
+      ]
+    },
+    {
+      "path": "lib\\type-guards.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "ui",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 3,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "isObject",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "isShopifyError",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "ShopifyErrorLike",
+          "kind": "interface"
+        }
+      ]
+    },
+    {
+      "path": "lib\\utils.ts",
+      "type": "utility",
+      "role": "Library / shared code",
+      "category": "shared",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 1,
+        "files": [],
+        "items": [
+          {
+            "path": "next/navigation",
+            "value": "next/navigation",
+            "type": "esm",
+            "imported": [
+              "ReadonlyURLSearchParams"
+            ]
+          }
+        ]
+      },
+      "importedBy": [],
+      "exportsCount": 4,
+      "exports": [
+        {
+          "type": "es_named",
+          "name": "baseUrl",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "createUrl",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "ensureStartsWith",
+          "kind": "const"
+        },
+        {
+          "type": "es_named",
+          "name": "validateEnvironmentVariables",
+          "kind": "const"
+        }
+      ]
+    },
+    {
+      "path": "license.md",
+      "type": "docs",
+      "role": "Documentation",
+      "category": "documentation",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "next.config.ts",
+      "type": "config",
+      "role": "Build/lint config",
+      "category": "infrastructure",
+      "behavior": "config",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "package.json",
+      "type": "manifest",
+      "role": "Package manifest",
+      "category": "infrastructure",
+      "behavior": "config",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "postcss.config.mjs",
+      "type": "config",
+      "role": "Build/lint config",
+      "category": "infrastructure",
+      "behavior": "config",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "README.md",
+      "type": "docs",
+      "role": "Documentation",
+      "category": "documentation",
+      "behavior": "logic",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    },
+    {
+      "path": "tsconfig.json",
+      "type": "config",
+      "role": "TypeScript/JS project config",
+      "category": "infrastructure",
+      "behavior": "config",
+      "routes": [],
+      "imports": {
+        "count": 0,
+        "files": [],
+        "items": []
+      },
+      "importedBy": [],
+      "exportsCount": 0,
+      "exports": []
+    }
+  ]
+}

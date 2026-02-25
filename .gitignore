@@ -1,0 +1,8 @@
+# gitignore
+
+# mention the files and folders that you want git to ignore here
+
+node_modules/
+dist/
+.env
+.DS_Store

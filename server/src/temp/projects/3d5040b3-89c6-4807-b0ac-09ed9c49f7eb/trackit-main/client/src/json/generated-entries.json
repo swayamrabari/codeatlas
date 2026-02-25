@@ -1,0 +1,3425 @@
+[
+  {
+    "id": 28,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 507.31,
+    "date": "2024-10-01"
+  },
+  {
+    "id": 32,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 2853.61,
+    "date": "2024-10-01"
+  },
+  {
+    "id": 29,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 1163.73,
+    "date": "2024-10-03"
+  },
+  {
+    "id": 35,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 750.92,
+    "date": "2024-10-03"
+  },
+  {
+    "id": 5,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 6453.28,
+    "date": "2024-10-04"
+  },
+  {
+    "id": 16,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 4775.54,
+    "date": "2024-10-07"
+  },
+  {
+    "id": 21,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 1751.53,
+    "date": "2024-10-08"
+  },
+  {
+    "id": 7,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 3506.67,
+    "date": "2024-10-11"
+  },
+  {
+    "id": 6,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 5552.67,
+    "date": "2024-10-13"
+  },
+  {
+    "id": 10,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 4925.71,
+    "date": "2024-10-13"
+  },
+  {
+    "id": 20,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 1335.91,
+    "date": "2024-10-13"
+  },
+  {
+    "id": 1,
+    "type": "income",
+    "category": "salary",
+    "amount": 66957.77,
+    "date": "2024-10-14"
+  },
+  {
+    "id": 14,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1804.37,
+    "date": "2024-10-14"
+  },
+  {
+    "id": 3,
+    "type": "income",
+    "category": "commission",
+    "amount": 19619.68,
+    "date": "2024-10-15"
+  },
+  {
+    "id": 8,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 3956.86,
+    "date": "2024-10-17"
+  },
+  {
+    "id": 26,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 3667.49,
+    "date": "2024-10-17"
+  },
+  {
+    "id": 31,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 5238.47,
+    "date": "2024-10-18"
+  },
+  {
+    "id": 11,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 3223.09,
+    "date": "2024-10-19"
+  },
+  {
+    "id": 23,
+    "type": "investment",
+    "category": "gold",
+    "amount": 1531.01,
+    "date": "2024-10-20"
+  },
+  {
+    "id": 30,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 511.24,
+    "date": "2024-10-20"
+  },
+  {
+    "id": 12,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 4925.79,
+    "date": "2024-10-22"
+  },
+  {
+    "id": 34,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 1012.15,
+    "date": "2024-10-22"
+  },
+  {
+    "id": 33,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 1881.9,
+    "date": "2024-10-23"
+  },
+  {
+    "id": 4,
+    "type": "income",
+    "category": "dividends",
+    "amount": 3332.23,
+    "date": "2024-10-24"
+  },
+  {
+    "id": 17,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 5245.86,
+    "date": "2024-10-24"
+  },
+  {
+    "id": 24,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 4954.08,
+    "date": "2024-10-24"
+  },
+  {
+    "id": 27,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 3229.46,
+    "date": "2024-10-24"
+  },
+  {
+    "id": 13,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 862.92,
+    "date": "2024-10-25"
+  },
+  {
+    "id": 22,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 7450.343600000028,
+    "date": "2024-10-25"
+  },
+  {
+    "id": 2,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 12316.09,
+    "date": "2024-10-27"
+  },
+  {
+    "id": 15,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 3597.33,
+    "date": "2024-10-28"
+  },
+  {
+    "id": 19,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 493.34,
+    "date": "2024-10-28"
+  },
+  {
+    "id": 18,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 3488.68,
+    "date": "2024-10-29"
+  },
+  {
+    "id": 25,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 5410.87,
+    "date": "2024-10-29"
+  },
+  {
+    "id": 9,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 6163.63,
+    "date": "2024-10-31"
+  },
+  {
+    "id": 42,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 2843.78,
+    "date": "2024-11-01"
+  },
+  {
+    "id": 43,
+    "type": "expense",
+    "category": "travel",
+    "amount": 3889.48,
+    "date": "2024-11-01"
+  },
+  {
+    "id": 38,
+    "type": "income",
+    "category": "commission",
+    "amount": 16519.74,
+    "date": "2024-11-03"
+  },
+  {
+    "id": 51,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 737.05,
+    "date": "2024-11-06"
+  },
+  {
+    "id": 69,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 4344.861471999999,
+    "date": "2024-11-06"
+  },
+  {
+    "id": 63,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 914.3761280000003,
+    "date": "2024-11-07"
+  },
+  {
+    "id": 47,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 6407.46,
+    "date": "2024-11-10"
+  },
+  {
+    "id": 58,
+    "type": "investment",
+    "category": "gold",
+    "amount": 5592.53,
+    "date": "2024-11-10"
+  },
+  {
+    "id": 60,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 3926.69,
+    "date": "2024-11-11"
+  },
+  {
+    "id": 44,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 3097.63,
+    "date": "2024-11-12"
+  },
+  {
+    "id": 54,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 4442.97,
+    "date": "2024-11-13"
+  },
+  {
+    "id": 57,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 4975.262400000014,
+    "date": "2024-11-13"
+  },
+  {
+    "id": 66,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 3431.9,
+    "date": "2024-11-13"
+  },
+  {
+    "id": 55,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 2630.7,
+    "date": "2024-11-14"
+  },
+  {
+    "id": 52,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 4359.25,
+    "date": "2024-11-16"
+  },
+  {
+    "id": 45,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 3583.79,
+    "date": "2024-11-17"
+  },
+  {
+    "id": 59,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 4020.31,
+    "date": "2024-11-17"
+  },
+  {
+    "id": 65,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 3971.29,
+    "date": "2024-11-17"
+  },
+  {
+    "id": 67,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 1170.07,
+    "date": "2024-11-17"
+  },
+  {
+    "id": 39,
+    "type": "income",
+    "category": "interest earned",
+    "amount": 1672.61,
+    "date": "2024-11-18"
+  },
+  {
+    "id": 68,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 937.68,
+    "date": "2024-11-19"
+  },
+  {
+    "id": 41,
+    "type": "expense",
+    "category": "rent",
+    "amount": 3854.02,
+    "date": "2024-11-20"
+  },
+  {
+    "id": 61,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 1641.2,
+    "date": "2024-11-20"
+  },
+  {
+    "id": 48,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 5246.98,
+    "date": "2024-11-22"
+  },
+  {
+    "id": 62,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 3315.39,
+    "date": "2024-11-22"
+  },
+  {
+    "id": 40,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 4537.81,
+    "date": "2024-11-23"
+  },
+  {
+    "id": 53,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 2006.73,
+    "date": "2024-11-23"
+  },
+  {
+    "id": 46,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 401.03,
+    "date": "2024-11-25"
+  },
+  {
+    "id": 49,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 2658.16,
+    "date": "2024-11-25"
+  },
+  {
+    "id": 37,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 25969.14,
+    "date": "2024-11-26"
+  },
+  {
+    "id": 50,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 6401.43,
+    "date": "2024-11-26"
+  },
+  {
+    "id": 56,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 3035.05,
+    "date": "2024-11-26"
+  },
+  {
+    "id": 36,
+    "type": "income",
+    "category": "salary",
+    "amount": 57570.67,
+    "date": "2024-11-27"
+  },
+  {
+    "id": 64,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 3357.28,
+    "date": "2024-11-27"
+  },
+  {
+    "id": 72,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 23360.81,
+    "date": "2024-12-03"
+  },
+  {
+    "id": 90,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 753.97,
+    "date": "2024-12-03"
+  },
+  {
+    "id": 99,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 4611.49,
+    "date": "2024-12-03"
+  },
+  {
+    "id": 105,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 309.99,
+    "date": "2024-12-03"
+  },
+  {
+    "id": 93,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 3400.75,
+    "date": "2024-12-05"
+  },
+  {
+    "id": 81,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 7080.82,
+    "date": "2024-12-06"
+  },
+  {
+    "id": 85,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 6207.03,
+    "date": "2024-12-06"
+  },
+  {
+    "id": 86,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 7034.88,
+    "date": "2024-12-06"
+  },
+  {
+    "id": 75,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 573.42,
+    "date": "2024-12-08"
+  },
+  {
+    "id": 84,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 5533.62,
+    "date": "2024-12-08"
+  },
+  {
+    "id": 91,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1038.81,
+    "date": "2024-12-08"
+  },
+  {
+    "id": 102,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 3914.46,
+    "date": "2024-12-08"
+  },
+  {
+    "id": 71,
+    "type": "income",
+    "category": "freelance",
+    "amount": 19767.71,
+    "date": "2024-12-10"
+  },
+  {
+    "id": 88,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 4269.07,
+    "date": "2024-12-10"
+  },
+  {
+    "id": 73,
+    "type": "income",
+    "category": "dividends",
+    "amount": 3778.53,
+    "date": "2024-12-11"
+  },
+  {
+    "id": 78,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 4196.2,
+    "date": "2024-12-11"
+  },
+  {
+    "id": 94,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 2343.47,
+    "date": "2024-12-11"
+  },
+  {
+    "id": 92,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 1869.67,
+    "date": "2024-12-13"
+  },
+  {
+    "id": 77,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 2048.41,
+    "date": "2024-12-14"
+  },
+  {
+    "id": 82,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 3032.42,
+    "date": "2024-12-14"
+  },
+  {
+    "id": 83,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 2317.76,
+    "date": "2024-12-15"
+  },
+  {
+    "id": 100,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 4478.01,
+    "date": "2024-12-15"
+  },
+  {
+    "id": 104,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 1373.05,
+    "date": "2024-12-16"
+  },
+  {
+    "id": 101,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 5049.02,
+    "date": "2024-12-18"
+  },
+  {
+    "id": 76,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 1927.64,
+    "date": "2024-12-20"
+  },
+  {
+    "id": 87,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 5775.63,
+    "date": "2024-12-20"
+  },
+  {
+    "id": 96,
+    "type": "investment",
+    "category": "cryptocurrency",
+    "amount": 1256.86,
+    "date": "2024-12-20"
+  },
+  {
+    "id": 103,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 1028.81,
+    "date": "2024-12-20"
+  },
+  {
+    "id": 74,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 2818.66,
+    "date": "2024-12-21"
+  },
+  {
+    "id": 97,
+    "type": "investment",
+    "category": "cryptocurrency",
+    "amount": 2063.18,
+    "date": "2024-12-22"
+  },
+  {
+    "id": 70,
+    "type": "income",
+    "category": "salary",
+    "amount": 56093.09,
+    "date": "2024-12-24"
+  },
+  {
+    "id": 79,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 4876.76,
+    "date": "2024-12-24"
+  },
+  {
+    "id": 95,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 2956.8,
+    "date": "2024-12-24"
+  },
+  {
+    "id": 98,
+    "type": "investment",
+    "category": "cryptocurrency",
+    "amount": 4294.162175999998,
+    "date": "2024-12-24"
+  },
+  {
+    "id": 89,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 3626.53,
+    "date": "2024-12-25"
+  },
+  {
+    "id": 80,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 938.79,
+    "date": "2024-12-26"
+  },
+  {
+    "id": 132,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 2516.66,
+    "date": "2025-01-01"
+  },
+  {
+    "id": 121,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 3601.19,
+    "date": "2025-01-02"
+  },
+  {
+    "id": 124,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1664.09,
+    "date": "2025-01-02"
+  },
+  {
+    "id": 130,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 1011.99,
+    "date": "2025-01-02"
+  },
+  {
+    "id": 138,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 2674.6,
+    "date": "2025-01-05"
+  },
+  {
+    "id": 110,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 4500.33,
+    "date": "2025-01-07"
+  },
+  {
+    "id": 109,
+    "type": "income",
+    "category": "interest earned",
+    "amount": 4397.36,
+    "date": "2025-01-08"
+  },
+  {
+    "id": 135,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 3202.07,
+    "date": "2025-01-08"
+  },
+  {
+    "id": 107,
+    "type": "income",
+    "category": "freelance",
+    "amount": 18821.8,
+    "date": "2025-01-09"
+  },
+  {
+    "id": 120,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 2684.68,
+    "date": "2025-01-10"
+  },
+  {
+    "id": 108,
+    "type": "income",
+    "category": "dividends",
+    "amount": 2313.55,
+    "date": "2025-01-11"
+  },
+  {
+    "id": 133,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 2006.2312189999975,
+    "date": "2025-01-11"
+  },
+  {
+    "id": 136,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 6285.19,
+    "date": "2025-01-11"
+  },
+  {
+    "id": 114,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 4938.57,
+    "date": "2025-01-12"
+  },
+  {
+    "id": 126,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 4446.56,
+    "date": "2025-01-12"
+  },
+  {
+    "id": 129,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 4152.79,
+    "date": "2025-01-12"
+  },
+  {
+    "id": 112,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 4876.86,
+    "date": "2025-01-15"
+  },
+  {
+    "id": 125,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 2018.09,
+    "date": "2025-01-15"
+  },
+  {
+    "id": 117,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1227.32,
+    "date": "2025-01-17"
+  },
+  {
+    "id": 127,
+    "type": "expense",
+    "category": "travel",
+    "amount": 1839.8940999999986,
+    "date": "2025-01-17"
+  },
+  {
+    "id": 115,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 3763.42,
+    "date": "2025-01-18"
+  },
+  {
+    "id": 131,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 2929.35,
+    "date": "2025-01-18"
+  },
+  {
+    "id": 139,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 4323.294681000001,
+    "date": "2025-01-18"
+  },
+  {
+    "id": 116,
+    "type": "expense",
+    "category": "travel",
+    "amount": 2281.9,
+    "date": "2025-01-19"
+  },
+  {
+    "id": 118,
+    "type": "expense",
+    "category": "travel",
+    "amount": 3206.66,
+    "date": "2025-01-20"
+  },
+  {
+    "id": 111,
+    "type": "expense",
+    "category": "travel",
+    "amount": 2501.13,
+    "date": "2025-01-22"
+  },
+  {
+    "id": 123,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 2382.37,
+    "date": "2025-01-22"
+  },
+  {
+    "id": 134,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 2617.97,
+    "date": "2025-01-24"
+  },
+  {
+    "id": 137,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 1141.95,
+    "date": "2025-01-24"
+  },
+  {
+    "id": 106,
+    "type": "income",
+    "category": "salary",
+    "amount": 62451.1,
+    "date": "2025-01-25"
+  },
+  {
+    "id": 122,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 3745.66,
+    "date": "2025-01-25"
+  },
+  {
+    "id": 128,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 1451.59,
+    "date": "2025-01-29"
+  },
+  {
+    "id": 113,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 682.15,
+    "date": "2025-01-31"
+  },
+  {
+    "id": 119,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 3309.25,
+    "date": "2025-01-31"
+  },
+  {
+    "id": 143,
+    "type": "income",
+    "category": "bonus",
+    "amount": 26150.55,
+    "date": "2025-02-04"
+  },
+  {
+    "id": 147,
+    "type": "expense",
+    "category": "travel",
+    "amount": 4354.04,
+    "date": "2025-02-04"
+  },
+  {
+    "id": 153,
+    "type": "expense",
+    "category": "travel",
+    "amount": 7227.1,
+    "date": "2025-02-04"
+  },
+  {
+    "id": 151,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 5817.45,
+    "date": "2025-02-06"
+  },
+  {
+    "id": 144,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 3871.57,
+    "date": "2025-02-07"
+  },
+  {
+    "id": 163,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 2318.3,
+    "date": "2025-02-07"
+  },
+  {
+    "id": 142,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 32679.35,
+    "date": "2025-02-08"
+  },
+  {
+    "id": 161,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 831.94,
+    "date": "2025-02-08"
+  },
+  {
+    "id": 140,
+    "type": "income",
+    "category": "salary",
+    "amount": 56146.37,
+    "date": "2025-02-10"
+  },
+  {
+    "id": 159,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 1079.46,
+    "date": "2025-02-10"
+  },
+  {
+    "id": 150,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 4195.32,
+    "date": "2025-02-11"
+  },
+  {
+    "id": 157,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 4724.38,
+    "date": "2025-02-11"
+  },
+  {
+    "id": 172,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 5404.68,
+    "date": "2025-02-12"
+  },
+  {
+    "id": 168,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 7938.008464000002,
+    "date": "2025-02-13"
+  },
+  {
+    "id": 149,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 3523.53,
+    "date": "2025-02-14"
+  },
+  {
+    "id": 171,
+    "type": "savings",
+    "category": "vacation fund",
+    "amount": 3116.64,
+    "date": "2025-02-16"
+  },
+  {
+    "id": 173,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 1391.57,
+    "date": "2025-02-16"
+  },
+  {
+    "id": 146,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 5103.31,
+    "date": "2025-02-17"
+  },
+  {
+    "id": 165,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 1835.34,
+    "date": "2025-02-18"
+  },
+  {
+    "id": 166,
+    "type": "investment",
+    "category": "cryptocurrency",
+    "amount": 1418.34,
+    "date": "2025-02-18"
+  },
+  {
+    "id": 169,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 7270.44,
+    "date": "2025-02-18"
+  },
+  {
+    "id": 158,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 4540.36,
+    "date": "2025-02-19"
+  },
+  {
+    "id": 162,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 3137.03,
+    "date": "2025-02-19"
+  },
+  {
+    "id": 148,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 6572.44,
+    "date": "2025-02-20"
+  },
+  {
+    "id": 145,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 5250.58,
+    "date": "2025-02-21"
+  },
+  {
+    "id": 155,
+    "type": "expense",
+    "category": "rent",
+    "amount": 513.67,
+    "date": "2025-02-23"
+  },
+  {
+    "id": 154,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 2455.04,
+    "date": "2025-02-24"
+  },
+  {
+    "id": 167,
+    "type": "investment",
+    "category": "cryptocurrency",
+    "amount": 2547.36,
+    "date": "2025-02-24"
+  },
+  {
+    "id": 174,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 7987.730736000009,
+    "date": "2025-02-24"
+  },
+  {
+    "id": 141,
+    "type": "income",
+    "category": "freelance",
+    "amount": 22413.57,
+    "date": "2025-02-25"
+  },
+  {
+    "id": 152,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 4478.71,
+    "date": "2025-02-25"
+  },
+  {
+    "id": 156,
+    "type": "expense",
+    "category": "rent",
+    "amount": 4313.84,
+    "date": "2025-02-25"
+  },
+  {
+    "id": 160,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 13191.93,
+    "date": "2025-02-25"
+  },
+  {
+    "id": 164,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 5870.07,
+    "date": "2025-02-26"
+  },
+  {
+    "id": 170,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 5109.66,
+    "date": "2025-02-28"
+  },
+  {
+    "id": 179,
+    "type": "income",
+    "category": "interest earned",
+    "amount": 2416.22,
+    "date": "2025-03-02"
+  },
+  {
+    "id": 194,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 6574.07,
+    "date": "2025-03-02"
+  },
+  {
+    "id": 180,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 5028.43,
+    "date": "2025-03-03"
+  },
+  {
+    "id": 201,
+    "type": "investment",
+    "category": "gold",
+    "amount": 1459.51,
+    "date": "2025-03-04"
+  },
+  {
+    "id": 196,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 8342.34,
+    "date": "2025-03-05"
+  },
+  {
+    "id": 197,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 1833.0359999999855,
+    "date": "2025-03-05"
+  },
+  {
+    "id": 199,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 3245.86,
+    "date": "2025-03-05"
+  },
+  {
+    "id": 205,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 4996.15,
+    "date": "2025-03-05"
+  },
+  {
+    "id": 177,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 19330.95,
+    "date": "2025-03-06"
+  },
+  {
+    "id": 198,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 6015.94,
+    "date": "2025-03-06"
+  },
+  {
+    "id": 202,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 1333.87,
+    "date": "2025-03-06"
+  },
+  {
+    "id": 178,
+    "type": "income",
+    "category": "commission",
+    "amount": 9767.53,
+    "date": "2025-03-07"
+  },
+  {
+    "id": 185,
+    "type": "expense",
+    "category": "rent",
+    "amount": 4686.02,
+    "date": "2025-03-07"
+  },
+  {
+    "id": 175,
+    "type": "income",
+    "category": "salary",
+    "amount": 56885.78,
+    "date": "2025-03-09"
+  },
+  {
+    "id": 193,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 696.24,
+    "date": "2025-03-10"
+  },
+  {
+    "id": 188,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 4641.39,
+    "date": "2025-03-11"
+  },
+  {
+    "id": 182,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 1082.94,
+    "date": "2025-03-14"
+  },
+  {
+    "id": 203,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 1656.71,
+    "date": "2025-03-15"
+  },
+  {
+    "id": 190,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 2723.01,
+    "date": "2025-03-16"
+  },
+  {
+    "id": 208,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 5141.78,
+    "date": "2025-03-17"
+  },
+  {
+    "id": 204,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 2522.8,
+    "date": "2025-03-18"
+  },
+  {
+    "id": 183,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 3294.54,
+    "date": "2025-03-19"
+  },
+  {
+    "id": 187,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 2630.07,
+    "date": "2025-03-19"
+  },
+  {
+    "id": 191,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 4854.08,
+    "date": "2025-03-20"
+  },
+  {
+    "id": 210,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 3503.1824800000045,
+    "date": "2025-03-20"
+  },
+  {
+    "id": 184,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 1687.87,
+    "date": "2025-03-21"
+  },
+  {
+    "id": 200,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 4565.64,
+    "date": "2025-03-21"
+  },
+  {
+    "id": 209,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 3435.53,
+    "date": "2025-03-21"
+  },
+  {
+    "id": 192,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 1269.56,
+    "date": "2025-03-22"
+  },
+  {
+    "id": 206,
+    "type": "savings",
+    "category": "vacation fund",
+    "amount": 1637.72,
+    "date": "2025-03-22"
+  },
+  {
+    "id": 207,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 3819.33,
+    "date": "2025-03-22"
+  },
+  {
+    "id": 181,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 2494.81,
+    "date": "2025-03-23"
+  },
+  {
+    "id": 176,
+    "type": "income",
+    "category": "freelance",
+    "amount": 19934.58,
+    "date": "2025-03-27"
+  },
+  {
+    "id": 186,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 5431.11,
+    "date": "2025-03-28"
+  },
+  {
+    "id": 189,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 4628.39,
+    "date": "2025-03-29"
+  },
+  {
+    "id": 195,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 3103.13,
+    "date": "2025-03-30"
+  },
+  {
+    "id": 222,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 600.27,
+    "date": "2025-04-01"
+  },
+  {
+    "id": 214,
+    "type": "expense",
+    "category": "rent",
+    "amount": 2398.41,
+    "date": "2025-04-03"
+  },
+  {
+    "id": 220,
+    "type": "expense",
+    "category": "travel",
+    "amount": 3187.66,
+    "date": "2025-04-03"
+  },
+  {
+    "id": 232,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 2109.58,
+    "date": "2025-04-03"
+  },
+  {
+    "id": 213,
+    "type": "income",
+    "category": "dividends",
+    "amount": 2413.36,
+    "date": "2025-04-04"
+  },
+  {
+    "id": 226,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 4590.13,
+    "date": "2025-04-05"
+  },
+  {
+    "id": 228,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 3632.87,
+    "date": "2025-04-06"
+  },
+  {
+    "id": 221,
+    "type": "expense",
+    "category": "travel",
+    "amount": 4555.98,
+    "date": "2025-04-07"
+  },
+  {
+    "id": 225,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1138.74,
+    "date": "2025-04-10"
+  },
+  {
+    "id": 234,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 3278.47,
+    "date": "2025-04-11"
+  },
+  {
+    "id": 231,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 5260.874599999995,
+    "date": "2025-04-12"
+  },
+  {
+    "id": 240,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 3371.19,
+    "date": "2025-04-12"
+  },
+  {
+    "id": 241,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 2827.17,
+    "date": "2025-04-12"
+  },
+  {
+    "id": 227,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 2173.66,
+    "date": "2025-04-13"
+  },
+  {
+    "id": 229,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 6767.05,
+    "date": "2025-04-13"
+  },
+  {
+    "id": 236,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 2069.36,
+    "date": "2025-04-14"
+  },
+  {
+    "id": 239,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 4768.79,
+    "date": "2025-04-15"
+  },
+  {
+    "id": 212,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 28885.16,
+    "date": "2025-04-17"
+  },
+  {
+    "id": 219,
+    "type": "expense",
+    "category": "rent",
+    "amount": 1486.6,
+    "date": "2025-04-18"
+  },
+  {
+    "id": 224,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 6334.05,
+    "date": "2025-04-20"
+  },
+  {
+    "id": 215,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 4180.55,
+    "date": "2025-04-21"
+  },
+  {
+    "id": 216,
+    "type": "expense",
+    "category": "rent",
+    "amount": 2492.48,
+    "date": "2025-04-21"
+  },
+  {
+    "id": 217,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 620.48,
+    "date": "2025-04-21"
+  },
+  {
+    "id": 230,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 706.66,
+    "date": "2025-04-21"
+  },
+  {
+    "id": 242,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 1707.44,
+    "date": "2025-04-21"
+  },
+  {
+    "id": 223,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 447.26,
+    "date": "2025-04-22"
+  },
+  {
+    "id": 218,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 5347.33,
+    "date": "2025-04-23"
+  },
+  {
+    "id": 233,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 2615.19,
+    "date": "2025-04-23"
+  },
+  {
+    "id": 238,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 5931.15,
+    "date": "2025-04-23"
+  },
+  {
+    "id": 243,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 1415.831024000005,
+    "date": "2025-04-25"
+  },
+  {
+    "id": 211,
+    "type": "income",
+    "category": "salary",
+    "amount": 60375.34,
+    "date": "2025-04-26"
+  },
+  {
+    "id": 235,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 1954.25,
+    "date": "2025-04-28"
+  },
+  {
+    "id": 237,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 3677.39,
+    "date": "2025-04-28"
+  },
+  {
+    "id": 247,
+    "type": "income",
+    "category": "interest earned",
+    "amount": 2334.19,
+    "date": "2025-05-02"
+  },
+  {
+    "id": 260,
+    "type": "expense",
+    "category": "rent",
+    "amount": 2231.88,
+    "date": "2025-05-02"
+  },
+  {
+    "id": 258,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 6000.73,
+    "date": "2025-05-03"
+  },
+  {
+    "id": 261,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 6691.51,
+    "date": "2025-05-03"
+  },
+  {
+    "id": 273,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 3317.56,
+    "date": "2025-05-04"
+  },
+  {
+    "id": 246,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 21295.61,
+    "date": "2025-05-05"
+  },
+  {
+    "id": 270,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 3003.66,
+    "date": "2025-05-07"
+  },
+  {
+    "id": 245,
+    "type": "income",
+    "category": "freelance",
+    "amount": 29587.96,
+    "date": "2025-05-08"
+  },
+  {
+    "id": 248,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 3055.08,
+    "date": "2025-05-08"
+  },
+  {
+    "id": 264,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 3476.18,
+    "date": "2025-05-08"
+  },
+  {
+    "id": 255,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 7331.43,
+    "date": "2025-05-09"
+  },
+  {
+    "id": 262,
+    "type": "expense",
+    "category": "travel",
+    "amount": 3204.88,
+    "date": "2025-05-09"
+  },
+  {
+    "id": 269,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 4211.31,
+    "date": "2025-05-09"
+  },
+  {
+    "id": 265,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 6844.32,
+    "date": "2025-05-10"
+  },
+  {
+    "id": 274,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 983.07,
+    "date": "2025-05-10"
+  },
+  {
+    "id": 278,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 5319.32,
+    "date": "2025-05-10"
+  },
+  {
+    "id": 266,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 1649.37,
+    "date": "2025-05-13"
+  },
+  {
+    "id": 249,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 3925.8,
+    "date": "2025-05-15"
+  },
+  {
+    "id": 251,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 736.97,
+    "date": "2025-05-15"
+  },
+  {
+    "id": 263,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 2424.75,
+    "date": "2025-05-15"
+  },
+  {
+    "id": 271,
+    "type": "investment",
+    "category": "gold",
+    "amount": 2651.39,
+    "date": "2025-05-15"
+  },
+  {
+    "id": 254,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 2407.8,
+    "date": "2025-05-16"
+  },
+  {
+    "id": 276,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 6017.06,
+    "date": "2025-05-17"
+  },
+  {
+    "id": 259,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 3846.14,
+    "date": "2025-05-20"
+  },
+  {
+    "id": 277,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 4100.25,
+    "date": "2025-05-21"
+  },
+  {
+    "id": 252,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 4563.48,
+    "date": "2025-05-23"
+  },
+  {
+    "id": 256,
+    "type": "expense",
+    "category": "rent",
+    "amount": 5996.61,
+    "date": "2025-05-23"
+  },
+  {
+    "id": 257,
+    "type": "expense",
+    "category": "travel",
+    "amount": 1967.61,
+    "date": "2025-05-23"
+  },
+  {
+    "id": 267,
+    "type": "investment",
+    "category": "gold",
+    "amount": 6007.58,
+    "date": "2025-05-25"
+  },
+  {
+    "id": 244,
+    "type": "income",
+    "category": "salary",
+    "amount": 63053.07,
+    "date": "2025-05-26"
+  },
+  {
+    "id": 268,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 5448.33,
+    "date": "2025-05-27"
+  },
+  {
+    "id": 272,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 500,
+    "date": "2025-05-28"
+  },
+  {
+    "id": 275,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 2623.39,
+    "date": "2025-05-29"
+  },
+  {
+    "id": 250,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 2838.29,
+    "date": "2025-05-30"
+  },
+  {
+    "id": 253,
+    "type": "expense",
+    "category": "rent",
+    "amount": 2895.08,
+    "date": "2025-05-31"
+  },
+  {
+    "id": 283,
+    "type": "income",
+    "category": "commission",
+    "amount": 10207.73,
+    "date": "2025-06-01"
+  },
+  {
+    "id": 310,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 1452.93,
+    "date": "2025-06-01"
+  },
+  {
+    "id": 315,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 3742.74,
+    "date": "2025-06-02"
+  },
+  {
+    "id": 284,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 3031.05,
+    "date": "2025-06-03"
+  },
+  {
+    "id": 303,
+    "type": "investment",
+    "category": "cryptocurrency",
+    "amount": 8558.47,
+    "date": "2025-06-03"
+  },
+  {
+    "id": 307,
+    "type": "investment",
+    "category": "gold",
+    "amount": 5796.26,
+    "date": "2025-06-03"
+  },
+  {
+    "id": 279,
+    "type": "income",
+    "category": "salary",
+    "amount": 63074.46,
+    "date": "2025-06-04"
+  },
+  {
+    "id": 297,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 709.84,
+    "date": "2025-06-04"
+  },
+  {
+    "id": 312,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 1368.32,
+    "date": "2025-06-05"
+  },
+  {
+    "id": 281,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 17241.32,
+    "date": "2025-06-07"
+  },
+  {
+    "id": 288,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1204.47,
+    "date": "2025-06-09"
+  },
+  {
+    "id": 292,
+    "type": "expense",
+    "category": "travel",
+    "amount": 4909.82,
+    "date": "2025-06-09"
+  },
+  {
+    "id": 287,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 6036.85,
+    "date": "2025-06-10"
+  },
+  {
+    "id": 313,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 8983.61,
+    "date": "2025-06-10"
+  },
+  {
+    "id": 291,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1152.72,
+    "date": "2025-06-11"
+  },
+  {
+    "id": 295,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 5196.01,
+    "date": "2025-06-11"
+  },
+  {
+    "id": 311,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 11711.53,
+    "date": "2025-06-11"
+  },
+  {
+    "id": 282,
+    "type": "income",
+    "category": "bonus",
+    "amount": 33577.91,
+    "date": "2025-06-13"
+  },
+  {
+    "id": 286,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 5572.87,
+    "date": "2025-06-14"
+  },
+  {
+    "id": 289,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 5900.47,
+    "date": "2025-06-14"
+  },
+  {
+    "id": 294,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1493.17,
+    "date": "2025-06-14"
+  },
+  {
+    "id": 290,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 6802.29,
+    "date": "2025-06-15"
+  },
+  {
+    "id": 301,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 620.7685999999976,
+    "date": "2025-06-17"
+  },
+  {
+    "id": 293,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 6099.05,
+    "date": "2025-06-18"
+  },
+  {
+    "id": 305,
+    "type": "investment",
+    "category": "gold",
+    "amount": 3084.08,
+    "date": "2025-06-21"
+  },
+  {
+    "id": 314,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 2549.48,
+    "date": "2025-06-21"
+  },
+  {
+    "id": 308,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 4701.91,
+    "date": "2025-06-24"
+  },
+  {
+    "id": 296,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 5513.7,
+    "date": "2025-06-25"
+  },
+  {
+    "id": 300,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 4542.93,
+    "date": "2025-06-25"
+  },
+  {
+    "id": 302,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 1456.25,
+    "date": "2025-06-25"
+  },
+  {
+    "id": 280,
+    "type": "income",
+    "category": "freelance",
+    "amount": 9574.56,
+    "date": "2025-06-26"
+  },
+  {
+    "id": 285,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 6441.54,
+    "date": "2025-06-28"
+  },
+  {
+    "id": 299,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 5775.33,
+    "date": "2025-06-29"
+  },
+  {
+    "id": 306,
+    "type": "investment",
+    "category": "gold",
+    "amount": 1750.47,
+    "date": "2025-06-29"
+  },
+  {
+    "id": 298,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 5192.43,
+    "date": "2025-06-30"
+  },
+  {
+    "id": 304,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 1093.67,
+    "date": "2025-06-30"
+  },
+  {
+    "id": 309,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 1230.95,
+    "date": "2025-06-30"
+  },
+  {
+    "id": 338,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 1393.86,
+    "date": "2025-07-01"
+  },
+  {
+    "id": 323,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 2645.8,
+    "date": "2025-07-02"
+  },
+  {
+    "id": 331,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 2308.69,
+    "date": "2025-07-02"
+  },
+  {
+    "id": 324,
+    "type": "expense",
+    "category": "travel",
+    "amount": 3892.25,
+    "date": "2025-07-03"
+  },
+  {
+    "id": 325,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 2039.6,
+    "date": "2025-07-04"
+  },
+  {
+    "id": 329,
+    "type": "expense",
+    "category": "travel",
+    "amount": 774.61,
+    "date": "2025-07-04"
+  },
+  {
+    "id": 316,
+    "type": "income",
+    "category": "salary",
+    "amount": 62480.08,
+    "date": "2025-07-05"
+  },
+  {
+    "id": 344,
+    "type": "savings",
+    "category": "vacation fund",
+    "amount": 3063.31,
+    "date": "2025-07-05"
+  },
+  {
+    "id": 326,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 5003.36,
+    "date": "2025-07-10"
+  },
+  {
+    "id": 336,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 2594.33,
+    "date": "2025-07-10"
+  },
+  {
+    "id": 328,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 3181.92,
+    "date": "2025-07-13"
+  },
+  {
+    "id": 330,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 2836.3,
+    "date": "2025-07-14"
+  },
+  {
+    "id": 322,
+    "type": "expense",
+    "category": "rent",
+    "amount": 3230.96,
+    "date": "2025-07-15"
+  },
+  {
+    "id": 346,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 5239,
+    "date": "2025-07-16"
+  },
+  {
+    "id": 348,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 761.38,
+    "date": "2025-07-16"
+  },
+  {
+    "id": 342,
+    "type": "investment",
+    "category": "gold",
+    "amount": 4654.88,
+    "date": "2025-07-17"
+  },
+  {
+    "id": 319,
+    "type": "income",
+    "category": "interest earned",
+    "amount": 2268.17,
+    "date": "2025-07-18"
+  },
+  {
+    "id": 334,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 4102.1,
+    "date": "2025-07-19"
+  },
+  {
+    "id": 320,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 2572.33,
+    "date": "2025-07-20"
+  },
+  {
+    "id": 327,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 4363.58,
+    "date": "2025-07-20"
+  },
+  {
+    "id": 345,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 4548.96,
+    "date": "2025-07-21"
+  },
+  {
+    "id": 332,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 4352.92,
+    "date": "2025-07-22"
+  },
+  {
+    "id": 317,
+    "type": "income",
+    "category": "freelance",
+    "amount": 29969.6,
+    "date": "2025-07-23"
+  },
+  {
+    "id": 340,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 5357.04,
+    "date": "2025-07-23"
+  },
+  {
+    "id": 341,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 3128.86,
+    "date": "2025-07-23"
+  },
+  {
+    "id": 333,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 2933.74,
+    "date": "2025-07-26"
+  },
+  {
+    "id": 349,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 5467.1856119999975,
+    "date": "2025-07-27"
+  },
+  {
+    "id": 335,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 4476.93,
+    "date": "2025-07-28"
+  },
+  {
+    "id": 347,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 1883.46,
+    "date": "2025-07-28"
+  },
+  {
+    "id": 337,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 1136.9787999999862,
+    "date": "2025-07-30"
+  },
+  {
+    "id": 318,
+    "type": "income",
+    "category": "dividends",
+    "amount": 3150.01,
+    "date": "2025-07-31"
+  },
+  {
+    "id": 321,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 4316.96,
+    "date": "2025-07-31"
+  },
+  {
+    "id": 339,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 3284.38,
+    "date": "2025-07-31"
+  },
+  {
+    "id": 343,
+    "type": "investment",
+    "category": "gold",
+    "amount": 2322.1855879999976,
+    "date": "2025-07-31"
+  },
+  {
+    "id": 370,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 337.01,
+    "date": "2025-08-02"
+  },
+  {
+    "id": 377,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 6336.76,
+    "date": "2025-08-02"
+  },
+  {
+    "id": 357,
+    "type": "expense",
+    "category": "rent",
+    "amount": 4154.28,
+    "date": "2025-08-03"
+  },
+  {
+    "id": 369,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 6814.93,
+    "date": "2025-08-03"
+  },
+  {
+    "id": 372,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 4081.42,
+    "date": "2025-08-03"
+  },
+  {
+    "id": 376,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 8891.38,
+    "date": "2025-08-03"
+  },
+  {
+    "id": 385,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 2107.34,
+    "date": "2025-08-04"
+  },
+  {
+    "id": 366,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 3169.32,
+    "date": "2025-08-06"
+  },
+  {
+    "id": 362,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 8802.12,
+    "date": "2025-08-08"
+  },
+  {
+    "id": 359,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 4796.98,
+    "date": "2025-08-09"
+  },
+  {
+    "id": 352,
+    "type": "income",
+    "category": "business revenue",
+    "amount": 19641.99,
+    "date": "2025-08-11"
+  },
+  {
+    "id": 353,
+    "type": "income",
+    "category": "bonus",
+    "amount": 20264.04,
+    "date": "2025-08-11"
+  },
+  {
+    "id": 365,
+    "type": "expense",
+    "category": "rent",
+    "amount": 7529.61,
+    "date": "2025-08-11"
+  },
+  {
+    "id": 367,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 3657.26,
+    "date": "2025-08-11"
+  },
+  {
+    "id": 371,
+    "type": "expense",
+    "category": "rent",
+    "amount": 2031.85,
+    "date": "2025-08-12"
+  },
+  {
+    "id": 383,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 9894.11,
+    "date": "2025-08-12"
+  },
+  {
+    "id": 373,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 3989.6,
+    "date": "2025-08-13"
+  },
+  {
+    "id": 378,
+    "type": "investment",
+    "category": "gold",
+    "amount": 4374.35,
+    "date": "2025-08-13"
+  },
+  {
+    "id": 364,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 5599.15,
+    "date": "2025-08-15"
+  },
+  {
+    "id": 350,
+    "type": "income",
+    "category": "salary",
+    "amount": 63572.88,
+    "date": "2025-08-16"
+  },
+  {
+    "id": 381,
+    "type": "savings",
+    "category": "vacation fund",
+    "amount": 6057.9,
+    "date": "2025-08-18"
+  },
+  {
+    "id": 358,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 2399.39,
+    "date": "2025-08-19"
+  },
+  {
+    "id": 380,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 2007.78,
+    "date": "2025-08-19"
+  },
+  {
+    "id": 363,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 7871.99,
+    "date": "2025-08-20"
+  },
+  {
+    "id": 382,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 3082.97,
+    "date": "2025-08-20"
+  },
+  {
+    "id": 361,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 769.2,
+    "date": "2025-08-21"
+  },
+  {
+    "id": 375,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 7517.04,
+    "date": "2025-08-21"
+  },
+  {
+    "id": 368,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 4040.55,
+    "date": "2025-08-23"
+  },
+  {
+    "id": 360,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 4096.74,
+    "date": "2025-08-24"
+  },
+  {
+    "id": 351,
+    "type": "income",
+    "category": "freelance",
+    "amount": 28413.52,
+    "date": "2025-08-28"
+  },
+  {
+    "id": 354,
+    "type": "income",
+    "category": "commission",
+    "amount": 9445.13,
+    "date": "2025-08-29"
+  },
+  {
+    "id": 355,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 2887.42,
+    "date": "2025-08-29"
+  },
+  {
+    "id": 356,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 706.84,
+    "date": "2025-08-30"
+  },
+  {
+    "id": 374,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 5698.72,
+    "date": "2025-08-30"
+  },
+  {
+    "id": 379,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 1526.7770799999907,
+    "date": "2025-08-31"
+  },
+  {
+    "id": 384,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 6061.56,
+    "date": "2025-08-31"
+  },
+  {
+    "id": 403,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 4234.11,
+    "date": "2025-09-01"
+  },
+  {
+    "id": 392,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1361.4,
+    "date": "2025-09-02"
+  },
+  {
+    "id": 409,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 3671.19,
+    "date": "2025-09-04"
+  },
+  {
+    "id": 412,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 1298.14,
+    "date": "2025-09-05"
+  },
+  {
+    "id": 395,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 5592.73,
+    "date": "2025-09-06"
+  },
+  {
+    "id": 410,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 1751.45,
+    "date": "2025-09-06"
+  },
+  {
+    "id": 386,
+    "type": "income",
+    "category": "salary",
+    "amount": 59381.75,
+    "date": "2025-09-08"
+  },
+  {
+    "id": 387,
+    "type": "income",
+    "category": "freelance",
+    "amount": 24682.12,
+    "date": "2025-09-09"
+  },
+  {
+    "id": 396,
+    "type": "expense",
+    "category": "rent",
+    "amount": 5027.7,
+    "date": "2025-09-09"
+  },
+  {
+    "id": 413,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 2624.99,
+    "date": "2025-09-09"
+  },
+  {
+    "id": 406,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 1339.03,
+    "date": "2025-09-10"
+  },
+  {
+    "id": 394,
+    "type": "expense",
+    "category": "travel",
+    "amount": 7444.88,
+    "date": "2025-09-12"
+  },
+  {
+    "id": 420,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 4226.97,
+    "date": "2025-09-12"
+  },
+  {
+    "id": 397,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 3714.64,
+    "date": "2025-09-13"
+  },
+  {
+    "id": 404,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 1050.88,
+    "date": "2025-09-13"
+  },
+  {
+    "id": 405,
+    "type": "expense",
+    "category": "travel",
+    "amount": 6037.91,
+    "date": "2025-09-13"
+  },
+  {
+    "id": 408,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 890.82,
+    "date": "2025-09-14"
+  },
+  {
+    "id": 411,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 4139.93,
+    "date": "2025-09-14"
+  },
+  {
+    "id": 389,
+    "type": "income",
+    "category": "interest earned",
+    "amount": 3671.9,
+    "date": "2025-09-16"
+  },
+  {
+    "id": 407,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 2437.82,
+    "date": "2025-09-16"
+  },
+  {
+    "id": 391,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 4025.94,
+    "date": "2025-09-17"
+  },
+  {
+    "id": 398,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 4860.61,
+    "date": "2025-09-19"
+  },
+  {
+    "id": 415,
+    "type": "investment",
+    "category": "cryptocurrency",
+    "amount": 1494.59,
+    "date": "2025-09-19"
+  },
+  {
+    "id": 419,
+    "type": "savings",
+    "category": "college fund",
+    "amount": 5695.49,
+    "date": "2025-09-20"
+  },
+  {
+    "id": 393,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 2838.01,
+    "date": "2025-09-21"
+  },
+  {
+    "id": 401,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 3354.26,
+    "date": "2025-09-21"
+  },
+  {
+    "id": 417,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 1911.75,
+    "date": "2025-09-22"
+  },
+  {
+    "id": 418,
+    "type": "savings",
+    "category": "emergency fund",
+    "amount": 1520.54,
+    "date": "2025-09-22"
+  },
+  {
+    "id": 421,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 1254.695519999993,
+    "date": "2025-09-24"
+  },
+  {
+    "id": 388,
+    "type": "income",
+    "category": "commission",
+    "amount": 13839.08,
+    "date": "2025-09-25"
+  },
+  {
+    "id": 399,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 4078.55,
+    "date": "2025-09-25"
+  },
+  {
+    "id": 400,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 2264.11,
+    "date": "2025-09-25"
+  },
+  {
+    "id": 414,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 946.65,
+    "date": "2025-09-25"
+  },
+  {
+    "id": 416,
+    "type": "savings",
+    "category": "vacation fund",
+    "amount": 1967.57,
+    "date": "2025-09-25"
+  },
+  {
+    "id": 390,
+    "type": "expense",
+    "category": "rent",
+    "amount": 2832.41,
+    "date": "2025-09-26"
+  },
+  {
+    "id": 402,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 5685.09,
+    "date": "2025-09-29"
+  },
+  {
+    "id": 441,
+    "type": "expense",
+    "category": "rent",
+    "amount": 1838.19,
+    "date": "2025-10-01"
+  },
+  {
+    "id": 449,
+    "type": "investment",
+    "category": "gold",
+    "amount": 881.1506400000026,
+    "date": "2025-10-01"
+  },
+  {
+    "id": 452,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 2439.4,
+    "date": "2025-10-02"
+  },
+  {
+    "id": 448,
+    "type": "investment",
+    "category": "mutual funds",
+    "amount": 3295.59,
+    "date": "2025-10-04"
+  },
+  {
+    "id": 434,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 5600.43,
+    "date": "2025-10-05"
+  },
+  {
+    "id": 431,
+    "type": "expense",
+    "category": "travel",
+    "amount": 5741.59,
+    "date": "2025-10-06"
+  },
+  {
+    "id": 450,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 3046.77,
+    "date": "2025-10-07"
+  },
+  {
+    "id": 438,
+    "type": "expense",
+    "category": "healthcare",
+    "amount": 815.47,
+    "date": "2025-10-08"
+  },
+  {
+    "id": 428,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 6931.05,
+    "date": "2025-10-09"
+  },
+  {
+    "id": 443,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 1694.0419999999976,
+    "date": "2025-10-09"
+  },
+  {
+    "id": 435,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 1103.25,
+    "date": "2025-10-10"
+  },
+  {
+    "id": 433,
+    "type": "expense",
+    "category": "travel",
+    "amount": 3586.76,
+    "date": "2025-10-11"
+  },
+  {
+    "id": 422,
+    "type": "income",
+    "category": "salary",
+    "amount": 64430.68,
+    "date": "2025-10-12"
+  },
+  {
+    "id": 423,
+    "type": "income",
+    "category": "freelance",
+    "amount": 29596.21,
+    "date": "2025-10-12"
+  },
+  {
+    "id": 445,
+    "type": "investment",
+    "category": "commodities",
+    "amount": 3690.05,
+    "date": "2025-10-12"
+  },
+  {
+    "id": 446,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 2388.3,
+    "date": "2025-10-12"
+  },
+  {
+    "id": 454,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 668.4,
+    "date": "2025-10-12"
+  },
+  {
+    "id": 424,
+    "type": "income",
+    "category": "commission",
+    "amount": 6364.24,
+    "date": "2025-10-14"
+  },
+  {
+    "id": 453,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 4719.56,
+    "date": "2025-10-14"
+  },
+  {
+    "id": 429,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 4770,
+    "date": "2025-10-18"
+  },
+  {
+    "id": 437,
+    "type": "expense",
+    "category": "groceries",
+    "amount": 3282.4,
+    "date": "2025-10-19"
+  },
+  {
+    "id": 425,
+    "type": "income",
+    "category": "dividends",
+    "amount": 1724.07,
+    "date": "2025-10-20"
+  },
+  {
+    "id": 455,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 4100.267360000003,
+    "date": "2025-10-21"
+  },
+  {
+    "id": 444,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 3424.86,
+    "date": "2025-10-23"
+  },
+  {
+    "id": 427,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 1992.71,
+    "date": "2025-10-24"
+  },
+  {
+    "id": 442,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 11407.47,
+    "date": "2025-10-24"
+  },
+  {
+    "id": 426,
+    "type": "expense",
+    "category": "rent",
+    "amount": 3067.9,
+    "date": "2025-10-25"
+  },
+  {
+    "id": 432,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 4286.05,
+    "date": "2025-10-27"
+  },
+  {
+    "id": 451,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 3079.57,
+    "date": "2025-10-27"
+  },
+  {
+    "id": 439,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 1830.99,
+    "date": "2025-10-28"
+  },
+  {
+    "id": 440,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 4096.94,
+    "date": "2025-10-29"
+  },
+  {
+    "id": 430,
+    "type": "expense",
+    "category": "rent",
+    "amount": 2420.83,
+    "date": "2025-10-30"
+  },
+  {
+    "id": 436,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 2929.96,
+    "date": "2025-10-30"
+  },
+  {
+    "id": 447,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 2985.25,
+    "date": "2025-10-31"
+  },
+  {
+    "id": 460,
+    "type": "expense",
+    "category": "subscriptions",
+    "amount": 5108.36,
+    "date": "2025-11-01"
+  },
+  {
+    "id": 463,
+    "type": "expense",
+    "category": "travel",
+    "amount": 4932.04,
+    "date": "2025-11-02"
+  },
+  {
+    "id": 468,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 625.87,
+    "date": "2025-11-02"
+  },
+  {
+    "id": 456,
+    "type": "income",
+    "category": "salary",
+    "amount": 55756.72,
+    "date": "2025-11-03"
+  },
+  {
+    "id": 459,
+    "type": "expense",
+    "category": "miscellaneous",
+    "amount": 3770.96,
+    "date": "2025-11-03"
+  },
+  {
+    "id": 465,
+    "type": "expense",
+    "category": "travel",
+    "amount": 3689.77,
+    "date": "2025-11-03"
+  },
+  {
+    "id": 474,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 870.44,
+    "date": "2025-11-03"
+  },
+  {
+    "id": 461,
+    "type": "expense",
+    "category": "rent",
+    "amount": 1010.27,
+    "date": "2025-11-07"
+  },
+  {
+    "id": 475,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 1914.6,
+    "date": "2025-11-08"
+  },
+  {
+    "id": 476,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 5712.162400000003,
+    "date": "2025-11-08"
+  },
+  {
+    "id": 480,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 998.1,
+    "date": "2025-11-09"
+  },
+  {
+    "id": 457,
+    "type": "income",
+    "category": "freelance",
+    "amount": 28395.11,
+    "date": "2025-11-10"
+  },
+  {
+    "id": 467,
+    "type": "expense",
+    "category": "dining out",
+    "amount": 4314.32,
+    "date": "2025-11-10"
+  },
+  {
+    "id": 486,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 4080.93,
+    "date": "2025-11-12"
+  },
+  {
+    "id": 458,
+    "type": "income",
+    "category": "interest earned",
+    "amount": 2159.08,
+    "date": "2025-11-13"
+  },
+  {
+    "id": 485,
+    "type": "savings",
+    "category": "travel savings",
+    "amount": 1081.39,
+    "date": "2025-11-13"
+  },
+  {
+    "id": 462,
+    "type": "expense",
+    "category": "utilities",
+    "amount": 3841.76,
+    "date": "2025-11-14"
+  },
+  {
+    "id": 478,
+    "type": "investment",
+    "category": "stocks",
+    "amount": 4798.64,
+    "date": "2025-11-14"
+  },
+  {
+    "id": 469,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 3934.5,
+    "date": "2025-11-15"
+  },
+  {
+    "id": 479,
+    "type": "investment",
+    "category": "gold",
+    "amount": 2458.67,
+    "date": "2025-11-15"
+  },
+  {
+    "id": 483,
+    "type": "investment",
+    "category": "ETFs",
+    "amount": 2730.53,
+    "date": "2025-11-15"
+  },
+  {
+    "id": 487,
+    "type": "savings",
+    "category": "retirement fund",
+    "amount": 586.61,
+    "date": "2025-11-15"
+  },
+  {
+    "id": 466,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 1960.05,
+    "date": "2025-11-16"
+  },
+  {
+    "id": 464,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 4397.21,
+    "date": "2025-11-17"
+  },
+  {
+    "id": 481,
+    "type": "investment",
+    "category": "real estate",
+    "amount": 1102.18,
+    "date": "2025-11-17"
+  },
+  {
+    "id": 484,
+    "type": "savings",
+    "category": "high-interest savings",
+    "amount": 1177.82,
+    "date": "2025-11-18"
+  },
+  {
+    "id": 471,
+    "type": "expense",
+    "category": "transportation",
+    "amount": 3596.32,
+    "date": "2025-11-19"
+  },
+  {
+    "id": 472,
+    "type": "expense",
+    "category": "insurance",
+    "amount": 1425.41,
+    "date": "2025-11-19"
+  },
+  {
+    "id": 477,
+    "type": "investment",
+    "category": "bonds",
+    "amount": 4393.34,
+    "date": "2025-11-20"
+  },
+  {
+    "id": 482,
+    "type": "investment",
+    "category": "cryptocurrency",
+    "amount": 1850.98,
+    "date": "2025-11-23"
+  },
+  {
+    "id": 473,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 487.93,
+    "date": "2025-11-25"
+  },
+  {
+    "id": 470,
+    "type": "expense",
+    "category": "entertainment",
+    "amount": 3647.01,
+    "date": "2025-11-26"
+  },
+  {
+    "id": 489,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 1968.440316000002,
+    "date": "2025-11-26"
+  },
+  {
+    "id": 488,
+    "type": "savings",
+    "category": "fixed deposits",
+    "amount": 3844.3,
+    "date": "2025-11-28"
+  }
+]

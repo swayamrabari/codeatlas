@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- <script src="https://unpkg.com/react-scan/dist/auto.global.js"></script> -->
+    <link rel="icon" type="image/svg+xml" href="/trackitfavicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trackit</title>
+    <script>
+      // Initialize theme before React loads to prevent flash
+      (function() {
+        const theme = localStorage.getItem('trackit-theme') || 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.body.classList.remove('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body class="dark bg-background text-foreground">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
