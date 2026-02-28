@@ -86,18 +86,31 @@ export async function getProject(req, res) {
     );
 
     // Build the response in the same shape the frontend expects (demoOutput.json compat)
-    const filesFormatted = files.map((f) => ({
-      path: f.path,
-      type: f.analysis?.type || 'unknown',
-      role: f.analysis?.role || 'Unknown',
-      category: f.analysis?.category || 'infrastructure',
-      behavior: f.analysis?.behavior || 'logic',
-      routes: f.analysis?.routes || [],
-      imports: f.analysis?.imports || { count: 0, files: [], items: [] },
-      importedBy: f.analysis?.importedBy || [],
-      exportsCount: f.analysis?.exportsCount || 0,
-      exports: f.analysis?.exports || [],
-    }));
+    const filesFormatted = files.map((f) => {
+      const result = {
+        path: f.path,
+        type: f.analysis?.type || 'unknown',
+        role: f.analysis?.role || 'Unknown',
+        category: f.analysis?.category || 'infrastructure',
+        behavior: f.analysis?.behavior || 'logic',
+        routes: f.analysis?.routes || [],
+        imports: f.analysis?.imports || { count: 0, files: [], items: [] },
+        importedBy: f.analysis?.importedBy || [],
+        exportsCount: f.analysis?.exportsCount || 0,
+        exports: f.analysis?.exports || [],
+        thirdPartyDeps: f.analysis?.thirdPartyDeps || [],
+        exportedSymbols: f.analysis?.exportedSymbols || [],
+      };
+
+      if (f.analysis?.mountPrefix !== undefined) {
+        result.mountPrefix = f.analysis.mountPrefix;
+      }
+      if (f.analysis?.absoluteRoutes) {
+        result.absoluteRoutes = f.analysis.absoluteRoutes;
+      }
+
+      return result;
+    });
 
     // Build features object keyed by keyword (matching demoOutput.json shape)
     const featuresObj = {};

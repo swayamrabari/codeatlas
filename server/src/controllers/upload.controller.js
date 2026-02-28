@@ -24,26 +24,39 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || './src/temp';
  * Normalizes paths to forward slashes for cross-platform consistency.
  */
 function buildFileResponse(files) {
-  return files.map((f) => ({
-    path: f.path.replace(/\\/g, '/'),
-    type: f.type,
-    role: f.role,
-    category: f.category,
-    behavior: f.behavior,
-    routes: f.analysis?.routes || [],
-    imports: {
-      count: f.analysis?.imports?.length || 0,
-      files: (f.analysis?.resolvedImports || []).map((p) =>
+  return files.map((f) => {
+    const result = {
+      path: f.path.replace(/\\/g, '/'),
+      type: f.type,
+      role: f.role,
+      category: f.category,
+      behavior: f.behavior,
+      routes: f.analysis?.routes || [],
+      imports: {
+        count: f.analysis?.imports?.length || 0,
+        files: (f.analysis?.resolvedImports || []).map((p) =>
+          p.replace(/\\/g, '/'),
+        ),
+        items: f.analysis?.imports || [],
+      },
+      importedBy: (f.analysis?.importedBy || []).map((p) =>
         p.replace(/\\/g, '/'),
       ),
-      items: f.analysis?.imports || [],
-    },
-    importedBy: (f.analysis?.importedBy || []).map((p) =>
-      p.replace(/\\/g, '/'),
-    ),
-    exportsCount: (f.analysis?.exports || []).length,
-    exports: f.analysis?.exports || [],
-  }));
+      exportsCount: (f.analysis?.exports || []).length,
+      exports: f.analysis?.exports || [],
+      thirdPartyDeps: f.analysis?.thirdPartyDeps || [],
+      exportedSymbols: f.analysis?.exportedSymbols || [],
+    };
+
+    if (f.analysis?.mountPrefix !== undefined) {
+      result.mountPrefix = f.analysis.mountPrefix;
+    }
+    if (f.analysis?.absoluteRoutes) {
+      result.absoluteRoutes = f.analysis.absoluteRoutes;
+    }
+
+    return result;
+  });
 }
 
 /**

@@ -587,7 +587,11 @@ function classifyByPath(filePath) {
     // Only classify as entry-point if at or near root level (depth <= 2)
     // e.g. server/server.js, client/src/main.tsx, src/index.ts
     const depth = parts.length;
-    if (depth <= 3) {
+    // Skip if file sits inside a known role directory (e.g. middleware/index.js)
+    const parentDir =
+      parts.length >= 2 ? parts[parts.length - 2].toLowerCase() : '';
+    const isInsideRoleDir = !!DIR_ROLES[parentDir];
+    if (depth <= 3 && !isInsideRoleDir) {
       if (
         isBackendRoot(normalizedPath) ||
         /^server\./i.test(fileNameLower) ||
@@ -633,9 +637,9 @@ function classifyByPath(filePath) {
         c = dirRole.backendOverride.category;
       }
 
-      // Override category for utils/lib under a specific root
-      if (c === 'shared' && inBackend) c = 'backend';
-      if (c === 'shared' && inFrontend) c = 'frontend';
+      // Path-based category always wins over DIR_ROLES category
+      if (inFrontend) c = 'frontend';
+      else if (inBackend) c = 'backend';
 
       if (
         [
@@ -1832,12 +1836,23 @@ function classifyBehavior(fileType, content, analysis) {
 
   // Precedence (first match wins)
 
+  // 0) Entry-point bootstrap — server init, app mounting, DB connection
+  if (fileType === 'entry-point') {
+    const hasBootstrap =
+      /\.listen\s*\(/.test(content) ||
+      /express\s*\(\s*\)/.test(content) ||
+      /createServer/.test(content) ||
+      /ReactDOM\b/.test(content) ||
+      /createRoot\b/.test(content) ||
+      /createApp\s*\(/.test(content);
+    return hasBootstrap ? 'bootstrap' : 'request-handler';
+  }
+
   // 1) Request handler — backend routes, controllers, middleware with req/res
   if (
     fileType === 'route' ||
     fileType === 'controller' ||
     fileType === 'middleware' ||
-    fileType === 'entry-point' ||
     hasRoutes ||
     hasReqRes
   ) {
@@ -1847,6 +1862,11 @@ function classifyBehavior(fileType, content, analysis) {
   // 2) Data layer — models, schemas
   if (fileType === 'model' || hasMongooseSchema) {
     return 'data-layer';
+  }
+
+  // 2.5) Hooks → state-logic (not ui-render)
+  if (fileType === 'hook') {
+    return 'state-logic';
   }
 
   // 3) HTTP client — frontend API client modules that make network calls
@@ -1859,13 +1879,12 @@ function classifyBehavior(fileType, content, analysis) {
     return 'state';
   }
 
-  // 5) UI render — components, pages, layouts, contexts, hooks, JSX
+  // 5) UI render — components, pages, layouts, contexts, JSX
   if (
     fileType === 'component' ||
     fileType === 'page' ||
     fileType === 'layout' ||
     fileType === 'context' ||
-    fileType === 'hook' ||
     fileType === 'markup' ||
     fileType === 'style' ||
     hasJSXorHooks
@@ -1950,8 +1969,25 @@ export async function scanProject(projectPath) {
     let finalRole = pathClassification.role;
 
     if (contentClassification && contentClassification.confidence >= 0.5) {
-      finalType = contentClassification.type;
-      finalRole = contentClassification.role;
+      if (pathClassification.type === 'entry-point') {
+        // Protect entry-point classification when file has bootstrap signals —
+        // these files naturally look like routes/controllers to the content scorer
+        const hasBootstrapSignals =
+          content &&
+          (/\.listen\s*\(/.test(content) ||
+            /express\s*\(\s*\)/.test(content) ||
+            /createServer/.test(content) ||
+            /ReactDOM\b/.test(content) ||
+            /createRoot\b/.test(content) ||
+            /createApp\s*\(/.test(content));
+        if (!hasBootstrapSignals) {
+          finalType = contentClassification.type;
+          finalRole = contentClassification.role;
+        }
+      } else {
+        finalType = contentClassification.type;
+        finalRole = contentClassification.role;
+      }
     }
 
     // Code analysis with import resolution
@@ -2014,6 +2050,197 @@ export async function scanProject(projectPath) {
     file.analysis.importedBy = importedBy;
   }
 
+  // ─── POST-SCAN RECLASSIFICATIONS (Fix 1b, 1c, 1d) + FIELD EXTRACTION (Fix 2, 3) ──
+  for (const file of files) {
+    const normalizedPath = file.path.replace(/\\/g, '/');
+    const fileName = normalizedPath.split('/').pop();
+    const ext = getFileExtension(fileName);
+
+    // Fix 1b: Hook detection by filename pattern
+    // "use" prefix (case-sensitive, followed by uppercase or hyphen) + JS/TS extension → always a hook
+    if (/^use[A-Z-]/.test(fileName) && ['.js', '.ts', '.jsx', '.tsx'].includes(ext)) {
+      file.type = 'hook';
+      file.role = 'Custom hook';
+      file.behavior = 'state-logic';
+    }
+
+    // Fix 1c: Backend entry-point detection
+    // index.js with no importers + imports 2+ route files + bootstrap signals → server entry
+    if (
+      /^index\.(js|ts|mjs)$/i.test(fileName) &&
+      (file.analysis.importedBy || []).length === 0 &&
+      /app\.(use|listen)\s*\(|express\s*\(\s*\)/.test(file.content || '')
+    ) {
+      const routeImports = (file.analysis.imports || []).filter(
+        (i) => i.resolvedPath && i.resolvedPath.includes('/routes/'),
+      );
+      if (routeImports.length >= 2) {
+        file.type = 'entry-point';
+        file.role = 'Server entry point';
+        file.behavior = 'bootstrap';
+      }
+    }
+
+    // Fix 1d: Frontend router root detection
+    // Frontend file importing BrowserRouter/createBrowserRouter + 3+ page files → router-root
+    if (file.category === 'frontend') {
+      const hasRouterImport = (file.analysis.imports || []).some((i) => {
+        if (i.value !== 'react-router-dom') return false;
+        return (i.imported || []).some((n) =>
+          /^(BrowserRouter|createBrowserRouter)(\s|$)/.test(n),
+        );
+      });
+      const pageImports = (file.analysis.imports || []).filter(
+        (i) => i.resolvedPath && i.resolvedPath.includes('/pages/'),
+      );
+      if (hasRouterImport && pageImports.length >= 3) {
+        file.type = 'router-root';
+        file.role = 'Frontend route definitions';
+        file.behavior = 'routing';
+      }
+    }
+
+    // Fix 2: thirdPartyDeps — collect external package names (no resolvedPath)
+    file.analysis.thirdPartyDeps = [
+      ...new Set(
+        (file.analysis.imports || [])
+          .filter(
+            (i) =>
+              !i.resolvedPath &&
+              i.value &&
+              !i.value.startsWith('.') &&
+              !i.value.startsWith('/') &&
+              !i.value.startsWith('@/') &&
+              !i.value.startsWith('~/'),
+          )
+          .map((i) => i.path)
+          .filter(Boolean),
+      ),
+    ];
+
+    // Fix 3: exportedSymbols — flat list of exported names
+    file.analysis.exportedSymbols = (file.analysis.exports || [])
+      .map((e) => e.name)
+      .filter(Boolean);
+  }
+
+  // ─── POST-PROCESSING: Fix 4 — Route-Controller Linking ──────────────────
+  const fileMap = new Map(
+    files.map((f) => [f.path.replace(/\\/g, '/'), f]),
+  );
+
+  for (const file of files) {
+    if (file.type !== 'route') continue;
+    const routes = file.analysis.routes || [];
+    if (routes.length === 0) continue;
+
+    for (const imp of file.analysis.imports) {
+      if (!imp.resolvedPath) continue;
+      const importedFile = fileMap.get(imp.resolvedPath);
+      if (!importedFile || importedFile.type !== 'controller') continue;
+
+      if (!importedFile.analysis.routes) importedFile.analysis.routes = [];
+      for (const route of routes) {
+        const exists = importedFile.analysis.routes.some(
+          (r) => r.method === route.method && r.path === route.path,
+        );
+        if (!exists) {
+          importedFile.analysis.routes.push({
+            method: route.method,
+            path: route.path,
+          });
+        }
+      }
+    }
+  }
+
+  // ─── POST-PROCESSING: Fix 5 — Absolute Route Paths ─────────────────────
+  // Step 1: Build mount map from entry-point files
+  const routeFileMountMap = new Map();
+  for (const file of files) {
+    if (file.type !== 'entry-point') continue;
+    const content = file.content || '';
+    const entryFilePath = file.path.replace(/\\/g, '/');
+
+    // Pattern 1: app.use('/prefix', variableName) — variable reference
+    const varToPrefix = {};
+    for (const m of content.matchAll(
+      /app\.use\(\s*['"`]([^'"`]+)['"`]\s*,\s*(?!require\b)(\w+)\s*[),]/g,
+    )) {
+      varToPrefix[m[2]] = m[1];
+    }
+
+    for (const imp of file.analysis.imports) {
+      if (!imp.resolvedPath) continue;
+      for (const name of imp.imported || []) {
+        if (varToPrefix[name]) {
+          routeFileMountMap.set(imp.resolvedPath, varToPrefix[name]);
+        }
+      }
+    }
+
+    // Pattern 2: app.use('/prefix', [...middleware,] require('./path'))
+    for (const m of content.matchAll(
+      /app\.use\(\s*['"`]([^'"`]+)['"`]\s*,[^\n]*?require\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
+    )) {
+      const prefix = m[1];
+      const requirePath = m[2];
+      const resolved = resolveImportPath(
+        requirePath,
+        entryFilePath,
+        normalizedFilePaths,
+      );
+      if (resolved) {
+        routeFileMountMap.set(resolved, prefix);
+      }
+    }
+  }
+
+  // Step 2: Add mountPrefix and absoluteRoutes to route files
+  for (const file of files) {
+    if (file.type !== 'route') continue;
+    const normalizedPath = file.path.replace(/\\/g, '/');
+    const mountPrefix = routeFileMountMap.get(normalizedPath) || null;
+
+    file.analysis.mountPrefix = mountPrefix;
+    if (mountPrefix && (file.analysis.routes || []).length > 0) {
+      file.analysis.absoluteRoutes = file.analysis.routes.map((r) => ({
+        method: r.method,
+        path: mountPrefix + r.path,
+      }));
+    } else {
+      file.analysis.absoluteRoutes = [];
+      if (!mountPrefix && (file.analysis.routes || []).length > 0) {
+        console.warn(
+          `⚠️ No mount prefix found for route file: ${normalizedPath}`,
+        );
+      }
+    }
+  }
+
+  // Step 3: Propagate absoluteRoutes to controllers
+  for (const file of files) {
+    if (file.type !== 'controller') continue;
+    const importedByPaths = file.analysis.importedBy || [];
+    const controllerAbsoluteRoutes = [];
+
+    for (const importerPath of importedByPaths) {
+      const importerFile = fileMap.get(importerPath);
+      if (
+        importerFile &&
+        importerFile.type === 'route' &&
+        importerFile.analysis.absoluteRoutes
+      ) {
+        controllerAbsoluteRoutes.push(...importerFile.analysis.absoluteRoutes);
+      }
+    }
+
+    file.analysis.absoluteRoutes = controllerAbsoluteRoutes;
+    if (controllerAbsoluteRoutes.length > 0) {
+      file.analysis.routes = controllerAbsoluteRoutes;
+    }
+  }
+
   // Framework Detection
   const frameworks = detectFrameworks(files);
   const projectType = getProjectType(frameworks);
@@ -2049,7 +2276,10 @@ export async function scanProject(projectPath) {
     type: f.type,
     role: f.role,
     category: f.category,
-    routes: f.analysis.routes || [],
+    routes:
+      f.analysis.absoluteRoutes?.length > 0
+        ? f.analysis.absoluteRoutes
+        : f.analysis.routes || [],
     imports: {
       files: f.analysis.resolvedImports || [],
     },

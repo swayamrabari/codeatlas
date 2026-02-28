@@ -639,12 +639,22 @@ function FileDetails({ file }) {
           )}
         </div>
       </div>
-      {/* 1. ROUTES SECTION */}
-      {file.routes && file.routes.length > 0 && (
+      {/* 1. ROUTES SECTION — prefer absoluteRoutes when available */}
+      {((file.absoluteRoutes && file.absoluteRoutes.length > 0) ||
+        (file.routes && file.routes.length > 0)) && (
         <section className="space-y-4">
-          <SectionHeader title="API Routes" />
+          <SectionHeader
+            title={
+              file.mountPrefix
+                ? `API Routes · ${file.mountPrefix}`
+                : 'API Routes'
+            }
+          />
           <div className="space-y-2">
-            {file.routes.map((r, i) => (
+            {(file.absoluteRoutes && file.absoluteRoutes.length > 0
+              ? file.absoluteRoutes
+              : file.routes
+            ).map((r, i) => (
               <div
                 key={i}
                 className="flex items-center gap-4 py-1 border-border/40 last:border-0"
@@ -654,6 +664,26 @@ function FileDetails({ file }) {
                   {r.path}
                 </span>
               </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 1b. THIRD-PARTY DEPENDENCIES */}
+      {file.thirdPartyDeps && file.thirdPartyDeps.length > 0 && (
+        <section className="space-y-3">
+          <SectionHeader
+            title={`Third-Party Dependencies (${file.thirdPartyDeps.length})`}
+          />
+          <div className="flex flex-wrap gap-2">
+            {file.thirdPartyDeps.map((dep) => (
+              <Badge
+                key={dep}
+                variant="secondary"
+                className="text-xs font-mono px-2.5 py-1 rounded-md"
+              >
+                {dep}
+              </Badge>
             ))}
           </div>
         </section>
@@ -669,12 +699,22 @@ function FileDetails({ file }) {
             <div className="text-2xl font-bold">{file.imports?.count || 0}</div>
           </div>
           <div className="space-y-1">
-            <div className="text-sm  font-semibold text-muted-foreground">
+            <div className="text-sm font-semibold text-muted-foreground">
               Exports
             </div>
             <div className="text-2xl font-bold">{file.exportsCount || 0}</div>
           </div>
         </div>
+        {file.exportedSymbols && file.exportedSymbols.length > 0 && (
+          <div className="pt-1">
+            <span className="text-sm font-semibold text-muted-foreground">
+              Exported:{' '}
+            </span>
+            <span className="font-mono text-sm text-foreground">
+              {file.exportedSymbols.join(', ')}
+            </span>
+          </div>
+        )}
       </section>
       {/* 3. IMPORTS LIST */}
       {file.imports?.items?.length > 0 && (

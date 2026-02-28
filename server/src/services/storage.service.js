@@ -327,7 +327,7 @@ function normalizeRoutes(routes) {
  * Maps the scanner output shape to the File model's analysis schema.
  */
 function buildAnalysis(scannedFile) {
-  return {
+  const analysis = {
     type: scannedFile.type || 'unknown',
     role: scannedFile.role || 'Unknown',
     category: scannedFile.category || 'infrastructure',
@@ -368,5 +368,16 @@ function buildAnalysis(scannedFile) {
         kind: exp.kind || 'unknown',
       }),
     ),
+    thirdPartyDeps: scannedFile.thirdPartyDeps || [],
+    exportedSymbols: scannedFile.exportedSymbols || [],
   };
+
+  if (scannedFile.mountPrefix !== undefined) {
+    analysis.mountPrefix = scannedFile.mountPrefix;
+  }
+  if (scannedFile.absoluteRoutes) {
+    analysis.absoluteRoutes = normalizeRoutes(scannedFile.absoluteRoutes);
+  }
+
+  return analysis;
 }

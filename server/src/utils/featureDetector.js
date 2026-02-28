@@ -750,8 +750,16 @@ function expandFeatures(features, relationships, files) {
 
     feature.categorized = categorized;
 
-    // Extract API routes from all hubs
-    feature.apiRoutes = feature.hubs.flatMap((h) => h.routes || []);
+    // Extract API routes from all hubs (deduplicated)
+    const seenRoutes = new Set();
+    feature.apiRoutes = feature.hubs
+      .flatMap((h) => h.routes || [])
+      .filter((r) => {
+        const key = `${r.method}|${r.path}`;
+        if (seenRoutes.has(key)) return false;
+        seenRoutes.add(key);
+        return true;
+      });
   });
 
   return features;
