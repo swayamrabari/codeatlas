@@ -12,14 +12,7 @@ import {
   PanelTopClose,
   PanelTopOpen,
   Layers,
-  ArrowRight,
   FileCode,
-  Server,
-  Globe,
-  Database,
-  Shield,
-  Settings,
-  Wrench,
   Share2,
   ChevronRight,
 } from 'lucide-react';
@@ -206,11 +199,11 @@ export default function Raw({ projectId }) {
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm font-semibold text-muted-foreground">
-                File Categories
+                File Types
               </p>
               <p className="text-lg font-bold leading-none">
                 {
-                  new Set(processedFiles.map((f) => f.category).filter(Boolean))
+                  new Set(processedFiles.map((f) => f.type).filter(Boolean))
                     .size
                 }
               </p>
@@ -219,19 +212,50 @@ export default function Raw({ projectId }) {
         </div>
 
         {/* ONE ROW FRAMEWORKS CARD */}
-        {frameworksList.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            {frameworksList.map((fw) => (
-              <Badge
-                key={fw}
-                variant={'secondary'}
-                className="text-xs font-medium px-3.5 pt-1.5 pb-1.25 whitespace-nowrap"
-              >
-                {fw}
-              </Badge>
-            ))}
+        <div className="mt-6">
+          <span className="text-base mb-2 font-semibold text-muted-foreground">
+            Frameworks Detected
+          </span>
+          {frameworksList.length > 0 && (
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-2">
+              {frameworksList.map((fw) => (
+                <Badge
+                  key={fw}
+                  variant={'secondary'}
+                  className="text-xs uppercase rounded-md font-semibold px-3 pt-1.5 pb-1.25 whitespace-nowrap"
+                >
+                  {fw}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* badges with total number of file type counts */}
+        <div className="mt-6">
+          <span className="text-base mb-4 font-semibold text-muted-foreground">
+            File Types Breakdown
+          </span>
+          <div className="flex items-center gap-2 flex-wrap pt-2">
+            {Array.from(
+              new Set(processedFiles.map((f) => f.type).filter(Boolean)),
+            ).map((type) => {
+              const count = processedFiles.filter(
+                (f) => f.type === type,
+              ).length;
+              return (
+                <Badge
+                  key={type}
+                  variant={'outline'}
+                  className="text-xs bg-accent rounded-md uppercase font-semibold px-3 pt-1.5 pb-1.25"
+                >
+                  {type}
+                  <span className="ml-1 text-muted-foreground">{count}</span>
+                </Badge>
+              );
+            })}
           </div>
-        )}
+        </div>
       </div>
       {/* BOTTOM: SPLIT VIEW (SIDEBAR | DETAILS) */}
       <div className="flex-1 flex overflow-hidden">
@@ -243,15 +267,12 @@ export default function Raw({ projectId }) {
             className="flex flex-col h-full"
           >
             <div className="p-2 pb-0">
-              <TabsList className="w-full">
+              <TabsList className="w-full" variant="line">
                 <TabsTrigger value="files">Files</TabsTrigger>
                 <TabsTrigger value="features">
                   Features
                   {featuresList.length > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="ml-1 h-4.5 min-w-5 px-1.5 text-[10px] font-semibold"
-                    >
+                    <Badge className="ml-1 h-4.5 min-w-5 px-1.5 text-[10px] font-semibold">
                       {featuresList.length}
                     </Badge>
                   )}
@@ -261,7 +282,7 @@ export default function Raw({ projectId }) {
 
             <TabsContent value="files" className="flex-1 overflow-hidden mt-0">
               <ScrollArea className="h-full">
-                <div className="p-2 pb-20 max-w-[320px] overflow-hidden">
+                <div className="p-2 pt-0 pb-20 max-w-[320px] overflow-hidden">
                   <FileTree
                     items={fileTree}
                     onSelect={setSelectedFile}
@@ -276,7 +297,7 @@ export default function Raw({ projectId }) {
               className="flex-1 overflow-hidden mt-0"
             >
               <ScrollArea className="h-full">
-                <div className="p-2 pb-20">
+                <div className="p-2 pt-0 pb-20">
                   {featuresList.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                       <Layers className="h-8 w-8 mb-2" />
@@ -412,7 +433,7 @@ function FileTreeItem({ item, onSelect, selectedPath, level }) {
     <div className="max-w-full overflow-hidden">
       <div
         className={`
-          flex items-center gap-1.5 py-1.5 rounded cursor-pointer select-none text-sm transition-colors font-mono overflow-hidden
+          flex items-center gap-1.5 py-1.5 rounded-md cursor-pointer select-none text-sm transition-colors font-mono overflow-hidden
           ${isSelected ? 'bg-secondary text-foreground' : 'hover:bg-secondary/70 text-foreground'}
         `}
         style={{
@@ -483,20 +504,6 @@ function FeatureList({ features, onSelect, selectedKeyword }) {
 
 // ---------------- FEATURE DETAILS COMPONENT ----------------
 
-const CATEGORY_ICONS = {
-  pages: Globe,
-  components: FileCode,
-  controllers: Server,
-  routes: ArrowRight,
-  models: Database,
-  middleware: Shield,
-  stores: Database,
-  services: Settings,
-  api: Globe,
-  utils: Wrench,
-  config: Settings,
-};
-
 function FeatureDetails({ feature }) {
   const categorized = feature.categorized || {};
   const sharedDeps = feature.sharedDependencies || [];
@@ -514,6 +521,20 @@ function FeatureDetails({ feature }) {
     { key: 'api', label: 'API Modules' },
     { key: 'utils', label: 'Utilities' },
     { key: 'config', label: 'Config' },
+    { key: 'jobs', label: 'Jobs' },
+    { key: 'events', label: 'Events' },
+    { key: 'migrations', label: 'Migrations' },
+    { key: 'seeds', label: 'Seeds' },
+    { key: 'validators', label: 'Validators' },
+    { key: 'hooks', label: 'Hooks' },
+    { key: 'contexts', label: 'Contexts' },
+    { key: 'layouts', label: 'Layouts' },
+    { key: 'guards', label: 'Guards' },
+    { key: 'styles', label: 'Styles' },
+    { key: 'assets', label: 'Assets' },
+    { key: 'tests', label: 'Tests' },
+    { key: 'mocks', label: 'Mocks' },
+    { key: 'other', label: 'Other' },
   ].filter((s) => categorized[s.key]?.length > 0);
 
   return (

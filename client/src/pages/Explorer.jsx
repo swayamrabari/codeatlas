@@ -17,7 +17,7 @@ function getLanguage(filePath) {
 
 const MAX_DISPLAY_FILE_SIZE = 512 * 1024; // 512KB - avoid rendering huge files as code
 
-export default function Explorer({ projectId }) {
+export default function Source({ projectId }) {
   const { state } = useLocation();
   const [data, setData] = useState(state?.data?.data ?? null);
   const [loading, setLoading] = useState(!data);

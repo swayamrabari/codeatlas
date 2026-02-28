@@ -227,20 +227,56 @@ const DIR_ROLES = {
   utils: { type: 'utility', role: 'Utility', category: 'shared' },
   util: { type: 'utility', role: 'Utility', category: 'shared' },
   helpers: { type: 'utility', role: 'Helper', category: 'shared' },
-  hooks: { type: 'utility', role: 'React/hooks', category: 'frontend' },
+  hooks: { type: 'hook', role: 'Custom hook', category: 'frontend' },
+  hook: { type: 'hook', role: 'Custom hook', category: 'frontend' },
+  composables: { type: 'hook', role: 'Composable', category: 'frontend' },
   store: { type: 'store', role: 'State store', category: 'frontend' },
   stores: { type: 'store', role: 'State store', category: 'frontend' },
+  context: { type: 'context', role: 'Context provider', category: 'frontend' },
+  contexts: { type: 'context', role: 'Context provider', category: 'frontend' },
   providers: {
-    type: 'component',
+    type: 'context',
     role: 'Context/provider',
     category: 'frontend',
   },
-  layouts: { type: 'component', role: 'Layout', category: 'frontend' },
-  layout: { type: 'component', role: 'Layout', category: 'frontend' },
+  layouts: { type: 'layout', role: 'Layout component', category: 'frontend' },
+  layout: { type: 'layout', role: 'Layout component', category: 'frontend' },
+  guards: { type: 'guard', role: 'Route/auth guard', category: 'backend' },
+  guard: { type: 'guard', role: 'Route/auth guard', category: 'backend' },
+  validators: {
+    type: 'validator',
+    role: 'Validation logic',
+    category: 'backend',
+  },
+  validator: {
+    type: 'validator',
+    role: 'Validation logic',
+    category: 'backend',
+  },
+  validation: {
+    type: 'validator',
+    role: 'Validation logic',
+    category: 'backend',
+  },
+  validations: {
+    type: 'validator',
+    role: 'Validation logic',
+    category: 'backend',
+  },
+  jobs: { type: 'job', role: 'Background job', category: 'backend' },
+  workers: { type: 'job', role: 'Worker process', category: 'backend' },
+  queues: { type: 'job', role: 'Job queue', category: 'backend' },
+  cron: { type: 'job', role: 'Cron job', category: 'backend' },
+  events: { type: 'event', role: 'Event handler', category: 'backend' },
+  listeners: { type: 'event', role: 'Event listener', category: 'backend' },
+  sockets: { type: 'event', role: 'Socket handler', category: 'backend' },
+  socket: { type: 'event', role: 'Socket handler', category: 'backend' },
   types: { type: 'types', role: 'Type definitions', category: 'shared' },
   typings: { type: 'types', role: 'Type definitions', category: 'shared' },
   interfaces: { type: 'types', role: 'Type definitions', category: 'shared' },
-  constants: { type: 'utility', role: 'Constants', category: 'shared' },
+  constants: { type: 'constant', role: 'Constants/enums', category: 'shared' },
+  constant: { type: 'constant', role: 'Constants/enums', category: 'shared' },
+  enums: { type: 'constant', role: 'Enum definitions', category: 'shared' },
   config: { type: 'config', role: 'Configuration', category: 'infrastructure' },
   configs: {
     type: 'config',
@@ -248,8 +284,10 @@ const DIR_ROLES = {
     category: 'infrastructure',
   },
   __tests__: { type: 'test', role: 'Test file', category: 'test' },
-  __mocks__: { type: 'test', role: 'Mock', category: 'test' },
+  __mocks__: { type: 'mock', role: 'Mock module', category: 'test' },
   __fixtures__: { type: 'test', role: 'Test fixture', category: 'test' },
+  mocks: { type: 'mock', role: 'Mock module', category: 'test' },
+  mock: { type: 'mock', role: 'Mock module', category: 'test' },
   test: { type: 'test', role: 'Test file', category: 'test' },
   tests: { type: 'test', role: 'Test file', category: 'test' },
   spec: { type: 'test', role: 'Test spec', category: 'test' },
@@ -258,12 +296,25 @@ const DIR_ROLES = {
   integration: { type: 'test', role: 'Integration test', category: 'test' },
   scripts: { type: 'script', role: 'Script', category: 'infrastructure' },
   script: { type: 'script', role: 'Script', category: 'infrastructure' },
-  migrations: { type: 'script', role: 'Migration', category: 'backend' },
-  seed: { type: 'script', role: 'Seed data', category: 'backend' },
-  seeds: { type: 'script', role: 'Seed data', category: 'backend' },
-  public: { type: 'static', role: 'Static asset (path)', category: 'frontend' },
-  static: { type: 'static', role: 'Static asset', category: 'frontend' },
-  assets: { type: 'static', role: 'Asset', category: 'frontend' },
+  migrations: {
+    type: 'migration',
+    role: 'Database migration',
+    category: 'backend',
+  },
+  migration: {
+    type: 'migration',
+    role: 'Database migration',
+    category: 'backend',
+  },
+  seed: { type: 'seed', role: 'Seed data', category: 'backend' },
+  seeds: { type: 'seed', role: 'Seed data', category: 'backend' },
+  fixtures: { type: 'seed', role: 'Data fixture', category: 'backend' },
+  public: { type: 'asset', role: 'Public asset', category: 'frontend' },
+  static: { type: 'asset', role: 'Static asset', category: 'frontend' },
+  assets: { type: 'asset', role: 'Asset', category: 'frontend' },
+  images: { type: 'asset', role: 'Image asset', category: 'frontend' },
+  fonts: { type: 'asset', role: 'Font asset', category: 'frontend' },
+  icons: { type: 'asset', role: 'Icon asset', category: 'frontend' },
   styles: { type: 'style', role: 'Styles', category: 'frontend' },
   theme: { type: 'style', role: 'Theme', category: 'frontend' },
   themes: { type: 'style', role: 'Theme', category: 'frontend' },
@@ -603,7 +654,7 @@ function classifyByPath(filePath) {
       if (t === 'style' && ['.css', '.scss', '.sass', '.less'].includes(ext)) {
         return { type: t, role: r, category: c };
       }
-      if (t === 'static' && !['.js', '.ts'].includes(ext)) {
+      if (t === 'asset' && !['.js', '.ts'].includes(ext)) {
         return { type: t, role: r, category: c };
       }
     }
@@ -664,6 +715,14 @@ function classifyByContent(content, filePath) {
     config: 0,
     types: 0,
     utility: 0,
+    hook: 0,
+    context: 0,
+    layout: 0,
+    guard: 0,
+    validator: 0,
+    job: 0,
+    event: 0,
+    constant: 0,
   };
 
   // Route patterns (Express, Fastify, Hono, etc.)
@@ -767,6 +826,82 @@ function classifyByContent(content, filePath) {
   if (/type\s+\w+\s*=\s*/.test(content) && !/useState|useReducer/.test(content))
     scores.types += 3;
 
+  // Hook patterns (React custom hooks, Vue composables)
+  if (/export\s+(?:default\s+)?function\s+use[A-Z]/.test(content))
+    scores.hook += 15;
+  if (/(?:const|let)\s+use[A-Z]\w*\s*=/.test(content)) scores.hook += 12;
+  if (
+    /useState|useEffect|useContext|useReducer|useMemo|useCallback|useRef/.test(
+      content,
+    )
+  )
+    scores.hook += 3;
+
+  // Context/Provider patterns
+  if (/createContext\s*\(/.test(content)) scores.context += 15;
+  if (/\.Provider\s+value=/.test(content)) scores.context += 10;
+  if (/useContext\s*\(/.test(content) && /Provider/.test(content))
+    scores.context += 8;
+
+  // Layout patterns
+  if (/export\s+(?:default\s+)?function\s+\w*Layout/.test(content))
+    scores.layout += 12;
+  if (/<(Outlet|Slot|slot)/.test(content)) scores.layout += 8;
+  if (
+    /children|{\s*children\s*}/.test(content) &&
+    /<(header|footer|nav|aside|main)/.test(content)
+  )
+    scores.layout += 6;
+
+  // Guard patterns (auth guards, route guards)
+  if (/\bcanActivate|canDeactivate|authGuard|routeGuard/.test(content))
+    scores.guard += 15;
+  if (/isAuthenticated|isAuthorized|requireAuth|checkAuth/.test(content))
+    scores.guard += 8;
+  if (/redirect.*login|navigate.*login|unauthorized/.test(content))
+    scores.guard += 3;
+
+  // Validator patterns (Zod, Joi, Yup, express-validator)
+  if (/z\.(object|string|number|array|enum)\s*\(/.test(content))
+    scores.validator += 15;
+  if (/Joi\.(object|string|number|array)/.test(content)) scores.validator += 15;
+  if (/yup\.(object|string|number|array)/.test(content)) scores.validator += 15;
+  if (
+    /body\s*\(|param\s*\(|query\s*\(.*\.(isEmail|isLength|notEmpty)/.test(
+      content,
+    )
+  )
+    scores.validator += 10;
+  if (
+    /validate|validation|sanitize|schema/.test(content) &&
+    /required|min|max|pattern|regex/.test(content)
+  )
+    scores.validator += 5;
+
+  // Job/Worker patterns (Bull, Agenda, cron, workers)
+  if (/new\s+(Queue|Worker|Agenda)\s*\(/.test(content)) scores.job += 15;
+  if (/cron\.schedule|schedule\.scheduleJob/.test(content)) scores.job += 12;
+  if (/process\.on\s*\(\s*['"]message/.test(content)) scores.job += 8;
+  if (/Bull|Agenda|bee-queue|node-cron/.test(content)) scores.job += 5;
+
+  // Event patterns (EventEmitter, Socket.io, pub/sub)
+  if (
+    /\.on\s*\(\s*['"]\w+['"]\s*,/.test(content) &&
+    /\.emit\s*\(/.test(content)
+  )
+    scores.event += 12;
+  if (/io\.on|socket\.on|socket\.emit/.test(content)) scores.event += 15;
+  if (/EventEmitter|EventTarget/.test(content)) scores.event += 10;
+  if (/subscribe|publish|pubsub|broker/.test(content)) scores.event += 8;
+
+  // Constant patterns
+  if (/^export\s+const\s+[A-Z_]{2,}\s*=/m.test(content)) scores.constant += 10;
+  if (
+    (content.match(/(?:export\s+)?const\s+[A-Z_]{2,}\s*=/g) || []).length >= 3
+  )
+    scores.constant += 8;
+  if (/Object\.freeze\s*\(/.test(content)) scores.constant += 5;
+
   // Find highest score
   let maxScore = 0;
   let maxType = null;
@@ -789,6 +924,14 @@ function classifyByContent(content, filePath) {
       config: 'Configuration',
       types: 'Type definitions',
       utility: 'Utility function',
+      hook: 'Custom hook',
+      context: 'Context provider',
+      layout: 'Layout component',
+      guard: 'Route/auth guard',
+      validator: 'Validation logic',
+      job: 'Background job/worker',
+      event: 'Event/socket handler',
+      constant: 'Constants/enums',
     };
     return {
       type: maxType,
@@ -1716,10 +1859,13 @@ function classifyBehavior(fileType, content, analysis) {
     return 'state';
   }
 
-  // 5) UI render — components, pages, JSX
+  // 5) UI render — components, pages, layouts, contexts, hooks, JSX
   if (
     fileType === 'component' ||
     fileType === 'page' ||
+    fileType === 'layout' ||
+    fileType === 'context' ||
+    fileType === 'hook' ||
     fileType === 'markup' ||
     fileType === 'style' ||
     hasJSXorHooks
@@ -1727,14 +1873,44 @@ function classifyBehavior(fileType, content, analysis) {
     return 'ui-render';
   }
 
-  // 6) Logic — services or utilities that do not primarily fetch
+  // 6) Validation — validators, guards
+  if (fileType === 'validator' || fileType === 'guard') {
+    return 'logic';
+  }
+
+  // 7) Background — jobs, workers, events, sockets
+  if (fileType === 'job' || fileType === 'event') {
+    return 'logic';
+  }
+
+  // 8) Data — migrations, seeds
+  if (fileType === 'migration' || fileType === 'seed') {
+    return 'data-layer';
+  }
+
+  // 9) Constants
+  if (fileType === 'constant') {
+    return 'config';
+  }
+
+  // 10) Mock
+  if (fileType === 'mock') {
+    return 'logic';
+  }
+
+  // 11) Logic — services or utilities that do not primarily fetch
   if (fileType === 'service' || fileType === 'utility') {
     return 'logic';
   }
 
-  // 7) Config
+  // 12) Config
   if (fileType === 'config' || fileType === 'manifest') {
     return 'config';
+  }
+
+  // 13) Asset — static files, images, fonts
+  if (fileType === 'asset') {
+    return 'ui-render';
   }
 
   // Default fallback: logic (conservative)

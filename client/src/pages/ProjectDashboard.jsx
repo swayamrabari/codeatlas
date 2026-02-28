@@ -7,8 +7,8 @@ import {
   useLocation,
 } from 'react-router-dom';
 import Docs from './Docs';
-import Explorer from './Explorer';
 import Raw from './Raw';
+import Source from './Explorer';
 import Chat from './Chat';
 import Header from '@/components/Header';
 import {
@@ -25,7 +25,7 @@ function ProjectDashboard() {
 
   // Determine active tab from current route
   const currentPath = location.pathname.split('/').pop();
-  const activeTab = ['docs', 'explorer', 'raw', 'chat'].includes(currentPath)
+  const activeTab = ['docs', 'source', 'raw', 'chat'].includes(currentPath)
     ? currentPath
     : 'docs';
 
@@ -45,7 +45,7 @@ function ProjectDashboard() {
         >
           <TabsList variant="line" className="justify-start *:cursor-pointer">
             <TabsTrigger value="docs">Docs</TabsTrigger>
-            <TabsTrigger value="explorer">Explorer</TabsTrigger>
+            <TabsTrigger value="source">Source</TabsTrigger>
             <TabsTrigger value="raw">Raw Analysis</TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
           </TabsList>
@@ -57,7 +57,7 @@ function ProjectDashboard() {
         <Routes>
           <Route path="/" element={<Navigate to="docs" replace />} />
           <Route path="docs" element={<Docs projectId={id} />} />
-          <Route path="explorer" element={<Explorer projectId={id} />} />
+          <Route path="source" element={<Source projectId={id} />} />
           <Route path="raw" element={<Raw projectId={id} />} />
           <Route path="chat" element={<Chat projectId={id} />} />
         </Routes>

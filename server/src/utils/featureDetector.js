@@ -473,20 +473,41 @@ function expandFeatures(features, relationships, files) {
 
     // Initialize categorization buckets
     const categorized = {
+      // Top-level side buckets
       frontend: [],
       backend: [],
       shared: [],
+      // Backend-specific
       models: [],
       routes: [],
       controllers: [],
+      middleware: [],
+      services: [],
+      config: [],
+      jobs: [],
+      events: [],
+      migrations: [],
+      seeds: [],
+      validators: [],
+      // Frontend-specific
       pages: [],
       components: [],
-      api: [],
-      utils: [],
-      middleware: [],
-      config: [],
+      hooks: [],
+      contexts: [],
       stores: [],
-      services: [],
+      api: [],
+      layouts: [],
+      guards: [],
+      styles: [],
+      assets: [],
+      // Shared/universal
+      utils: [],
+      types: [],
+      constants: [],
+      tests: [],
+      mocks: [],
+      // Catch-all: file is in allFiles but doesn't match any specific sub-category
+      other: [],
     };
 
     // Categorize each file — use path-based detection as primary signal
@@ -513,37 +534,217 @@ function expandFeatures(features, relationships, files) {
       if (isFrontend) categorized.frontend.push(filePath);
       if (isBackend) categorized.backend.push(filePath);
 
+      // Mark shared files
+      if (cat === 'shared') {
+        categorized.shared.push(filePath);
+      }
+
+      // ------------------------------------------------------------------
       // Sub-category by path patterns (works regardless of root dir name)
-      if (filePath.includes('/pages/')) categorized.pages.push(filePath);
-      if (filePath.includes('/components/'))
-        categorized.components.push(filePath);
-      if (filePath.includes('/api/') && isFrontend)
-        categorized.api.push(filePath);
-      if (filePath.includes('/store/') || filePath.includes('/stores/'))
-        categorized.stores.push(filePath);
-      if (filePath.includes('/models/') || filePath.includes('/schemas/'))
-        categorized.models.push(filePath);
-      if (filePath.includes('/routes/')) categorized.routes.push(filePath);
-      if (filePath.includes('/controllers/'))
-        categorized.controllers.push(filePath);
+      // Track whether the file matched at least one sub-category so we can
+      // fall back to "other" if nothing matched.
+      // ------------------------------------------------------------------
+      let matchedSubCategory = false;
+
+      const pushTo = (bucket) => {
+        categorized[bucket].push(filePath);
+        matchedSubCategory = true;
+      };
+
+      // Pages (traditional /pages/ or Next.js app router page files)
+      if (
+        filePath.includes('/pages/') ||
+        /\/app\/(?:.*\/)?page\.(tsx|jsx|ts|js)$/.test(filePath)
+      )
+        pushTo('pages');
+
+      // Layouts
+      if (
+        filePath.includes('/layouts/') ||
+        filePath.includes('/layout/') ||
+        /\/app\/(?:.*\/)?layout\.(tsx|jsx|ts|js)$/.test(filePath)
+      )
+        pushTo('layouts');
+
+      // Route guards / ProtectedRoute
+      if (
+        filePath.includes('/guards/') ||
+        /ProtectedRoute|AuthGuard|RouteGuard/i.test(filePath)
+      )
+        pushTo('guards');
+
+      // Components (exclude hooks/guards/layouts/pages already above)
+      if (filePath.includes('/components/')) pushTo('components');
+
+      // Hooks
+      if (
+        filePath.includes('/hooks/') ||
+        /\/use[A-Z]/.test(filePath) // useAuth.js, useModal.ts etc. outside /hooks/
+      )
+        pushTo('hooks');
+
+      // Contexts / Providers
+      if (
+        filePath.includes('/context/') ||
+        filePath.includes('/contexts/') ||
+        filePath.includes('/providers/') ||
+        filePath.includes('/provider/')
+      )
+        pushTo('contexts');
+
+      // State stores (Redux, Zustand, Pinia, MobX, Jotai, …)
+      if (
+        filePath.includes('/store/') ||
+        filePath.includes('/stores/') ||
+        filePath.includes('/state/') ||
+        filePath.includes('/slices/') ||
+        filePath.includes('/atoms/')
+      )
+        pushTo('stores');
+
+      // Frontend API clients
+      if (filePath.includes('/api/') && isFrontend) pushTo('api');
+
+      // Styles
+      if (
+        filePath.includes('/styles/') ||
+        filePath.includes('/style/') ||
+        /\.(css|scss|sass|less|styl)$/.test(filePath)
+      )
+        pushTo('styles');
+
+      // Assets (images, fonts, icons, etc.)
+      if (
+        filePath.includes('/assets/') ||
+        filePath.includes('/images/') ||
+        filePath.includes('/fonts/') ||
+        filePath.includes('/icons/') ||
+        filePath.includes('/public/') ||
+        /\.(png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot)$/.test(filePath)
+      )
+        pushTo('assets');
+
+      // Backend: Models / Schemas / Entities
+      if (
+        filePath.includes('/models/') ||
+        filePath.includes('/schemas/') ||
+        filePath.includes('/entities/') ||
+        filePath.includes('/domain/')
+      )
+        pushTo('models');
+
+      // Backend: Routes
+      if (filePath.includes('/routes/')) pushTo('routes');
+
+      // Backend: Controllers
+      if (filePath.includes('/controllers/')) pushTo('controllers');
+
+      // Backend: Middleware
       if (
         filePath.includes('/middleware/') ||
         filePath.includes('/middlewares/')
       )
-        categorized.middleware.push(filePath);
+        pushTo('middleware');
+
+      // Backend: Services (frontend services already handled above via /api/)
+      if (filePath.includes('/services/')) pushTo('services');
+
+      // Config
+      if (
+        filePath.includes('/config/') ||
+        filePath.includes('/configs/') ||
+        filePath.includes('/configuration/')
+      )
+        pushTo('config');
+
+      // Validators / Schemas (Zod, Joi, Yup, etc.)
+      if (
+        filePath.includes('/validators/') ||
+        filePath.includes('/validation/') ||
+        filePath.includes('/validations/') ||
+        /\.(schema|validator|validation)\.(ts|js)$/.test(filePath)
+      )
+        pushTo('validators');
+
+      // Background jobs / workers / queues / tasks
+      if (
+        filePath.includes('/jobs/') ||
+        filePath.includes('/workers/') ||
+        filePath.includes('/queues/') ||
+        filePath.includes('/tasks/') ||
+        filePath.includes('/cron/')
+      )
+        pushTo('jobs');
+
+      // Event emitters / socket handlers
+      if (
+        filePath.includes('/events/') ||
+        filePath.includes('/sockets/') ||
+        filePath.includes('/socket/') ||
+        filePath.includes('/listeners/')
+      )
+        pushTo('events');
+
+      // Database migrations / seeds
+      if (filePath.includes('/migrations/') || filePath.includes('/migration/'))
+        pushTo('migrations');
+      if (
+        filePath.includes('/seeds/') ||
+        filePath.includes('/seed/') ||
+        filePath.includes('/fixtures/')
+      )
+        pushTo('seeds');
+
+      // Utilities / Helpers / lib
       if (
         filePath.includes('/utils/') ||
+        filePath.includes('/util/') ||
         filePath.includes('/helpers/') ||
+        filePath.includes('/helper/') ||
         filePath.includes('/lib/')
       )
-        categorized.utils.push(filePath);
-      if (filePath.includes('/config/') || filePath.includes('/configs/'))
-        categorized.config.push(filePath);
-      if (filePath.includes('/services/')) categorized.services.push(filePath);
+        pushTo('utils');
 
-      // Mark shared files
-      if (cat === 'shared') {
-        categorized.shared.push(filePath);
+      // TypeScript types / interfaces / declarations
+      if (
+        filePath.includes('/types/') ||
+        filePath.includes('/interfaces/') ||
+        filePath.includes('/typings/') ||
+        /\.d\.ts$/.test(filePath) ||
+        /\.(types|interface|interfaces)\.(ts|js)$/.test(filePath)
+      )
+        pushTo('types');
+
+      // Constants / enums
+      if (
+        filePath.includes('/constants/') ||
+        filePath.includes('/constant/') ||
+        filePath.includes('/enums/') ||
+        /\.(constants|constant|enums)\.(ts|js)$/.test(filePath)
+      )
+        pushTo('constants');
+
+      // Tests / specs
+      if (
+        filePath.includes('/test/') ||
+        filePath.includes('/tests/') ||
+        filePath.includes('/__tests__/') ||
+        filePath.includes('/__mocks__/') ||
+        /\.(test|spec)\.(ts|js|tsx|jsx)$/.test(filePath)
+      )
+        pushTo('tests');
+
+      // Mocks
+      if (
+        filePath.includes('/mocks/') ||
+        filePath.includes('/mock/') ||
+        filePath.includes('/__mocks__/')
+      )
+        pushTo('mocks');
+
+      // Catch-all: if no sub-category matched, add to "other"
+      if (!matchedSubCategory) {
+        categorized.other.push(filePath);
       }
     });
 

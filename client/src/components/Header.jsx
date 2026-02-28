@@ -3,7 +3,6 @@ import LogoIcon from '../assets/logo';
 import Wordmark from '../assets/wordmark';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,11 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, LogOut, Upload } from 'lucide-react';
 
 export default function Header() {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -51,29 +49,27 @@ export default function Header() {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
+                  onClick={() => navigate('/dashboard')}
+                  className="cursor-pointer"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate('/upload')}
+                  className="cursor-pointer"
+                >
+                  <Upload className="h-4 w-4" />
+                  New Project
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
                   variant="destructive"
                   onClick={handleLogout}
                   className="cursor-pointer font-medium"
                 >
                   <LogOut className="h-5 w-5" />
                   Sign out
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={toggleTheme}
-                  className="cursor-pointer font-medium"
-                >
-                  {/* display moon and sun icon accordingly with current theme state */}
-                  {theme === 'light' ? (
-                    <>
-                      <Moon className="h-5 w-5" />
-                      Dark mode{' '}
-                    </>
-                  ) : (
-                    <>
-                      <Sun className="h-5 w-5" />
-                      Light mode
-                    </>
-                  )}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
