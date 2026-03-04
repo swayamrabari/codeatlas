@@ -332,6 +332,7 @@ function buildAnalysis(scannedFile) {
     role: scannedFile.role || 'Unknown',
     category: scannedFile.category || 'infrastructure',
     behavior: scannedFile.behavior || 'logic',
+    tier: scannedFile.tier ?? 3,
     routes: normalizeRoutes(
       scannedFile.routes || scannedFile.analysis?.routes || [],
     ),

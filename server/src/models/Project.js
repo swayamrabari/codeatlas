@@ -69,9 +69,27 @@ const projectSchema = new mongoose.Schema(
 
     // ── AI Documentation (Project Level) — populated later ──
     aiDocumentation: {
-      overviewShort: { type: String, default: null },
-      overviewDetailed: { type: String, default: null },
-      architectureDiagram: { type: String, default: null },
+      detailedSummary: { type: String, default: null },
+      mermaidDiagram: { type: String, default: null },
+      searchTags: { type: [String], default: [] },
+    },
+
+    // ── Documentation Pipeline Progress ──
+    docProgress: {
+      step: {
+        type: String,
+        enum: [
+          'file-docs',
+          'feature-docs',
+          'project-docs',
+          'embeddings',
+          'done',
+          'error',
+        ],
+        default: null,
+      },
+      detail: { type: String, default: null },
+      completedSteps: { type: [String], default: [] },
     },
 
     // ── Processing Metadata ──

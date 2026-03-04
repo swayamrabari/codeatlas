@@ -92,7 +92,8 @@ const featureSchema = new mongoose.Schema(
     aiDocumentation: {
       shortSummary: { type: String, default: null },
       detailedSummary: { type: String, default: null },
-      flowDiagram: { type: String, default: null },
+      mermaidDiagram: { type: String, default: null },
+      searchTags: { type: [String], default: [] },
     },
   },
   {

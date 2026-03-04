@@ -551,15 +551,57 @@ function expandFeatures(features, relationships, files) {
         matchedSubCategory = true;
       };
 
-      // Pages (traditional /pages/ or Next.js app router page files)
-      if (
-        filePath.includes('/pages/') ||
-        /\/app\/(?:.*\/)?page\.(tsx|jsx|ts|js)$/.test(filePath)
-      )
-        pushTo('pages');
+      // Prefer scanner type for page/component/hook/store (multi-signal classification)
+      const fileType = file.type || '';
 
-      // Layouts
+      // Pages — scanner uses path, naming, router imports, importedBy
+      if (fileType === 'page') {
+        pushTo('pages');
+      }
+      // Components — scanner distinguishes from pages
+      else if (fileType === 'component') {
+        pushTo('components');
+      }
+      // Hooks — scanner distinguishes from stores (useX + no state-manager import)
+      else if (fileType === 'hook') {
+        pushTo('hooks');
+      }
+      // Stores — scanner uses state-manager imports and path/name
+      else if (fileType === 'store') {
+        pushTo('stores');
+      }
+      // Fallback: path-based detection when type not set or ambiguous
+      else {
+        // Pages (traditional /pages/ or Next.js app router page files)
+        if (
+          filePath.includes('/pages/') ||
+          /\/app\/(?:.*\/)?page\.(tsx|jsx|ts|js)$/.test(filePath)
+        )
+          pushTo('pages');
+
+        // Components (only if not already in pages)
+        if (!matchedSubCategory && filePath.includes('/components/'))
+          pushTo('components');
+
+        // State stores vs Hooks (path-based fallback, mutually exclusive)
+        const pathLooksStore =
+          filePath.includes('/store/') ||
+          filePath.includes('/stores/') ||
+          filePath.includes('/state/') ||
+          filePath.includes('/slices/') ||
+          filePath.includes('/atoms/') ||
+          /Store\.(jsx?|tsx?)$/i.test(filePath.split('/').pop() || '');
+        const pathLooksHook =
+          filePath.includes('/hooks/') ||
+          filePath.includes('/composables/') ||
+          /\/use[A-Z]/.test(filePath);
+        if (pathLooksStore) pushTo('stores');
+        else if (pathLooksHook) pushTo('hooks');
+      }
+
+      // Layouts (type from scanner or path)
       if (
+        fileType === 'layout' ||
         filePath.includes('/layouts/') ||
         filePath.includes('/layout/') ||
         /\/app\/(?:.*\/)?layout\.(tsx|jsx|ts|js)$/.test(filePath)
@@ -573,34 +615,15 @@ function expandFeatures(features, relationships, files) {
       )
         pushTo('guards');
 
-      // Components (exclude hooks/guards/layouts/pages already above)
-      if (filePath.includes('/components/')) pushTo('components');
-
-      // Hooks
-      if (
-        filePath.includes('/hooks/') ||
-        /\/use[A-Z]/.test(filePath) // useAuth.js, useModal.ts etc. outside /hooks/
-      )
-        pushTo('hooks');
-
       // Contexts / Providers
       if (
+        fileType === 'context' ||
         filePath.includes('/context/') ||
         filePath.includes('/contexts/') ||
         filePath.includes('/providers/') ||
         filePath.includes('/provider/')
       )
         pushTo('contexts');
-
-      // State stores (Redux, Zustand, Pinia, MobX, Jotai, …)
-      if (
-        filePath.includes('/store/') ||
-        filePath.includes('/stores/') ||
-        filePath.includes('/state/') ||
-        filePath.includes('/slices/') ||
-        filePath.includes('/atoms/')
-      )
-        pushTo('stores');
 
       // Frontend API clients
       if (filePath.includes('/api/') && isFrontend) pushTo('api');

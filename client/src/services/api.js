@@ -115,6 +115,22 @@ export const projectAPI = {
   },
 
   /**
+   * Lightweight status poll — returns { status, name, totalFiles, featureCount }
+   */
+  getProjectStatus: async (id) => {
+    const response = await api.get(`/project/${id}/status`);
+    return response.data;
+  },
+
+  /**
+   * Get full AI documentation (project overview + features with docs + nested files)
+   */
+  getProjectDocs: async (id) => {
+    const response = await api.get(`/project/${id}/docs`);
+    return response.data;
+  },
+
+  /**
    * Get lightweight file list (no content) for Explorer sidebar
    */
   getFileList: async (id) => {
@@ -155,6 +171,37 @@ export const projectAPI = {
    */
   deleteProject: async (id) => {
     const response = await api.delete(`/project/${id}`);
+    return response.data;
+  },
+
+  // ── Selective Doc Regeneration ──
+
+  /**
+   * Regenerate docs for a single file
+   */
+  regenerateFileDoc: async (projectId, filePath) => {
+    const response = await api.post(`/project/${projectId}/regenerate/file`, {
+      filePath,
+    });
+    return response.data;
+  },
+
+  /**
+   * Regenerate docs for a single feature
+   */
+  regenerateFeatureDoc: async (projectId, keyword) => {
+    const response = await api.post(
+      `/project/${projectId}/regenerate/feature`,
+      { keyword },
+    );
+    return response.data;
+  },
+
+  /**
+   * Regenerate project overview docs
+   */
+  regenerateProjectDoc: async (projectId) => {
+    const response = await api.post(`/project/${projectId}/regenerate/project`);
     return response.data;
   },
 };

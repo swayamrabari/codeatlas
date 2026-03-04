@@ -40,6 +40,8 @@ const analysisSchema = new mongoose.Schema(
     role: { type: String, default: 'Unknown' },
     category: { type: String, default: 'infrastructure' },
     behavior: { type: String, default: 'logic' },
+    /** Deterministic tier: 1 = in a feature, 2 = structural (entry/route/controller/etc.), 3 = rest */
+    tier: { type: Number, default: 3, min: 1, max: 3 },
     routes: { type: [mongoose.Schema.Types.Mixed], default: [] },
     imports: {
       count: { type: Number, default: 0 },
@@ -102,6 +104,7 @@ const fileSchema = new mongoose.Schema(
       shortSummary: { type: String, default: null },
       detailedSummary: { type: String, default: null },
       mermaidDiagram: { type: String, default: null },
+      searchTags: { type: [String], default: [] },
     },
   },
   {

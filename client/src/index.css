@@ -167,3 +167,133 @@ html.dark {
   /* set geist mono */
   font-family: 'Geist Mono', monospace;
 }
+
+/* ── Docs Markdown Styling ── */
+.docs-markdown {
+  color: var(--foreground);
+  line-height: 1.75;
+  font-size: 0.9375rem;
+}
+
+.docs-markdown h1,
+.docs-markdown h2,
+.docs-markdown h3,
+.docs-markdown h4 {
+  color: var(--foreground);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.docs-markdown h1 {
+  font-size: 1.5rem;
+}
+.docs-markdown h2 {
+  font-size: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+}
+.docs-markdown h3 {
+  font-size: 1.1rem;
+}
+.docs-markdown h4 {
+  font-size: 1rem;
+}
+
+.docs-markdown p {
+  margin-bottom: 1rem;
+}
+
+.docs-markdown ul,
+.docs-markdown ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.docs-markdown ul {
+  list-style-type: disc;
+}
+.docs-markdown ol {
+  list-style-type: decimal;
+}
+
+.docs-markdown li {
+  margin-bottom: 0.5rem;
+}
+
+.docs-markdown li > ul,
+.docs-markdown li > ol {
+  margin-top: -0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.docs-markdown code {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.825rem;
+  background: var(--secondary);
+  color: var(--foreground);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border);
+}
+
+.docs-markdown pre {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.docs-markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+.docs-markdown strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.docs-markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.docs-markdown blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.docs-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.docs-markdown th,
+.docs-markdown td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.docs-markdown th {
+  background: var(--secondary);
+  font-weight: 600;
+}
+
+.docs-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}

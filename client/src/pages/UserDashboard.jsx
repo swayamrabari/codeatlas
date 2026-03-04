@@ -5,12 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from '@/components/ui/card';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -26,45 +20,136 @@ import {
   Package,
   Clock,
   FileCode2,
-  LayoutGrid,
+  ArrowRight,
+  Sparkles,
+  AlertCircle,
 } from 'lucide-react';
 
-function StatusBadge({ status }) {
-  const map = {
-    ready:
-      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    processing:
-      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    pending: 'bg-muted text-muted-foreground',
-  };
-  const label = {
-    ready: 'Ready',
-    processing: 'Processing',
-    failed: 'Failed',
-    pending: 'Pending',
+/* ── Palette: one accent colour per card slot (cycles) ── */
+const CARD_ACCENTS = [
+  {
+    from: 'from-violet-500',
+    to: 'to-indigo-500',
+    ring: 'ring-violet-500/20',
+    icon: 'bg-violet-500/15 text-violet-400',
+    dot: 'bg-violet-400',
+  },
+  {
+    from: 'from-blue-500',
+    to: 'to-cyan-500',
+    ring: 'ring-blue-500/20',
+    icon: 'bg-blue-500/15 text-blue-400',
+    dot: 'bg-blue-400',
+  },
+  {
+    from: 'from-emerald-500',
+    to: 'to-teal-500',
+    ring: 'ring-emerald-500/20',
+    icon: 'bg-emerald-500/15 text-emerald-400',
+    dot: 'bg-emerald-400',
+  },
+  {
+    from: 'from-rose-500',
+    to: 'to-pink-500',
+    ring: 'ring-rose-500/20',
+    icon: 'bg-rose-500/15 text-rose-400',
+    dot: 'bg-rose-400',
+  },
+  {
+    from: 'from-amber-500',
+    to: 'to-orange-500',
+    ring: 'ring-amber-500/20',
+    icon: 'bg-amber-500/15 text-amber-400',
+    dot: 'bg-amber-400',
+  },
+  {
+    from: 'from-sky-500',
+    to: 'to-blue-400',
+    ring: 'ring-sky-500/20',
+    icon: 'bg-sky-500/15 text-sky-400',
+    dot: 'bg-sky-400',
+  },
+];
+
+function statusConfig(status) {
+  const cfg = {
+    ready: {
+      label: 'Ready',
+      cls: 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30',
+      pulse: false,
+    },
+    documenting: {
+      label: 'Generating Docs…',
+      cls: 'bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/30',
+      pulse: true,
+    },
+    analyzing: {
+      label: 'Analyzing',
+      cls: 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
+      pulse: true,
+    },
+    scanning: {
+      label: 'Scanning',
+      cls: 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
+      pulse: true,
+    },
+    uploading: {
+      label: 'Uploading',
+      cls: 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
+      pulse: true,
+    },
+    processing: {
+      label: 'Processing',
+      cls: 'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
+      pulse: true,
+    },
+    failed: {
+      label: 'Failed',
+      cls: 'bg-red-500/15 text-red-400 ring-1 ring-red-500/30',
+      pulse: false,
+    },
   };
   return (
+    cfg[status] ?? {
+      label: status,
+      cls: 'bg-muted text-muted-foreground',
+      pulse: false,
+    }
+  );
+}
+
+function StatusBadge({ status }) {
+  const { label, cls, pulse } = statusConfig(status);
+  return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-        map[status] ?? map.pending
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide ${cls}`}
     >
-      {label[status] ?? status}
+      {pulse && (
+        <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+      )}
+      {label}
     </span>
   );
 }
 
 function ProjectCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card animate-pulse">
-      <div className="p-5 space-y-3">
-        <div className="h-4 w-2/3 rounded bg-muted" />
-        <div className="h-3 w-full rounded bg-muted" />
-        <div className="h-3 w-1/2 rounded bg-muted" />
-        <div className="flex gap-2 pt-2">
-          <div className="h-5 w-14 rounded-full bg-muted" />
-          <div className="h-5 w-14 rounded-full bg-muted" />
+    <div className="rounded-2xl border border-border bg-card overflow-hidden animate-pulse">
+      <div className="p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-muted shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-2/3 rounded-md bg-muted" />
+            <div className="h-3 w-1/3 rounded-md bg-muted" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="h-3 w-full rounded bg-muted" />
+          <div className="h-3 w-4/5 rounded bg-muted" />
+        </div>
+        <div className="flex gap-2 pt-1">
+          <div className="h-6 w-16 rounded-full bg-muted" />
+          <div className="h-6 w-12 rounded-full bg-muted" />
         </div>
       </div>
     </div>
@@ -73,7 +158,13 @@ function ProjectCardSkeleton() {
 
 function formatDate(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString(undefined, {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  if (diff < 7) return `${diff} days ago`;
+  return d.toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -121,177 +212,190 @@ export default function UserDashboard() {
     }
   };
 
-  const readyCount = projects.filter((p) => p.status === 'ready').length;
+  const initials = (name = '') =>
+    name
+      .split(' ')
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
 
-      <main className="mx-auto max-w-7xl px-6 py-10 space-y-10">
-        {/* ── Welcome Banner ── */}
+      <main className="mx-auto max-w-7xl px-6 py-12 space-y-12">
+        {/* ── Hero Banner ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold select-none">
-              {user?.name?.charAt(0).toUpperCase() ?? '?'}
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-xl font-bold select-none">
+                {initials(user?.name)}
+              </div>
+              <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-background" />
             </div>
             <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">
+                Welcome back
+              </p>
               <h1 className="text-2xl font-bold text-foreground leading-tight">
-                Welcome back, {user?.name?.split(' ')[0]}
+                {user?.name?.split(' ')[0]}
               </h1>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
           </div>
+
           <Button
             onClick={() => navigate('/upload')}
-            className="gap-2 shrink-0"
+            size="lg"
+            className="gap-2.5 shrink-0 rounded-xl"
           >
             <Upload className="h-4 w-4" />
             New Project
           </Button>
         </div>
 
-        {/* ── Stats Row ── */}
-        {!loading && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[
-              {
-                icon: <LayoutGrid className="h-5 w-5 text-primary" />,
-                label: 'Total Projects',
-                value: projects.length,
-              },
-              {
-                icon: <FileCode2 className="h-5 w-5 text-emerald-500" />,
-                label: 'Ready',
-                value: readyCount,
-              },
-              {
-                icon: <GitBranch className="h-5 w-5 text-violet-500" />,
-                label: 'Git Repos',
-                value: projects.filter((p) => p.uploadType === 'github').length,
-              },
-              {
-                icon: <Package className="h-5 w-5 text-amber-500" />,
-                label: 'ZIP Uploads',
-                value: projects.filter((p) => p.uploadType !== 'github').length,
-              },
-            ].map((stat) => (
-              <Card key={stat.label} className="border border-border">
-                <CardContent className="flex items-center gap-3 pt-5 pb-5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                    {stat.icon}
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground leading-none">
-                      {stat.value}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {stat.label}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* ── Projects Grid ── */}
-        <section>
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-foreground">
-              Your Projects
-            </h2>
-            {projects.length > 0 && (
-              <span className="text-xs text-muted-foreground">
-                {projects.length} project{projects.length !== 1 ? 's' : ''}
-              </span>
-            )}
+        {/* ── Projects Section ── */}
+        <section className="space-y-6">
+          {/* Section heading */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">
+                Your Projects
+              </h2>
+              {!loading && projects.length > 0 && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {projects.length} project{projects.length !== 1 ? 's' : ''} ·{' '}
+                  {projects.filter((p) => p.status === 'ready').length} ready
+                </p>
+              )}
+            </div>
           </div>
 
           {error && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive mb-4">
+            <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/8 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4 shrink-0" />
               {error}
             </div>
           )}
 
+          {/* Grid */}
           {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <ProjectCardSkeleton key={i} />
               ))}
             </div>
           ) : projects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 gap-5 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                <FolderOpen className="h-8 w-8 text-muted-foreground" />
+            /* ── Empty State ── */
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/10 py-24 gap-6 text-center">
+              <div className="relative">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-muted/60">
+                  <FolderOpen className="h-9 w-9 text-muted-foreground" />
+                </div>
+                <div className="absolute -top-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary">
+                  <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-foreground">No projects yet</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Upload a ZIP or connect a Git repo to get started.
+              <div className="space-y-1.5 max-w-xs">
+                <p className="text-lg font-bold text-foreground">
+                  No projects yet
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Upload a ZIP archive or connect a GitHub repository to start
+                  exploring your codebase with AI.
                 </p>
               </div>
-              <Button onClick={() => navigate('/upload')} className="gap-2">
+              <Button
+                onClick={() => navigate('/upload')}
+                size="lg"
+                className="gap-2 rounded-xl"
+              >
                 <Upload className="h-4 w-4" />
                 Upload your first project
               </Button>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {projects.map((project) => (
-                <div
-                  key={project._id}
-                  onClick={() => navigate(`/project/${project._id}`)}
-                  className="group relative rounded-xl border border-border bg-card hover:bg-accent/40 hover:border-primary/30 transition-all cursor-pointer"
-                >
-                  {/* Delete button */}
-                  <button
-                    onClick={(e) => openDeleteDialog(e, project)}
-                    className="absolute top-3 right-3 z-10 flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    title="Delete project"
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((project, idx) => {
+                const accent = CARD_ACCENTS[idx % CARD_ACCENTS.length];
+                const isGit = project.uploadType === 'github';
+                return (
+                  <div
+                    key={project._id}
+                    onClick={() =>
+                      project.status === 'documenting'
+                        ? navigate(`/upload?resume=${project._id}`)
+                        : navigate(`/project/${project._id}`)
+                    }
+                    className={`group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl hover:shadow-black/10 hover:-translate-y-0.5 hover:ring-2 ${accent.ring}`}
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                    {/* Delete button */}
+                    <button
+                      onClick={(e) => openDeleteDialog(e, project)}
+                      className="absolute top-4 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/50 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all"
+                      title="Delete project"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
 
-                  <div className="p-5 space-y-3">
-                    {/* Header row */}
-                    <div className="flex items-start gap-2 pr-6">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                        {project.uploadType === 'github' ? (
-                          <GitBranch className="h-4 w-4" />
-                        ) : (
-                          <Package className="h-4 w-4" />
-                        )}
+                    <div className="flex flex-col flex-1 p-6 gap-4">
+                      {/* Icon + name */}
+                      <div className="flex items-start gap-3 pr-6">
+                        <div
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${accent.icon} transition-transform duration-200 group-hover:scale-110`}
+                        >
+                          {isGit ? (
+                            <GitBranch className="h-5 w-5" />
+                          ) : (
+                            <Package className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1 pt-0.5">
+                          <h3 className="text-sm font-bold text-foreground leading-snug truncate">
+                            {project.name}
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-0.5 font-medium">
+                            {isGit ? 'GitHub Repository' : 'ZIP Upload'}
+                          </p>
+                        </div>
                       </div>
-                      <CardTitle className="text-sm font-semibold leading-snug break-all">
-                        {project.name}
-                      </CardTitle>
-                    </div>
 
-                    {/* Description */}
-                    <CardDescription className="text-xs line-clamp-2 min-h-10">
-                      {project.description ||
-                        `${project.stats?.projectType || 'Unknown'} project · ${
-                          project.stats?.totalFiles || 0
-                        } files`}
-                    </CardDescription>
+                      {/* Description */}
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+                        {project.description ||
+                          `${project.stats?.projectType || 'Unknown'} project with ${project.stats?.totalFiles || 0} files analyzed.`}
+                      </p>
 
-                    {/* Meta row */}
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <StatusBadge status={project.status} />
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <FileCode2 className="h-3 w-3" />
-                        {project.stats?.totalFiles ?? 0} files
-                      </span>
-                      {project.createdAt && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1 ml-auto">
+                      {/* Divider */}
+                      <div className="border-t border-border" />
+
+                      {/* Footer meta */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <StatusBadge status={project.status} />
+                          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
+                            <FileCode2 className="h-3 w-3" />
+                            {project.stats?.totalFiles ?? 0}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground shrink-0">
                           <Clock className="h-3 w-3" />
                           {formatDate(project.createdAt)}
-                        </span>
-                      )}
+                        </div>
+                      </div>
+
+                      {/* Open hint */}
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground/50 group-hover:text-muted-foreground transition-colors -mt-1">
+                        <span>Open project</span>
+                        <ArrowRight className="h-3 w-3 translate-x-0 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

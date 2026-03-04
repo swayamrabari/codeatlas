@@ -182,6 +182,54 @@ const CONFIG_FILE_PATTERNS = [
   'release.config',
 ];
 
+/** External package names that indicate a state store (not a React hook). */
+const STATE_MANAGER_PACKAGES = new Set([
+  'zustand',
+  'jotai',
+  'recoil',
+  'redux',
+  'react-redux',
+  '@reduxjs/toolkit',
+  'mobx',
+  'mobx-react',
+  'mobx-react-lite',
+  'pinia',
+  'nanostores',
+  '@nanostores/react',
+  'valtio',
+  'effector',
+  'effector-react',
+  '@preact/signals-react',
+  'signals',
+  'overmind',
+  'easy-peasy',
+  'store',
+  'unistore',
+  'store2',
+  'pullstate',
+  'react-context-global-state',
+  'helux',
+  'state',
+]);
+
+/** Router hook names from react-router-dom that suggest a page (route component). */
+const ROUTER_HOOK_NAMES = new Set([
+  'useParams',
+  'useLocation',
+  'useNavigate',
+  'useSearchParams',
+  'usePathname',
+  'useRouter',
+  'useMatch',
+  'useOutlet',
+  'useOutletContext',
+  'useResolvedPath',
+  'useHref',
+]);
+
+/** Filename suffixes that suggest a page (view/screen). */
+const PAGE_FILENAME_SUFFIXES = /(?:Page|View|Screen)(?:\.(jsx?|tsx?))?$/i;
+
 /** Directory segments that imply role (lowercase). */
 const DIR_ROLES = {
   routes: { type: 'route', role: 'Route definition', category: 'backend' },
@@ -1936,6 +1984,58 @@ function classifyBehavior(fileType, content, analysis) {
   return 'logic';
 }
 
+/** Tier 2 file types (structural / entry points). */
+const TIER_2_TYPES = new Set([
+  'entry-point',
+  'route',
+  'controller',
+  'service',
+  'model',
+  'middleware',
+]);
+
+/**
+ * Deterministic file tier classification. Does not mutate input.
+ * @param {{ files: Array<{ path: string, type: string, category?: string, importedBy?: string[] }>, features: Record<string, { allFiles?: string[] }> }} input
+ * @returns {Array<{ path: string, tier: 1 | 2 | 3 }>}
+ */
+export function classifyFileTiers(input) {
+  const { files = [], features = {} } = input;
+
+  // Build set of paths that appear in any feature's allFiles — O(total paths across features)
+  const tier1Paths = new Set();
+  for (const feature of Object.values(features)) {
+    const allFiles = feature.allFiles || [];
+    for (const p of allFiles) {
+      tier1Paths.add(p.replace(/\\/g, '/'));
+    }
+  }
+
+  const result = [];
+  for (const file of files) {
+    const pathNorm = (file.path || '').replace(/\\/g, '/');
+    const type = file.type || '';
+    const importedBy = file.importedBy ?? file.analysis?.importedBy ?? [];
+    const importedByLength = Array.isArray(importedBy) ? importedBy.length : 0;
+
+    let tier = 3;
+
+    if (tier1Paths.has(pathNorm)) {
+      tier = 1;
+    } else if (
+      TIER_2_TYPES.has(type) ||
+      (type === 'component' && pathNorm.includes('/pages/')) ||
+      (type === 'config' && importedByLength > 0)
+    ) {
+      tier = 2;
+    }
+
+    result.push({ path: file.path, tier });
+  }
+
+  return result;
+}
+
 /**
  * Scan a project directory and return analyzed files
  * @param {string} projectPath - Path to project root
@@ -2050,18 +2150,64 @@ export async function scanProject(projectPath) {
     file.analysis.importedBy = importedBy;
   }
 
-  // ─── POST-SCAN RECLASSIFICATIONS (Fix 1b, 1c, 1d) + FIELD EXTRACTION (Fix 2, 3) ──
+  // ─── Helpers for reclassification: external package name from import specifier ──
+  function getExternalPackageNames(imports) {
+    const names = new Set();
+    for (const i of imports || []) {
+      const v = (i.value || i.path || '').trim();
+      if (!v || v.startsWith('.') || v.startsWith('/') || /^@\/|^~\/|^\.\.?\//.test(v))
+        continue;
+      const pkg = v.startsWith('@') ? v.split('/').slice(0, 2).join('/') : v.split('/')[0];
+      if (pkg) names.add(pkg);
+    }
+    return names;
+  }
+
+  // ─── POST-SCAN RECLASSIFICATIONS (Fix 1b, 1c, 1d, 1e, 1f) + FIELD EXTRACTION (Fix 2, 3) ──
   for (const file of files) {
     const normalizedPath = file.path.replace(/\\/g, '/');
+    const pathLower = normalizedPath.toLowerCase();
     const fileName = normalizedPath.split('/').pop();
+    const fileNameLower = fileName.toLowerCase();
     const ext = getFileExtension(fileName);
+    const isFrontend = file.category === 'frontend';
+    const imports = file.analysis.imports || [];
+    const importedBy = file.analysis.importedBy || [];
 
-    // Fix 1b: Hook detection by filename pattern
-    // "use" prefix (case-sensitive, followed by uppercase or hyphen) + JS/TS extension → always a hook
-    if (/^use[A-Z-]/.test(fileName) && ['.js', '.ts', '.jsx', '.tsx'].includes(ext)) {
-      file.type = 'hook';
-      file.role = 'Custom hook';
-      file.behavior = 'state-logic';
+    // ─── Fix 1b (Store vs Hook): state-manager imports and path/name signals ───
+    const externalPackages = getExternalPackageNames(imports);
+    const importsStateManager = [...externalPackages].some((p) => STATE_MANAGER_PACKAGES.has(p));
+    const pathInStores = /\/stores?\//.test(pathLower);
+    const pathInHooks = /\/hooks?\//.test(pathLower) || /\/composables\//.test(pathLower);
+    const nameEndsWithStore = /Store\.(jsx?|tsx?)$/i.test(fileName);
+    const nameStartsWithUse = /^use[A-Z-]/.test(fileName);
+    const isSourceExt = ['.js', '.ts', '.jsx', '.tsx'].includes(ext);
+
+    if (isFrontend && isSourceExt) {
+      // Signal 1 (imports): importing a state library → store
+      if (importsStateManager) {
+        file.type = 'store';
+        file.role = 'State store';
+        file.behavior = 'state';
+      }
+      // Signal 2 (path/name): /stores/ or *Store.* → store (unless already hook by path/name and no state lib)
+      else if (pathInStores || nameEndsWithStore) {
+        file.type = 'store';
+        file.role = 'State store';
+        file.behavior = 'state';
+      }
+      // Hook: useX filename and in /hooks/ or composables → hook (only if not store)
+      else if (nameStartsWithUse && (pathInHooks || !pathInStores)) {
+        file.type = 'hook';
+        file.role = 'Custom hook';
+        file.behavior = 'state-logic';
+      }
+      // useX.js in ambiguous location with no state import → hook (e.g. useAuth.js)
+      else if (nameStartsWithUse && !pathInStores) {
+        file.type = 'hook';
+        file.role = 'Custom hook';
+        file.behavior = 'state-logic';
+      }
     }
 
     // Fix 1c: Backend entry-point detection
@@ -2124,11 +2270,68 @@ export async function scanProject(projectPath) {
       .filter(Boolean);
   }
 
-  // ─── POST-PROCESSING: Fix 4 — Route-Controller Linking ──────────────────
+  // ─── POST-PROCESSING: Fix 1e — Page vs Component (multi-signal) ─────────
   const fileMap = new Map(
     files.map((f) => [f.path.replace(/\\/g, '/'), f]),
   );
 
+  for (const file of files) {
+    if (file.category !== 'frontend') continue;
+    const t = file.type;
+    if (t !== 'component' && t !== 'page') continue;
+
+    const normalizedPath = file.path.replace(/\\/g, '/');
+    const pathLower = normalizedPath.toLowerCase();
+    const fileName = normalizedPath.split('/').pop();
+    const imports = file.analysis.imports || [];
+    const importedBy = file.analysis.importedBy || [];
+
+    let pageScore = 0;
+    let componentScore = 0;
+
+    // Signal 1 — Folder path
+    if (pathLower.includes('/pages/')) pageScore += 2;
+    if (pathLower.includes('/views/')) pageScore += 1;
+    if (pathLower.includes('/components/') || pathLower.includes('/component/')) componentScore += 2;
+    if (pathLower.includes('/ui/')) componentScore += 1;
+
+    // Signal 2 — File naming
+    if (PAGE_FILENAME_SUFFIXES.test(fileName)) pageScore += 2;
+
+    // Signal 3 — What it imports (router hooks → page)
+    const hasRouterHooks = imports.some(
+      (i) =>
+        (i.value === 'react-router-dom' || i.value === 'next/navigation') &&
+        (i.imported || []).some((name) => {
+          const base = (name.split(/\s+as\s+/)[0] || name).trim();
+          return ROUTER_HOOK_NAMES.has(base) || base === 'useRouter' || base === 'usePathname';
+        }),
+    );
+    if (hasRouterHooks) pageScore += 2;
+
+    // Signal 4 — What imports it (router / App → page)
+    const importedByRouterOrApp = importedBy.some((importerPath) => {
+      const importer = fileMap.get(importerPath);
+      if (!importer) return false;
+      if (importer.type === 'router-root') return true;
+      const impFileName = importerPath.split('/').pop() || '';
+      return /^App\.(jsx?|tsx?)$/i.test(impFileName) || /^main\.(jsx?|tsx?)$/i.test(impFileName) || /^index\.(jsx?|tsx?)$/i.test(impFileName);
+    });
+    if (importedByRouterOrApp) pageScore += 2;
+
+    if (pageScore > componentScore) {
+      file.type = 'page';
+      file.role = 'Page/view';
+      file.behavior = 'ui-render';
+    } else if (componentScore > pageScore) {
+      file.type = 'component';
+      file.role = 'UI component';
+      file.behavior = 'ui-render';
+    }
+    // else keep existing type (path-based from classifyByPath)
+  }
+
+  // ─── POST-PROCESSING: Fix 4 — Route-Controller Linking ──────────────────
   for (const file of files) {
     if (file.type !== 'route') continue;
     const routes = file.analysis.routes || [];
@@ -2302,6 +2505,22 @@ export async function scanProject(projectPath) {
       apiRoutes: feature.apiRoutes,
     };
   });
+
+  // Deterministic file tier classification (does not mutate input; we assign tier to our file objects)
+  const tierResults = classifyFileTiers({
+    files: files.map((f) => ({
+      path: f.path,
+      type: f.type,
+      category: f.category,
+      importedBy: f.analysis?.importedBy ?? [],
+    })),
+    features,
+  });
+  const tierByPath = new Map(tierResults.map((r) => [r.path.replace(/\\/g, '/'), r.tier]));
+  for (const file of files) {
+    const pathNorm = file.path.replace(/\\/g, '/');
+    file.tier = tierByPath.get(pathNorm) ?? 3;
+  }
 
   return { files, metadata, relationships, features };
 }

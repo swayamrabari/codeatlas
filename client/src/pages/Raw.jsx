@@ -45,6 +45,19 @@ export default function Raw({ projectId }) {
   }, [projectId, data]);
 
   // ---------------- DATA PREPROCESSING ----------------
+  const filesFromData = data?.files ?? data?.data?.files;
+  useEffect(() => {
+    if (!filesFromData?.length) return;
+    const byTier = { 1: [], 2: [], 3: [] };
+    filesFromData.forEach((f) => {
+      const t = f.tier ?? 3;
+      if (byTier[t]) byTier[t].push(f.path);
+    });
+    console.log('📊 File tiers — Tier 1:', byTier[1]);
+    console.log('📊 File tiers — Tier 2:', byTier[2]);
+    console.log('📊 File tiers — Tier 3:', byTier[3]);
+  }, [filesFromData]);
+
   const { processedFiles, fileTree, frameworksList, featuresList } =
     useMemo(() => {
       if (!data)
@@ -63,8 +76,9 @@ export default function Raw({ projectId }) {
         });
       }
 
+      const rawFiles = data.files ?? data.data?.files;
       const processed =
-        data.files?.map((f) => ({
+        rawFiles?.map((f) => ({
           ...f,
           path: f.path.replace(/\\/g, '/'),
         })) || [];
@@ -272,7 +286,10 @@ export default function Raw({ projectId }) {
                 <TabsTrigger value="features">
                   Features
                   {featuresList.length > 0 && (
-                    <Badge className="ml-1 h-4.5 min-w-5 px-1.5 text-[10px] font-semibold">
+                    <Badge
+                      variant="secondary"
+                      className="ml-1 h-4.5 min-w-5 px-1.5 text-[10px] font-semibold"
+                    >
                       {featuresList.length}
                     </Badge>
                   )}
@@ -705,16 +722,6 @@ function FileDetails({ file }) {
             <div className="text-2xl font-bold">{file.exportsCount || 0}</div>
           </div>
         </div>
-        {file.exportedSymbols && file.exportedSymbols.length > 0 && (
-          <div className="pt-1">
-            <span className="text-sm font-semibold text-muted-foreground">
-              Exported:{' '}
-            </span>
-            <span className="font-mono text-sm text-foreground">
-              {file.exportedSymbols.join(', ')}
-            </span>
-          </div>
-        )}
       </section>
       {/* 3. IMPORTS LIST */}
       {file.imports?.items?.length > 0 && (

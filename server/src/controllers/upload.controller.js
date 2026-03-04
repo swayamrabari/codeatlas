@@ -15,6 +15,7 @@ import {
   finalizeProject,
   failProject,
 } from '../services/storage.service.js';
+import { triggerDocumentation } from '../analysis/index.js';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './src/temp';
 
@@ -31,6 +32,7 @@ function buildFileResponse(files) {
       role: f.role,
       category: f.category,
       behavior: f.behavior,
+      tier: f.tier ?? 3,
       routes: f.analysis?.routes || [],
       imports: {
         count: f.analysis?.imports?.length || 0,
@@ -156,6 +158,9 @@ export async function handleZipUpload(req, res) {
     // Cleanup temp files from disk (data is in MongoDB now)
     cleanupTempFiles(extractDir);
 
+    // Fire off AI documentation generation in the background (non-blocking)
+    triggerDocumentation(projectId);
+
     return res.status(200).json(response);
   } catch (err) {
     console.error('Upload error:', err.message);
@@ -266,6 +271,9 @@ export async function handleGitUpload(req, res) {
 
     // Cleanup temp files
     cleanupTempFiles(cloneDir);
+
+    // Fire off AI documentation generation in the background (non-blocking)
+    triggerDocumentation(projectId);
 
     return res.status(200).json(response);
   } catch (err) {

@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Routes,
   Route,
@@ -6,22 +7,22 @@ import {
   useNavigate,
   useLocation,
 } from 'react-router-dom';
+import { projectAPI } from '../services/api';
 import Docs from './Docs';
 import Raw from './Raw';
 import Source from './Explorer';
 import Chat from './Chat';
 import Header from '@/components/Header';
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from '../components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Spinner } from '@/components/ui/spinner';
 
 function ProjectDashboard() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [projectStatus, setProjectStatus] = useState(null); // null = loading
+  const pollRef = useRef(null);
 
   // Determine active tab from current route
   const currentPath = location.pathname.split('/').pop();
@@ -32,6 +33,47 @@ function ProjectDashboard() {
   const handleTabChange = (value) => {
     navigate(`/project/${id}/${value}`);
   };
+
+  // Check project status on mount
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkStatus() {
+      try {
+        const res = await projectAPI.getProjectStatus(id);
+        if (cancelled) return;
+        const status = res.data?.status;
+        if (status === 'documenting') {
+          // Redirect to upload page with resume param
+          navigate(`/upload?resume=${id}`, { replace: true });
+        } else {
+          setProjectStatus(status || 'ready');
+        }
+      } catch {
+        if (!cancelled) setProjectStatus('ready');
+      }
+    }
+
+    checkStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, navigate]);
+
+  // Loading state
+  if (projectStatus === null) {
+    return (
+      <div className="h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner className="h-8 w-8 text-primary" />
+            <p className="text-muted-foreground">Loading project...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col">
