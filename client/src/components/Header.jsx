@@ -26,15 +26,15 @@ export default function Header() {
     <header>
       <div className="mx-auto flex items-center justify-between px-6 pt-4 pb-0.5">
         <Link to="/" className="logo flex gap-3 items-baseline">
-          <LogoIcon className="h-5 w-auto themed-svg" />
-          <Wordmark className="h-4 w-auto themed-svg" />
+          <LogoIcon className="h-4.5 w-auto themed-svg" />
+          <Wordmark className="h-3.75 w-auto themed-svg" />
         </Link>
 
         <div className="flex items-center gap-3">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary cursor-pointer text-foreground text-base font-semibold transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <button className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-base font-bold transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   {user.name.charAt(0).toUpperCase()}
                 </button>
               </DropdownMenuTrigger>

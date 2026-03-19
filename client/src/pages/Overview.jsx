@@ -18,7 +18,6 @@ import {
 
 // ── Mermaid Init ──
 mermaid.initialize({
-  handDrawnSeed: 42,
   theme: 'dark',
   securityLevel: 'loose',
   fontFamily: 'inherit',
@@ -28,7 +27,7 @@ mermaid.initialize({
   },
 });
 
-export default function Docs({ projectId }) {
+export default function Overview({ projectId }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -193,13 +192,12 @@ export default function Docs({ projectId }) {
             {/* Project Overview */}
             <DocSidebarItem
               label="Project Overview"
-              isSelected={selected.type === 'project'}
               onClick={() => setSelected({ type: 'project', key: 'overview' })}
             />
 
             {/* Features */}
             {features.length > 0 && (
-              <div className="pt-3">
+              <div className="pt-1 flex flex-col gap-0.5">
                 <p className="px-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Features ({features.length})
                 </p>
@@ -254,15 +252,10 @@ export default function Docs({ projectId }) {
 }
 
 /* ── Sidebar Item (Project Overview row) ── */
-function DocSidebarItem({ label, isSelected, onClick }) {
+function DocSidebarItem({ label, onClick }) {
   return (
     <div
-      className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1.5 font-mono text-sm transition-colors ${
-        isSelected
-          ? 'bg-secondary text-foreground'
-          : 'hover:bg-secondary/70 text-foreground'
-      }`}
-      style={{ paddingLeft: '8px', paddingRight: '8px' }}
+      className="flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 my-1 hover:bg-secondary font-mono text-sm transition-colors"
       onClick={onClick}
     >
       <span className="shrink-0 text-muted-foreground">
@@ -300,7 +293,7 @@ function FeatureSidebarItem({
         className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1.5 font-mono text-sm transition-colors ${
           isFeatureSelected
             ? 'bg-secondary text-foreground'
-            : 'hover:bg-secondary/70 text-foreground'
+            : 'hover:bg-secondary text-foreground'
         }`}
         style={{ paddingLeft: '8px', paddingRight: '8px' }}
         onClick={onSelectFeature}
@@ -319,7 +312,8 @@ function FeatureSidebarItem({
             <ChevronRight className="h-4 w-4" />
           )}
         </span>
-        <span className="min-w-0 flex-1 truncate capitalize">
+        <span className="min-w-0 flex-1 truncate flex gap-0.5 items-center capitalize">
+          <Layers className="h-4 w-4 text-muted-foreground mr-1" />
           {feature.name}
         </span>
         <span className="shrink-0 text-xs text-muted-foreground">
@@ -329,28 +323,34 @@ function FeatureSidebarItem({
 
       {/* Files under feature */}
       {isOpen && feature.files?.length > 0 && (
-        <div>
-          {feature.files.map((file) => (
-            <div
-              key={file.path}
-              className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1.5 font-mono text-sm transition-colors ${
-                selected.type === 'file' &&
-                selected.key === file.path &&
-                selected.featureKeyword === feature.keyword
-                  ? 'bg-secondary text-foreground'
-                  : 'hover:bg-secondary/70 text-foreground'
-              }`}
-              style={{ paddingLeft: `${14 + 8}px`, paddingRight: '8px' }}
-              onClick={() => onSelectFile(file.path, feature.keyword)}
-            >
-              <span className="shrink-0 text-muted-foreground">
-                <File className="h-4 w-4" />
-              </span>
-              <span className="min-w-0 flex-1 truncate">
-                {file.path.split('/').pop()}
-              </span>
-            </div>
-          ))}
+        <div className="relative mt-0.5">
+          <span
+            className="absolute top-0 bottom-0 w-[1.5px] bg-secondary"
+            style={{ left: '15px' }}
+          />
+          <div className="space-y-0.5">
+            {feature.files.map((file) => (
+              <div
+                key={file.path}
+                className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1.5 font-mono text-sm transition-colors ${
+                  selected.type === 'file' &&
+                  selected.key === file.path &&
+                  selected.featureKeyword === feature.keyword
+                    ? 'bg-secondary text-foreground'
+                    : 'hover:bg-secondary text-foreground'
+                }`}
+                style={{ paddingLeft: '30px', paddingRight: '8px' }}
+                onClick={() => onSelectFile(file.path, feature.keyword)}
+              >
+                <span className="shrink-0 text-muted-foreground">
+                  <File className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1 truncate">
+                  {file.path.split('/').pop()}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -381,8 +381,8 @@ function ContentPane({ content, onRegenerate }) {
         {type === 'project' && (
           <>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-500/20 rounded-lg">
-                <BookOpen className="h-7 w-7 text-blue-500" />
+              <div className="p-2.5 pt-3 bg-blue-500/20 rounded-lg">
+                <BookOpen className="h-8 w-8 -mb-0.5 text-blue-500" />
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-foreground">
@@ -400,7 +400,7 @@ function ContentPane({ content, onRegenerate }) {
           <>
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-blue-500/20 rounded-lg">
-                <Layers className="h-7 w-7 text-blue-500" />
+                <Layers className="h-8 w-8 text-blue-500" />
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-foreground capitalize">
@@ -416,35 +416,22 @@ function ContentPane({ content, onRegenerate }) {
 
         {type === 'file' && (
           <>
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-500/20 rounded-lg">
-                <File className="h-7 w-7 text-blue-500" />
+            <div className="space-y-3">
+              <div className="text-3xl font-bold flex items-center gap-3 break-all ">
+                <span className="p-2.5 bg-blue-500/20 rounded-lg">
+                  <File className="h-8 w-8 text-blue-500 " />
+                </span>
+                <div>
+                  <span>{content.path.split('/').pop()}</span>
+                  <p className="text-muted-foreground font-medium font-mono text-base">
+                    {content.path}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-foreground">
-                  {content.name}
-                </h1>
-                <p className="text-muted-foreground text-sm font-mono">
-                  {content.path}
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 pt-1">
-              {content.role && (
-                <Badge className="text-xs px-2.5 py-1.5 rounded-md uppercase font-semibold bg-purple-200 text-purple-900 dark:bg-purple-900/40 dark:text-purple-300 border-0">
-                  {content.role}
-                </Badge>
-              )}
-              {content.category && (
-                <Badge className="text-xs px-2.5 py-1.5 rounded-md uppercase font-semibold bg-emerald-200 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-300 border-0">
-                  {content.category}
-                </Badge>
-              )}
             </div>
           </>
         )}
       </div>
-
       {/* Short Summary */}
       {docs.shortSummary && (
         <section className="space-y-2">
@@ -456,11 +443,10 @@ function ContentPane({ content, onRegenerate }) {
           </div>
         </section>
       )}
-
       {/* Detailed Summary */}
       {docs.detailedSummary && (
         <section className="space-y-3">
-          <SectionHeader title="Detailed Documentation" />
+          <SectionHeader title="Detailed Overview" />
           <div className="docs-markdown">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {docs.detailedSummary}
@@ -476,11 +462,9 @@ function ContentPane({ content, onRegenerate }) {
           <MermaidDiagram chart={docs.mermaidDiagram} />
         </section>
       )}
-
       {/* Search Tags */}
       {docs.searchTags?.length > 0 && (
-        <section className="space-y-3">
-          <SectionHeader title="Tags" />
+        <section className="space-y-1 border-t pt-4">
           <div className="flex flex-wrap gap-2">
             {docs.searchTags.map((tag) => (
               <Badge
@@ -494,7 +478,6 @@ function ContentPane({ content, onRegenerate }) {
           </div>
         </section>
       )}
-
       {/* No docs fallback for this item */}
       {!docs.shortSummary && !docs.detailedSummary && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
@@ -543,11 +526,15 @@ function sanitizeMermaid(raw) {
 function MermaidDiagram({ chart }) {
   const containerRef = useRef(null);
   const uniqueId = useId();
+  // Don't reset to '' on chart change — keep old SVG visible until the new one is ready
   const [svg, setSvg] = useState('');
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!chart) return;
+    if (!chart) {
+      setSvg('');
+      return;
+    }
     let cancelled = false;
 
     async function render() {
@@ -587,7 +574,8 @@ function MermaidDiagram({ chart }) {
 
   if (!svg) {
     return (
-      <div className="rounded-lg border bg-muted/30 p-6 flex items-center justify-center">
+      // min-h prevents height collapse on first load, reducing scrollbar jitter
+      <div className="rounded-lg border bg-muted/30 p-6 flex items-center justify-center min-h-[160px]">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );

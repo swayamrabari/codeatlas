@@ -64,7 +64,7 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="rounded-lg bg-muted p-4">
-                  <p className="font-semibold text-foreground">Analysis</p>
+                  <p className="font-semibold text-foreground">Insights</p>
                   <p className="text-muted-foreground">
                     Pattern-based code insights
                   </p>

@@ -6,6 +6,25 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const DOC_MODEL = 'gpt-4o-mini';
 const EMBEDDING_MODEL = 'text-embedding-3-small';
 
+const CHAT_QA_SYSTEM_PROMPT = `You are a senior software engineer assistant that answers questions about a codebase. You will receive retrieved context snippets from the codebase — each snippet is labeled with metadata (file path, role, category, feature, chunk type, relevance score).
+
+CONTEXT SOURCE TYPES — understand what each type provides:
+- **file-summary**: Brief technical summary of a file's purpose, exports, and role. BEST for answering "what does file X do?" or "what is the role of X?" questions.
+- **file-docs**: Detailed documentation of a file with headings, function signatures, and implementation details. BEST for deep technical questions about a specific file.
+- **code**: Raw source code from a file (with line range). BEST for questions about specific implementations, functions, or logic. Cross-reference with file-summary/file-docs for the bigger picture.
+- **feature-summary**: Summary of an entire feature (e.g. "Authentication") spanning multiple files. BEST for questions about how a feature works end-to-end.
+- **feature-docs**: Detailed feature documentation with architecture details. BEST for "how does X feature work?" questions.
+- **project-docs**: Project-level overview of the entire codebase. BEST for high-level architecture questions.
+
+RULES — follow these strictly:
+1. **ALWAYS cite file paths** from the context when referencing code, functions, or components. Use the exact paths from the metadata headers (e.g., \"In \`src/controllers/auth.controller.js\`...\").
+2. **Cross-reference multiple chunks** when possible. If a file-summary mentions a function and a code chunk shows its implementation, synthesize both into a coherent answer.
+3. **NEVER invent or hallucinate** file names, function names, API endpoints, architectural patterns, or any technical details not present in the provided context.
+4. **If the context is insufficient**, say so clearly and specifically: explain WHAT information is missing rather than giving a vague "not enough context" response. Suggest what the user could ask instead.
+5. **Be specific and technical**. Reference exact function names, class names, HTTP methods, route paths, and data structures. Avoid vague descriptions.
+6. **When answering "role" or "purpose" questions**, look at the file-summary and file-docs chunks first. Describe: what the file exports, its architectural role (controller, service, middleware, model, component, etc.), what depends on it, and what it depends on.
+7. **Format responses in Markdown** for readability: use inline \`code\` for technical terms, headings for long answers, bullet lists for multiple items.`;
+
 // ── Retry Wrapper with Exponential Backoff ──
 
 /**
@@ -508,6 +527,58 @@ export async function generateEmbeddings(texts) {
       input: texts,
     });
     return response.data.map((item) => item.embedding);
+  });
+}
+
+/**
+ * Generate a grounded answer for a user question using retrieved context.
+ * @param {Object} args
+ * @param {string} args.question
+ * @param {Array<{role: string, content: string}>} [args.history]
+ * @param {string} args.contextText
+ * @returns {Promise<string>}
+ */
+export async function answerQuestionWithContext({
+  question,
+  history = [],
+  contextText,
+}) {
+  return withRetry(async () => {
+    const sanitizedHistory = history
+      .filter(
+        (m) =>
+          m &&
+          (m.role === 'user' || m.role === 'assistant') &&
+          typeof m.content === 'string' &&
+          m.content.trim(),
+      )
+      .slice(-6)
+      .map((m) => ({ role: m.role, content: m.content.trim() }));
+
+    const response = await openai.chat.completions.create({
+      model: DOC_MODEL,
+      temperature: 0.2,
+      messages: [
+        { role: 'system', content: CHAT_QA_SYSTEM_PROMPT },
+        ...sanitizedHistory,
+        {
+          role: 'user',
+          content: [
+            'Below are retrieved context snippets from the codebase. Each snippet has a metadata header in [brackets] showing its source file, role, category, chunk type, and relevance score.',
+            'Use these snippets to answer the question. Prioritize snippets with higher relevance scores and prefer file-summary/file-docs chunks for "what does X do?" questions.',
+            'If multiple snippets reference the same file, synthesize them into a unified answer.',
+            '',
+            '=== RETRIEVED CONTEXT START ===',
+            contextText || '(no context was retrieved — inform the user that no relevant content was found for their question)',
+            '=== RETRIEVED CONTEXT END ===',
+            '',
+            `Question: ${question}`,
+          ].join('\n'),
+        },
+      ],
+    });
+
+    return response.choices?.[0]?.message?.content?.trim() || '';
   });
 }
 

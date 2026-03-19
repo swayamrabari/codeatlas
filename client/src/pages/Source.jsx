@@ -2,12 +2,29 @@ import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { projectAPI } from '../services/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { File, FolderClosed, FolderOpen } from 'lucide-react';
+import {
+  File,
+  FileText,
+  FolderClosed,
+  FolderOpen,
+  Sparkles,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { CodeBlock } from 'react-code-block';
 import { codeTheme } from '../lib/codeTheme';
 import { useTheme } from '../contexts/ThemeContext';
 import { themes } from 'prism-react-renderer';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function getLanguage(filePath) {
   const ext = filePath.split('.').pop()?.toLowerCase() || '';
@@ -23,6 +40,8 @@ export default function Source({ projectId }) {
   const [loading, setLoading] = useState(!data);
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
+  const [selectedFileSummary, setSelectedFileSummary] = useState('');
   const [fileContent, setFileContent] = useState('');
   const [fileContentLoading, setFileContentLoading] = useState(false);
   const [fileContentError, setFileContentError] = useState(null);
@@ -76,6 +95,7 @@ export default function Source({ projectId }) {
       setFileContent('');
       setFileContentError(null);
       setFileContentLoading(false);
+      setSelectedFileSummary('');
       return;
     }
     if (fileContentAbortRef.current) {
@@ -91,7 +111,12 @@ export default function Source({ projectId }) {
       .then((res) => {
         if (ac.signal.aborted) return;
         const content = res?.content ?? res?.data?.content ?? '';
+        const summary =
+          res?.file?.aiDocumentation?.shortSummary ??
+          res?.data?.file?.aiDocumentation?.shortSummary ??
+          '';
         const ok = res?.success !== false;
+        setSelectedFileSummary(typeof summary === 'string' ? summary : '');
         if (!ok) {
           setFileContentError('Could not load file.');
           setFileContent('');
@@ -117,6 +142,7 @@ export default function Source({ projectId }) {
           return;
         setFileContentError(err?.message || 'Failed to load file content.');
         setFileContent('');
+        setSelectedFileSummary('');
         setFileContentLoading(false);
       });
 
@@ -129,7 +155,12 @@ export default function Source({ projectId }) {
 
   const handleSelectFile = useCallback((fileData) => {
     setSelectedFile(fileData);
+    setSelectedFileSummary(fileData?.aiDocumentation?.shortSummary || '');
   }, []);
+
+  useEffect(() => {
+    setSummaryDialogOpen(false);
+  }, [selectedFile?.path]);
 
   if (loading) {
     return (
@@ -171,15 +202,53 @@ export default function Source({ projectId }) {
         <div className="flex flex-1 min-h-0 h-full flex-col overflow-hidden">
           {selectedFile && (
             <div className="border-b bg-muted/5 px-4 py-3">
-              <h2 className="flex items-center font-mono gap-2 text-lg font-bold leading-tight">
-                {selectedFile.path.split('/').pop()}
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  {selectedFile.type}
-                </Badge>
-              </h2>
-              <p className="truncate font-mono text-sm text-muted-foreground">
-                {selectedFile.path}
-              </p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h2 className="flex items-center font-mono gap-2 text-lg font-bold leading-tight">
+                    {selectedFile.path.split('/').pop()}
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {selectedFile.type}
+                    </Badge>
+                  </h2>
+                  <p className="truncate font-mono text-sm text-muted-foreground">
+                    {selectedFile.path}
+                  </p>
+                </div>
+
+                <Dialog
+                  open={summaryDialogOpen}
+                  onOpenChange={setSummaryDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="shrink-0"
+                    >
+                      <Sparkles className="h-5 w-5" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-xl">
+                    <DialogHeader className="flex flex-col gap-1">
+                      <DialogTitle>Summary</DialogTitle>
+                      <DialogDescription className="font-mono text-base break-all">
+                        {selectedFile.path}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="text-[15px] leading-relaxed [&_code]:bg-muted [&_code]:px-1.5 [&_code]:pt-0 [&_code]:pb-0.5 [&_code]:text-[0.85rem] [&_code]:border [&_code]:border-border [&_code]:rounded">
+                      {selectedFileSummary ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {selectedFileSummary}
+                        </ReactMarkdown>
+                      ) : (
+                        <p className="text-muted-foreground">
+                          No summary available for this file.
+                        </p>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           )}
           <div className="flex-1 min-h-0 overflow-auto bg-background flex flex-col">
@@ -274,7 +343,7 @@ function buildFileTree(files) {
 
 function FileTree({ items, onSelect, selectedPath, level = 0 }) {
   return (
-    <div className="w-full space-y-0.5">
+    <div className="w-full">
       {items.map((item) => (
         <FileTreeItem
           key={item.path}
@@ -309,13 +378,13 @@ const FileTreeItem = memo(function FileTreeItem({
   return (
     <div className="max-w-full overflow-hidden">
       <div
-        className={
+        className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1 font-mono text-sm ${
           isSelected
-            ? 'bg-secondary text-foreground flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1.5 font-mono text-sm transition-colors'
-            : 'hover:bg-secondary/70 text-foreground flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1.5 font-mono text-sm transition-colors'
-        }
+            ? 'bg-secondary text-foreground'
+            : 'hover:bg-secondary text-foreground'
+        }`}
         style={{
-          paddingLeft: `${level * 14 + 8}px`,
+          paddingLeft: `${level * 18 + 10}px`,
           paddingRight: '8px',
           width: '100%',
           boxSizing: 'border-box',
@@ -325,24 +394,30 @@ const FileTreeItem = memo(function FileTreeItem({
         <span className="shrink-0 text-muted-foreground">
           {item.type === 'folder' ? (
             isOpen ? (
-              <FolderOpen className="h-5 w-5" />
+              <FolderOpen className="h-4 w-4" />
             ) : (
-              <FolderClosed className="h-5 w-5" />
+              <FolderClosed className="h-4 w-4" />
             )
           ) : (
-            <File className="h-4.75 w-4.75" />
+            <File className="h-4 w-4" />
           )}
         </span>
-        <span className="min-w-0 flex-1 truncate">{item.name}</span>
+        <span className="min-w-0 mt-0.5 flex-1 truncate">{item.name}</span>
       </div>
 
       {item.type === 'folder' && isOpen && (
-        <FileTree
-          items={item.children}
-          onSelect={onSelect}
-          selectedPath={selectedPath}
-          level={level + 1}
-        />
+        <div className="relative">
+          <span
+            className="absolute top-0 bottom-0 w-[1.5px] bg-secondary"
+            style={{ left: `${level * 18 + 16}px` }}
+          />
+          <FileTree
+            items={item.children}
+            onSelect={onSelect}
+            selectedPath={selectedPath}
+            level={level + 1}
+          />
+        </div>
       )}
     </div>
   );

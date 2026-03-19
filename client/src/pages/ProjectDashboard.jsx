@@ -8,10 +8,11 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { projectAPI } from '../services/api';
-import Docs from './Docs';
-import Raw from './Raw';
-import Source from './Explorer';
-import Chat from './Chat';
+import Overview from './Overview';
+import Files from './Files';
+import Source from './Source';
+import Insights from './Insights';
+import Ask from './Ask';
 import Header from '@/components/Header';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Spinner } from '@/components/ui/spinner';
@@ -26,9 +27,11 @@ function ProjectDashboard() {
 
   // Determine active tab from current route
   const currentPath = location.pathname.split('/').pop();
-  const activeTab = ['docs', 'source', 'raw', 'chat'].includes(currentPath)
+  const activeTab = ['overview', 'source', 'files', 'insights', 'ask'].includes(
+    currentPath,
+  )
     ? currentPath
-    : 'docs';
+    : 'overview';
 
   const handleTabChange = (value) => {
     navigate(`/project/${id}/${value}`);
@@ -78,7 +81,7 @@ function ProjectDashboard() {
   return (
     <div className="h-screen flex flex-col">
       <Header />
-      <div className="border-b px-4 flex gap-6 font-medium">
+      <div className="border-b px-4 flex gap-6">
         {/* tabs */}
         <Tabs
           value={activeTab}
@@ -86,10 +89,11 @@ function ProjectDashboard() {
           className="w-full"
         >
           <TabsList variant="line" className="justify-start *:cursor-pointer">
-            <TabsTrigger value="docs">Docs</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="files">Files</TabsTrigger>
             <TabsTrigger value="source">Source</TabsTrigger>
-            <TabsTrigger value="raw">Raw Analysis</TabsTrigger>
-            <TabsTrigger value="chat">Chat</TabsTrigger>
+            <TabsTrigger value="ask">Ask</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -97,11 +101,12 @@ function ProjectDashboard() {
       {/* Sub Pages */}
       <div className="flex-1 overflow-hidden min-h-0">
         <Routes>
-          <Route path="/" element={<Navigate to="docs" replace />} />
-          <Route path="docs" element={<Docs projectId={id} />} />
+          <Route path="/" element={<Navigate to="overview" replace />} />
+          <Route path="overview" element={<Overview projectId={id} />} />
+          <Route path="insights" element={<Insights projectId={id} />} />
+          <Route path="files" element={<Files projectId={id} />} />
           <Route path="source" element={<Source projectId={id} />} />
-          <Route path="raw" element={<Raw projectId={id} />} />
-          <Route path="chat" element={<Chat projectId={id} />} />
+          <Route path="ask" element={<Ask projectId={id} />} />
         </Routes>
       </div>
     </div>

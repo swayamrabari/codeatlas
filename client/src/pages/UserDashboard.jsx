@@ -26,50 +26,6 @@ import {
 } from 'lucide-react';
 
 /* ── Palette: one accent colour per card slot (cycles) ── */
-const CARD_ACCENTS = [
-  {
-    from: 'from-violet-500',
-    to: 'to-indigo-500',
-    ring: 'ring-violet-500/20',
-    icon: 'bg-violet-500/15 text-violet-400',
-    dot: 'bg-violet-400',
-  },
-  {
-    from: 'from-blue-500',
-    to: 'to-cyan-500',
-    ring: 'ring-blue-500/20',
-    icon: 'bg-blue-500/15 text-blue-400',
-    dot: 'bg-blue-400',
-  },
-  {
-    from: 'from-emerald-500',
-    to: 'to-teal-500',
-    ring: 'ring-emerald-500/20',
-    icon: 'bg-emerald-500/15 text-emerald-400',
-    dot: 'bg-emerald-400',
-  },
-  {
-    from: 'from-rose-500',
-    to: 'to-pink-500',
-    ring: 'ring-rose-500/20',
-    icon: 'bg-rose-500/15 text-rose-400',
-    dot: 'bg-rose-400',
-  },
-  {
-    from: 'from-amber-500',
-    to: 'to-orange-500',
-    ring: 'ring-amber-500/20',
-    icon: 'bg-amber-500/15 text-amber-400',
-    dot: 'bg-amber-400',
-  },
-  {
-    from: 'from-sky-500',
-    to: 'to-blue-400',
-    ring: 'ring-sky-500/20',
-    icon: 'bg-sky-500/15 text-sky-400',
-    dot: 'bg-sky-400',
-  },
-];
 
 function statusConfig(status) {
   const cfg = {
@@ -230,28 +186,26 @@ export default function UserDashboard() {
           <div className="flex items-center gap-4">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-xl font-bold select-none">
+              <div className="flex h-13 w-13 items-center justify-center rounded-full bg-primary text-primary-foreground text-2xl font-bold select-none">
                 {initials(user?.name)}
               </div>
-              <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-400 ring-2 ring-background" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-0.5">
-                Welcome back
-              </p>
               <h1 className="text-2xl font-bold text-foreground leading-tight">
                 {user?.name?.split(' ')[0]}
               </h1>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {user?.email}
+              </p>
             </div>
           </div>
 
           <Button
             onClick={() => navigate('/upload')}
             size="lg"
-            className="gap-2.5 shrink-0 rounded-xl"
+            className="gap-2.5 shrink-0"
           >
-            <Upload className="h-4 w-4" />
+            <Upload className="h-4 w-4 stroke-[2.5px]" />
             New Project
           </Button>
         </div>
@@ -318,8 +272,7 @@ export default function UserDashboard() {
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {projects.map((project, idx) => {
-                const accent = CARD_ACCENTS[idx % CARD_ACCENTS.length];
+              {projects.map((project) => {
                 const isGit = project.uploadType === 'github';
                 return (
                   <div
@@ -329,27 +282,27 @@ export default function UserDashboard() {
                         ? navigate(`/upload?resume=${project._id}`)
                         : navigate(`/project/${project._id}`)
                     }
-                    className={`group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl hover:shadow-black/10 hover:-translate-y-0.5 hover:ring-2 ${accent.ring}`}
+                    className={`group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5`}
                   >
                     {/* Delete button */}
                     <button
                       onClick={(e) => openDeleteDialog(e, project)}
-                      className="absolute top-4 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/50 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-all"
+                      className="absolute top-4 p-1 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-md text-destructive bg-destructive/10 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive transition-all"
                       title="Delete project"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
 
                     <div className="flex flex-col flex-1 p-6 gap-4">
                       {/* Icon + name */}
                       <div className="flex items-start gap-3 pr-6">
                         <div
-                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${accent.icon} transition-transform duration-200 group-hover:scale-110`}
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md p-1 transition-transform text-blue-500 bg-blue-500/20 duration-200`}
                         >
                           {isGit ? (
-                            <GitBranch className="h-5 w-5" />
+                            <GitBranch className="h-6 w-6" />
                           ) : (
-                            <Package className="h-5 w-5" />
+                            <Package className="h-6 w-6" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1 pt-0.5">

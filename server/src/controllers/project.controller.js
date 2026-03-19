@@ -3,6 +3,7 @@ import File from '../models/File.js';
 import Feature from '../models/Feature.js';
 import Embedding from '../models/Embedding.js';
 import progressEmitter from '../analysis/progressEmitter.js';
+import { askQuestionForProject } from '../services/chat.service.js';
 import {
   regenerateSingleFileDoc,
   regenerateSingleFeatureDoc,
@@ -568,6 +569,62 @@ export async function deleteProject(req, res) {
   }
 }
 
+/**
+ * Ask a question against project embeddings and return a grounded answer.
+ * POST /project/:id/ask
+ */
+export async function askProjectQuestion(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+    const { question, history = [] } = req.body || {};
+
+    if (typeof question !== 'string' || !question.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'question is required' });
+    }
+
+    const normalizedQuestion = question.trim();
+    if (normalizedQuestion.length > 2000) {
+      return res.status(400).json({
+        success: false,
+        error: 'question is too long (max 2000 characters)',
+      });
+    }
+
+    const project = await Project.findOne(
+      { _id: id, userId },
+      { _id: 1, status: 1 },
+    );
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'Project not found' });
+    }
+
+    if (project.status === 'documenting') {
+      return res.status(409).json({
+        success: false,
+        error: 'Project is still generating documentation and embeddings',
+      });
+    }
+
+    const data = await askQuestionForProject({
+      projectId: id,
+      question: normalizedQuestion,
+      history: Array.isArray(history) ? history : [],
+    });
+
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error('Error answering project question:', error);
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to answer question' });
+  }
+}
+
 // ─────────────────────────────────────────────
 // ── Selective Doc Regeneration Endpoints    ──
 // ─────────────────────────────────────────────
@@ -609,12 +666,10 @@ export async function regenerateFileDocs(req, res) {
     return res.status(200).json({ success: true, data: { aiDocumentation } });
   } catch (error) {
     console.error('Error regenerating file doc:', error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: 'Failed to regenerate file documentation',
-      });
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to regenerate file documentation',
+    });
   }
 }
 
@@ -655,12 +710,10 @@ export async function regenerateFeatureDocs(req, res) {
     return res.status(200).json({ success: true, data: { aiDocumentation } });
   } catch (error) {
     console.error('Error regenerating feature doc:', error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: 'Failed to regenerate feature documentation',
-      });
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to regenerate feature documentation',
+    });
   }
 }
 
@@ -684,11 +737,9 @@ export async function regenerateProjectDocs(req, res) {
     return res.status(200).json({ success: true, data: { aiDocumentation } });
   } catch (error) {
     console.error('Error regenerating project doc:', error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: 'Failed to regenerate project documentation',
-      });
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to regenerate project documentation',
+    });
   }
 }

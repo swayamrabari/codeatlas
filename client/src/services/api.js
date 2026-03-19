@@ -131,6 +131,17 @@ export const projectAPI = {
   },
 
   /**
+   * Ask a grounded question against project embeddings.
+   */
+  askProjectQuestion: async (id, question, history = []) => {
+    const response = await api.post(`/project/${id}/ask`, {
+      question,
+      history,
+    });
+    return response.data;
+  },
+
+  /**
    * Get lightweight file list (no content) for Explorer sidebar
    */
   getFileList: async (id) => {

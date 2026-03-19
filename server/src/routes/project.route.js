@@ -10,6 +10,7 @@ import {
   getFeatureDetail,
   deleteProject,
   streamProgress,
+  askProjectQuestion,
   regenerateFileDocs,
   regenerateFeatureDocs,
   regenerateProjectDocs,
@@ -27,6 +28,7 @@ router.get('/project/:id', getProject);
 router.get('/project/:id/status', getProjectStatus);
 router.get('/project/:id/progress', streamProgress); // SSE real-time progress
 router.get('/project/:id/docs', getProjectDocs);
+router.post('/project/:id/ask', askProjectQuestion);
 router.delete('/project/:id', deleteProject);
 
 // File endpoints (lazy loading)

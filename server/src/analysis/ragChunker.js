@@ -25,11 +25,17 @@ export async function buildChunks(projectId) {
   // ── File Chunks ──
   for (const file of files) {
     const tier = file.analysis?.tier ?? 3;
+    const imports = file.analysis?.imports?.files || [];
+    const importedBy = file.analysis?.importedBy || [];
+    const exportedSymbols = file.analysis?.exportedSymbols || file.analysis?.exports || [];
     const baseMeta = {
       path: file.path,
       tier,
       role: file.analysis?.role || 'Unknown',
       category: file.analysis?.category || 'infrastructure',
+      imports,
+      importedBy,
+      exports: exportedSymbols,
     };
 
     // File code chunks (Tier 1 only) — sliding window
@@ -144,24 +150,38 @@ export function buildEmbeddingInput(chunk) {
 
   switch (chunkType) {
     case 'file-summary':
-    case 'file-docs':
-      return [
+    case 'file-docs': {
+      const parts = [
         `FILE: ${metadata.path}`,
         `ROLE: ${metadata.role}`,
         `CATEGORY: ${metadata.category}`,
         `TAGS: ${(metadata.searchTags || []).join(', ')}`,
-        '',
-        content,
-      ].join('\n');
+      ];
+      if (metadata.imports?.length) {
+        parts.push(`IMPORTS: ${metadata.imports.slice(0, 10).join(', ')}`);
+      }
+      if (metadata.importedBy?.length) {
+        parts.push(`IMPORTED BY: ${metadata.importedBy.slice(0, 10).join(', ')}`);
+      }
+      if (metadata.exports?.length) {
+        parts.push(`EXPORTS: ${metadata.exports.slice(0, 10).join(', ')}`);
+      }
+      parts.push('', content);
+      return parts.join('\n');
+    }
 
-    case 'code':
-      return [
+    case 'code': {
+      const codeParts = [
         `FILE: ${metadata.path}`,
         `ROLE: ${metadata.role}`,
         `LINES: ${metadata.lineStart}–${metadata.lineEnd}`,
-        '',
-        content,
-      ].join('\n');
+      ];
+      if (metadata.exports?.length) {
+        codeParts.push(`EXPORTS: ${metadata.exports.slice(0, 8).join(', ')}`);
+      }
+      codeParts.push('', content);
+      return codeParts.join('\n');
+    }
 
     case 'feature-summary':
     case 'feature-docs':

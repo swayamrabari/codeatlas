@@ -40,7 +40,9 @@ function FolderNode({ name, node, depth, onSelectFile, selectedPath }) {
           className="flex cursor-pointer items-center gap-1 rounded px-2 py-1 hover:bg-accent hover:text-accent-foreground transition-colors"
           onClick={() => setExpanded(!expanded)}
         >
-          <span className="text-muted-foreground">{expanded ? '📂' : '📁'}</span>
+          <span className="text-muted-foreground">
+            {expanded ? '📂' : '📁'}
+          </span>
           <span className="text-sm font-medium text-foreground">{name}</span>
         </div>
       )}
@@ -97,7 +99,9 @@ function FileNode({ file, depth, onSelect, isSelected }) {
     <div
       style={{ marginLeft: depth * 12 }}
       className={`flex cursor-pointer items-center gap-1 rounded px-2 py-1 transition-colors ${
-        isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'
+        isSelected
+          ? 'bg-primary text-primary-foreground'
+          : 'hover:bg-accent hover:text-accent-foreground'
       }`}
       onClick={() => onSelect(file)}
     >

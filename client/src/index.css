@@ -16,6 +16,18 @@ html.dark {
   fill: var(--logo-fill);
 }
 
+/* Prevent mermaid's temporary render container from causing a window scrollbar flash */
+body > [id^='dmermaid'] {
+  position: fixed !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+}
+
 /* change the style of scrollbar for entire app */
 /* Custom scrollbar styling for the entire app */
 * {
@@ -168,6 +180,10 @@ html.dark {
   font-family: 'Geist Mono', monospace;
 }
 
+.font-mono {
+  font-family: 'Geist Mono', monospace;
+}
+
 /* ── Docs Markdown Styling ── */
 .docs-markdown {
   color: var(--foreground);
@@ -202,7 +218,7 @@ html.dark {
 }
 
 .docs-markdown p {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .docs-markdown ul,
@@ -224,13 +240,13 @@ html.dark {
 
 .docs-markdown li > ul,
 .docs-markdown li > ol {
-  margin-top: -0.75rem;
+  /* margin-top: -0.75rem; */
   margin-bottom: 0.75rem;
 }
 
 .docs-markdown code {
   font-family: 'Geist Mono', monospace;
-  font-size: 0.825rem;
+  font-size: 0.875rem;
   background: var(--secondary);
   color: var(--foreground);
   padding: 0.15rem 0.4rem;
@@ -251,7 +267,7 @@ html.dark {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
 .docs-markdown strong {
@@ -296,4 +312,13 @@ html.dark {
   border: none;
   border-top: 1px solid var(--border);
   margin: 1.5rem 0;
+}
+
+/* hide scrollbar class to remove scrollbar */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* WebKit */
 }
