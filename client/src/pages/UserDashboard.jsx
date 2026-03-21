@@ -363,12 +363,8 @@ export default function UserDashboard() {
           <DialogHeader>
             <DialogTitle>Delete project?</DialogTitle>
             <DialogDescription>
-              This will permanently delete{' '}
-              <span className="font-semibold text-foreground">
-                &ldquo;{deleteTarget?.name}&rdquo;
-              </span>{' '}
-              and all associated files, features, and analysis data. This action
-              cannot be undone.
+              Are you sure you want to delete {deleteTarget?.name}? <br />
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -380,20 +376,14 @@ export default function UserDashboard() {
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              variant="destructiveoutline"
               onClick={handleDelete}
               disabled={deleting}
             >
               {deleting ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Deleting…
-                </span>
+                <span className="flex items-center gap-2">Deleting…</span>
               ) : (
-                <span className="flex items-center gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </span>
+                <span className="flex items-center gap-2">Delete</span>
               )}
             </Button>
           </DialogFooter>

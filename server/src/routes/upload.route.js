@@ -7,6 +7,7 @@ import {
   handleGitUpload,
 } from '../controllers/upload.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
+import { authRateLimiter } from '../middleware/rateLimit.middleware.js';
 
 const router = express.Router();
 
@@ -82,7 +83,13 @@ const uploadMiddleware = (req, res, next) => {
   });
 };
 
-router.post('/upload', authenticate, uploadMiddleware, handleZipUpload);
-router.post('/upload-git', authenticate, handleGitUpload);
+router.post(
+  '/upload',
+  authenticate,
+  authRateLimiter,
+  uploadMiddleware,
+  handleZipUpload,
+);
+router.post('/upload-git', authenticate, authRateLimiter, handleGitUpload);
 
 export default router;

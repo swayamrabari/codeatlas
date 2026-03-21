@@ -3,19 +3,31 @@ import {
   listProjects,
   getProject,
   getProjectStatus,
-  getProjectDocs,
-  getFileContent,
-  getFileList,
-  getFeatures,
-  getFeatureDetail,
   deleteProject,
-  streamProgress,
+} from '../controllers/project.controller.js';
+import {
+  listProjectChats,
+  getProjectChat,
+  renameProjectChat,
+  deleteProjectChat,
   askProjectQuestion,
+  askProjectQuestionStream,
+} from '../controllers/chat.controller.js';
+import {
+  getProjectDocs,
+  streamProgress,
   regenerateFileDocs,
   regenerateFeatureDocs,
   regenerateProjectDocs,
-} from '../controllers/project.controller.js';
+} from '../controllers/docs.controller.js';
+import {
+  getFileList,
+  getFileContent,
+  getFeatures,
+  getFeatureDetail,
+} from '../controllers/explorer.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
+import { validateObjectId } from '../middleware/validate.middleware.js';
 
 const router = express.Router();
 
@@ -24,24 +36,66 @@ router.use(authenticate);
 
 // Project listing & CRUD
 router.get('/projects', listProjects);
-router.get('/project/:id', getProject);
-router.get('/project/:id/status', getProjectStatus);
-router.get('/project/:id/progress', streamProgress); // SSE real-time progress
-router.get('/project/:id/docs', getProjectDocs);
-router.post('/project/:id/ask', askProjectQuestion);
-router.delete('/project/:id', deleteProject);
+router.get('/project/:id', validateObjectId('id'), getProject);
+router.get('/project/:id/status', validateObjectId('id'), getProjectStatus);
+router.delete('/project/:id', validateObjectId('id'), deleteProject);
 
-// File endpoints (lazy loading)
-router.get('/project/:id/files', getFileList);
-router.get('/project/:id/file', getFileContent);
+// Chat endpoints
+router.post('/project/:id/ask', validateObjectId('id'), askProjectQuestion);
+router.post(
+  '/project/:id/ask/stream',
+  validateObjectId('id'),
+  askProjectQuestionStream,
+);
+router.get('/project/:id/chats', validateObjectId('id'), listProjectChats);
+router.get(
+  '/project/:id/chats/:chatId',
+  validateObjectId('id'),
+  validateObjectId('chatId'),
+  getProjectChat,
+);
+router.patch(
+  '/project/:id/chats/:chatId',
+  validateObjectId('id'),
+  validateObjectId('chatId'),
+  renameProjectChat,
+);
+router.delete(
+  '/project/:id/chats/:chatId',
+  validateObjectId('id'),
+  validateObjectId('chatId'),
+  deleteProjectChat,
+);
 
-// Feature endpoints
-router.get('/project/:id/features', getFeatures);
-router.get('/project/:id/features/:keyword', getFeatureDetail);
+// Documentation & progress
+router.get('/project/:id/docs', validateObjectId('id'), getProjectDocs);
+router.get('/project/:id/progress', validateObjectId('id'), streamProgress); // SSE real-time progress
+
+// Explorer endpoints (lazy loading)
+router.get('/project/:id/files', validateObjectId('id'), getFileList);
+router.get('/project/:id/file', validateObjectId('id'), getFileContent);
+router.get('/project/:id/features', validateObjectId('id'), getFeatures);
+router.get(
+  '/project/:id/features/:keyword',
+  validateObjectId('id'),
+  getFeatureDetail,
+);
 
 // Selective doc regeneration
-router.post('/project/:id/regenerate/file', regenerateFileDocs);
-router.post('/project/:id/regenerate/feature', regenerateFeatureDocs);
-router.post('/project/:id/regenerate/project', regenerateProjectDocs);
+router.post(
+  '/project/:id/regenerate/file',
+  validateObjectId('id'),
+  regenerateFileDocs,
+);
+router.post(
+  '/project/:id/regenerate/feature',
+  validateObjectId('id'),
+  regenerateFeatureDocs,
+);
+router.post(
+  '/project/:id/regenerate/project',
+  validateObjectId('id'),
+  regenerateProjectDocs,
+);
 
 export default router;

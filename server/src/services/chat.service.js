@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Embedding from '../models/Embedding.js';
 import {
   answerQuestionWithContext,
+  streamAnswerWithContext,
   generateEmbeddings,
 } from '../analysis/ai.service.js';
 
@@ -320,10 +321,18 @@ export async function askQuestionForProject({
   });
 
   const { contextText, usedChunks } = buildContextFromChunks(retrievedChunks);
+  const sourcePaths = [
+    ...new Set(
+      usedChunks
+        .map((chunk) => chunk.metadata?.path)
+        .filter((path) => typeof path === 'string' && path.trim()),
+    ),
+  ];
   const answer = await answerQuestionWithContext({
     question,
     history,
     contextText,
+    sourcePaths,
   });
 
   const citations = usedChunks.map((chunk) => ({
@@ -337,6 +346,66 @@ export async function askQuestionForProject({
 
   return {
     answer,
+    citations,
+    usage: {
+      retrievedCount: retrievedChunks.length,
+      citedCount: citations.length,
+      topK,
+    },
+  };
+}
+
+/**
+ * Retrieve relevant chunks and return a streaming LLM response.
+ * The retrieval phase is identical to askQuestionForProject; only the
+ * answer-generation step is swapped for a streaming variant.
+ *
+ * @param {Object} args
+ * @param {string} args.projectId
+ * @param {string} args.question
+ * @param {Array<{role: string, content: string}>} [args.history]
+ * @param {number} [args.topK]
+ * @returns {Promise<{stream: AsyncIterable, citations: Object[], usage: Object}>}
+ */
+export async function streamAnswerForProject({
+  projectId,
+  question,
+  history = [],
+  topK = DEFAULT_TOP_K,
+}) {
+  const retrievedChunks = await retrieveRelevantChunks({
+    projectId,
+    question,
+    topK,
+  });
+
+  const { contextText, usedChunks } = buildContextFromChunks(retrievedChunks);
+  const sourcePaths = [
+    ...new Set(
+      usedChunks
+        .map((chunk) => chunk.metadata?.path)
+        .filter((path) => typeof path === 'string' && path.trim()),
+    ),
+  ];
+
+  const stream = await streamAnswerWithContext({
+    question,
+    history,
+    contextText,
+    sourcePaths,
+  });
+
+  const citations = usedChunks.map((chunk) => ({
+    path: chunk.metadata?.path || null,
+    lineStart: chunk.metadata?.lineStart || null,
+    lineEnd: chunk.metadata?.lineEnd || null,
+    chunkType: chunk.chunkType,
+    score: typeof chunk.score === 'number' ? Number(chunk.score.toFixed(4)) : 0,
+    featureName: chunk.metadata?.featureName || null,
+  }));
+
+  return {
+    stream,
     citations,
     usage: {
       retrievedCount: retrievedChunks.length,
@@ -675,31 +744,35 @@ export async function retrieveRelevantChunks({
   question,
   topK = DEFAULT_TOP_K,
 }) {
+  const retrievalStart = Date.now();
   const intent = classifyIntent(question);
   const questionKeywords = extractQuestionKeywords(question);
   console.log(
     `[Ask] Intent: ${intent} | Keywords: ${questionKeywords.slice(0, 8).join(', ')}`,
   );
 
-  // Step 1: Direct path + feature matching (always runs, no vector search)
+  // Step 1: Direct path + feature matching + embedding generation (all parallel)
+  // These are fully independent — run them simultaneously instead of sequentially
   const fileRefs = extractFileReferences(question);
-  const [directPathChunks, featureChunks] = await Promise.all([
-    findChunksByFilePath(projectId, fileRefs),
-    findChunksByFeature(projectId, question),
-  ]);
-
-  console.log(
-    `[Ask] Direct matches: ${directPathChunks.length} path, ${featureChunks.length} feature`,
-  );
-
-  // Step 2: Two-pass Atlas Vector Search
-  let searchChunks = [];
   const expandedQuery = expandQuery(question);
 
-  try {
-    const [queryVector] = await generateEmbeddings([expandedQuery]);
-    const focusedTypes = getFocusedChunkTypes(intent);
+  const [directPathChunks, featureChunks, queryVectors] = await Promise.all([
+    findChunksByFilePath(projectId, fileRefs),
+    findChunksByFeature(projectId, question),
+    generateEmbeddings([expandedQuery]),
+  ]);
 
+  const queryVector = queryVectors[0];
+
+  console.log(
+    `[Ask] Direct matches: ${directPathChunks.length} path, ${featureChunks.length} feature | Embedding ready (${Date.now() - retrievalStart}ms)`,
+  );
+
+  // Step 2: Two-pass Atlas Vector Search (depends on queryVector from step 1)
+  let searchChunks = [];
+  const focusedTypes = getFocusedChunkTypes(intent);
+
+  try {
     // Run focused + broad searches in parallel
     const searchPromises = [
       // Broad search — all chunk types
@@ -729,7 +802,8 @@ export async function retrieveRelevantChunks({
       `[Ask] Atlas vector search: ${broadResults.length} broad` +
         (focusedResults
           ? `, ${focusedResults.length} focused (${focusedTypes.join(', ')})`
-          : ''),
+          : '') +
+        ` (${Date.now() - retrievalStart}ms total)`,
     );
 
     // Merge: focused results first (higher priority), then broad-only

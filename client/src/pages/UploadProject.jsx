@@ -139,11 +139,11 @@ function PipelineView({ stages, activeIndex, error, detail }) {
         return (
           <div
             key={stage.key}
-            className={`flex items-center gap-4 rounded-lg border-2 px-4 py-3 transition-all duration-500 ${
+            className={`flex items-center gap-4 rounded-lg border-2 px-3 py-3 transition-all duration-500 ${
               isFailed
                 ? 'border-destructive/50 bg-destructive/5'
                 : isActive
-                  ? 'border-primary/50 bg-primary/5 shadow-sm shadow-primary/10'
+                  ? 'border-primary bg-primary  shadow-sm shadow-primary/10'
                   : isComplete
                     ? 'border-border bg-primary/5'
                     : 'border-border bg-card/50 opacity-50'

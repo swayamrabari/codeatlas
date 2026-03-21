@@ -133,11 +133,80 @@ export const projectAPI = {
   /**
    * Ask a grounded question against project embeddings.
    */
-  askProjectQuestion: async (id, question, history = []) => {
+  askProjectQuestion: async (id, question, history = [], chatId = null) => {
     const response = await api.post(`/project/${id}/ask`, {
       question,
       history,
+      chatId,
     });
+    return response.data;
+  },
+
+  /**
+   * Stream a grounded answer via SSE. Uses native fetch (not Axios)
+   * so we can read the response body as a stream.
+   * Returns the raw Response object.
+   */
+  askProjectQuestionStream: async (
+    id,
+    question,
+    history = [],
+    chatId = null,
+  ) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/project/${id}/ask/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ question, history, chatId }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw {
+        response: {
+          data: errorBody,
+          status: response.status,
+        },
+      };
+    }
+
+    return response;
+  },
+
+  /**
+   * List persisted chats for a project.
+   */
+  listProjectChats: async (id) => {
+    const response = await api.get(`/project/${id}/chats`);
+    return response.data;
+  },
+
+  /**
+   * Get a single persisted chat with message history.
+   */
+  getProjectChat: async (id, chatId) => {
+    const response = await api.get(`/project/${id}/chats/${chatId}`);
+    return response.data;
+  },
+
+  /**
+   * Rename a persisted chat.
+   */
+  renameProjectChat: async (id, chatId, title) => {
+    const response = await api.patch(`/project/${id}/chats/${chatId}`, {
+      title,
+    });
+    return response.data;
+  },
+
+  /**
+   * Delete a persisted chat.
+   */
+  deleteProjectChat: async (id, chatId) => {
+    const response = await api.delete(`/project/${id}/chats/${chatId}`);
     return response.data;
   },
 
