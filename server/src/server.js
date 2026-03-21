@@ -12,12 +12,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 let server;
 
-const allowedOrigins = (
-  process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174'
-)
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+// https://codeatlas-seven.vercel.app add this too
+
+const allowedOrigins =
+  'http://localhost:5173, https://codeatlas-seven.vercel.app'
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
