@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,29 +18,21 @@ import {
 } from 'lucide-react';
 
 export default function Insights({ projectId }) {
-  const { state } = useLocation();
-  const [data, setData] = useState(state?.data?.data || null);
-  const [loading, setLoading] = useState(!data);
-  const [error, setError] = useState(null);
   const [selected, setSelected] = useState({ type: 'overview' });
 
-  useEffect(() => {
-    if (!data && projectId) {
-      projectAPI
-        .getProject(projectId)
-        .then((response) => {
-          setData(response.data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error('Failed to load project data:', err);
-          setError('Failed to load project data.');
-          setLoading(false);
-        });
-    } else if (data) {
-      setLoading(false);
-    }
-  }, [projectId, data]);
+  const {
+    data: resData,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => projectAPI.getProject(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const data = resData?.data;
+  const error = queryError?.message ? 'Failed to load project data.' : null;
 
   const { processedFiles, frameworksList, featuresList } = useMemo(() => {
     if (!data)

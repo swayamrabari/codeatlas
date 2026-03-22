@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowUp, Check, History, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { projectAPI } from '../services/api';
 import LogoIcon from '@/assets/logo';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  Plus,
+  History,
+  Pencil,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,17 +44,32 @@ function mapStoredMessages(messages = []) {
       role: message.role,
       content: message.content,
       citations: Array.isArray(message.citations) ? message.citations : [],
+      streaming: false,
     }));
 }
 
 export default function Ask({ projectId }) {
+  const queryClient = useQueryClient();
+
   const [messages, setMessages] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [currentChatTitle, setCurrentChatTitle] = useState('New chat');
 
-  const [recentChats, setRecentChats] = useState([]);
-  const [recentLoading, setRecentLoading] = useState(false);
-  const [recentError, setRecentError] = useState('');
+  const {
+    data: chatsRes,
+    isLoading: recentLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['projectChats', projectId],
+    queryFn: () => projectAPI.listProjectChats(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const recentError =
+    queryError?.message || (queryError ? 'Failed to load recent chats.' : '');
+  const recentChats = Array.isArray(chatsRes?.data) ? chatsRes.data : [];
+
   const [loadingChatId, setLoadingChatId] = useState('');
   const [deletingChatId, setDeletingChatId] = useState('');
 
@@ -62,9 +85,13 @@ export default function Ask({ projectId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [recentOpen, setRecentOpen] = useState(false);
+  const [stickToBottom, setStickToBottom] = useState(true);
 
   const inputRef = useRef(null);
   const chatViewportRef = useRef(null);
+  const streamBufferRef = useRef('');
+  const streamTimerRef = useRef(null);
+  const streamMessageIdRef = useRef('');
 
   const history = useMemo(
     () =>
@@ -86,50 +113,149 @@ export default function Ask({ projectId }) {
     resizeInput();
   }, [question, resizeInput]);
 
-  const upsertRecentChat = useCallback((chat) => {
-    if (!chat?._id) return;
+  const appendToStreamingMessage = useCallback((messageId, text) => {
+    if (!messageId || !text) return;
 
-    setRecentChats((prev) => {
-      const withoutCurrent = prev.filter((item) => item._id !== chat._id);
-      return [chat, ...withoutCurrent]
-        .sort(
-          (a, b) =>
-            new Date(b.lastMessageAt || b.updatedAt || 0).getTime() -
-            new Date(a.lastMessageAt || a.updatedAt || 0).getTime(),
-        )
-        .slice(0, 60);
-    });
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, content: msg.content + text } : msg,
+      ),
+    );
   }, []);
 
-  const loadRecentChats = useCallback(async () => {
-    setRecentError('');
-    setRecentLoading(true);
-    try {
-      const response = await projectAPI.listProjectChats(projectId);
-      const chats = Array.isArray(response?.data) ? response.data : [];
-      setRecentChats(chats);
-    } catch (err) {
-      const apiError = err?.response?.data?.error;
-      setRecentError(apiError || 'Failed to load recent chats.');
-    } finally {
-      setRecentLoading(false);
-    }
-  }, [projectId]);
+  const stopTypingAnimation = useCallback(
+    ({ flush = false } = {}) => {
+      if (streamTimerRef.current) {
+        clearTimeout(streamTimerRef.current);
+        streamTimerRef.current = null;
+      }
+
+      if (flush && streamBufferRef.current && streamMessageIdRef.current) {
+        appendToStreamingMessage(
+          streamMessageIdRef.current,
+          streamBufferRef.current,
+        );
+      }
+
+      streamBufferRef.current = '';
+    },
+    [appendToStreamingMessage],
+  );
+
+  const startTypingAnimation = useCallback(
+    (messageId) => {
+      stopTypingAnimation();
+      streamMessageIdRef.current = messageId;
+
+      const tick = () => {
+        if (!streamMessageIdRef.current) return;
+
+        const pending = streamBufferRef.current;
+        if (pending.length > 0) {
+          const step =
+            pending.length > 180
+              ? 12
+              : pending.length > 100
+                ? 8
+                : pending.length > 40
+                  ? 4
+                  : 1;
+          const next = pending.slice(0, step);
+          streamBufferRef.current = pending.slice(step);
+          appendToStreamingMessage(streamMessageIdRef.current, next);
+        }
+
+        streamTimerRef.current = window.setTimeout(tick, 20);
+      };
+
+      tick();
+    },
+    [appendToStreamingMessage, stopTypingAnimation],
+  );
+
+  const finalizeStreamingMessage = useCallback(
+    (messageId) => {
+      stopTypingAnimation({ flush: true });
+      streamMessageIdRef.current = '';
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId ? { ...msg, streaming: false } : msg,
+        ),
+      );
+    },
+    [stopTypingAnimation],
+  );
+
+  const upsertRecentChat = useCallback(
+    (chat) => {
+      if (!chat?._id) return;
+
+      queryClient.setQueryData(['projectChats', projectId], (prev) => {
+        const prevChats = Array.isArray(prev?.data) ? prev.data : [];
+        const withoutCurrent = prevChats.filter(
+          (item) => item._id !== chat._id,
+        );
+        const updated = [chat, ...withoutCurrent]
+          .sort(
+            (a, b) =>
+              new Date(b.lastMessageAt || b.updatedAt || 0).getTime() -
+              new Date(a.lastMessageAt || a.updatedAt || 0).getTime(),
+          )
+          .slice(0, 60);
+
+        return { ...prev, data: updated };
+      });
+    },
+    [projectId, queryClient],
+  );
 
   useEffect(() => {
     setMessages([]);
     setCurrentChatId(null);
     setCurrentChatTitle('New chat');
-    loadRecentChats();
-  }, [loadRecentChats]);
+    streamBufferRef.current = '';
+    streamMessageIdRef.current = '';
+    stopTypingAnimation();
+  }, [projectId]);
 
   useEffect(() => {
     const viewport = chatViewportRef.current?.querySelector(
       '[data-slot="scroll-area-viewport"]',
     );
     if (!viewport) return;
-    viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
-  }, [messages, loading]);
+
+    const onScroll = () => {
+      const distanceFromBottom =
+        viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight;
+      setStickToBottom(distanceFromBottom < 80);
+    };
+
+    onScroll();
+    viewport.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      viewport.removeEventListener('scroll', onScroll);
+    };
+  }, []);
+
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    const viewport = chatViewportRef.current?.querySelector(
+      '[data-slot="scroll-area-viewport"]',
+    );
+    if (!viewport) return;
+    viewport.scrollTo({ top: viewport.scrollHeight, behavior });
+  }, []);
+
+  useEffect(() => {
+    if (!stickToBottom) return;
+    scrollToBottom(loading ? 'auto' : 'smooth');
+  }, [messages, loading, stickToBottom, scrollToBottom]);
+
+  useEffect(() => {
+    return () => {
+      stopTypingAnimation();
+    };
+  }, [stopTypingAnimation]);
 
   const submitQuestion = async (value) => {
     const trimmed = value.trim();
@@ -137,6 +263,7 @@ export default function Ask({ projectId }) {
 
     setError('');
     setQuestion('');
+    setStickToBottom(true);
 
     const userMsgId = crypto.randomUUID();
     const assistantMsgId = crypto.randomUUID();
@@ -150,10 +277,17 @@ export default function Ask({ projectId }) {
     // Add a placeholder assistant message that will be filled token-by-token
     setMessages((prev) => [
       ...prev,
-      { id: assistantMsgId, role: 'assistant', content: '', citations: [] },
+      {
+        id: assistantMsgId,
+        role: 'assistant',
+        content: '',
+        citations: [],
+        streaming: true,
+      },
     ]);
 
     setLoading(true);
+    startTypingAnimation(assistantMsgId);
 
     try {
       const response = await projectAPI.askProjectQuestionStream(
@@ -204,14 +338,9 @@ export default function Ask({ projectId }) {
           }
 
           if (eventType === 'delta') {
-            // Append token to the assistant message
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === assistantMsgId
-                  ? { ...msg, content: msg.content + data.text }
-                  : msg,
-              ),
-            );
+            if (typeof data.text === 'string' && data.text) {
+              streamBufferRef.current += data.text;
+            }
           } else if (eventType === 'citations') {
             setMessages((prev) =>
               prev.map((msg) =>
@@ -240,6 +369,7 @@ export default function Ask({ projectId }) {
       const apiError = err?.response?.data?.error;
       setError(apiError || 'Failed to get answer. Please try again.');
     } finally {
+      finalizeStreamingMessage(assistantMsgId);
       setLoading(false);
     }
   };
@@ -257,6 +387,9 @@ export default function Ask({ projectId }) {
   };
 
   const onStartNewChat = () => {
+    streamBufferRef.current = '';
+    streamMessageIdRef.current = '';
+    stopTypingAnimation();
     setMessages([]);
     setCurrentChatId(null);
     setCurrentChatTitle('New chat');
@@ -267,6 +400,7 @@ export default function Ask({ projectId }) {
     requestAnimationFrame(() => {
       inputRef.current?.focus();
       resizeInput();
+      scrollToBottom('auto');
     });
   };
 
@@ -275,6 +409,9 @@ export default function Ask({ projectId }) {
 
     setLoadingChatId(chatId);
     setError('');
+    stopTypingAnimation();
+    streamBufferRef.current = '';
+    streamMessageIdRef.current = '';
     try {
       const response = await projectAPI.getProjectChat(projectId, chatId);
       const chat = response?.data?.data || response?.data;
@@ -285,6 +422,7 @@ export default function Ask({ projectId }) {
       setMessages(mapStoredMessages(chat.messages));
       setQuestion('');
       setRecentOpen(false);
+      setStickToBottom(true);
       upsertRecentChat(chat);
     } catch (err) {
       const apiError = err?.response?.data?.error;
@@ -347,13 +485,20 @@ export default function Ask({ projectId }) {
     try {
       await projectAPI.deleteProjectChat(projectId, chatId);
 
-      setRecentChats((prev) => prev.filter((item) => item._id !== chatId));
+      queryClient.setQueryData(['projectChats', projectId], (prev) => {
+        const prevChats = Array.isArray(prev?.data) ? prev.data : [];
+        const updated = prevChats.filter((item) => item._id !== chatId);
+        return { ...prev, data: updated };
+      });
 
       if (editingChatId === chatId) {
         onCancelRename();
       }
 
       if (currentChatId === chatId) {
+        streamBufferRef.current = '';
+        streamMessageIdRef.current = '';
+        stopTypingAnimation();
         setMessages([]);
         setCurrentChatId(null);
         setCurrentChatTitle('New chat');
@@ -502,10 +647,7 @@ export default function Ask({ projectId }) {
 
               {messages.map((message) => {
                 const isUser = message.role === 'user';
-                const isStreaming =
-                  loading &&
-                  !isUser &&
-                  message === messages[messages.length - 1];
+                const isStreaming = !isUser && !!message.streaming;
                 const isEmpty = !message.content;
                 return (
                   <div
@@ -545,7 +687,22 @@ export default function Ask({ projectId }) {
         </div>
       </section>
 
-      <section className="shrink-0">
+      <section className="relative shrink-0">
+        {!stickToBottom && messages.length > 0 ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label="Jump to latest message"
+            className="absolute left-1/2 -top-11.5 z-20 h-9 w-9 -translate-x-1/2 rounded-md border-border/70 bg-background/90 shadow-sm backdrop-blur"
+            onClick={() => {
+              setStickToBottom(true);
+              scrollToBottom('smooth');
+            }}
+          >
+            <ArrowDown className="size-4" />
+          </Button>
+        ) : null}
         <div className="mx-auto w-full max-w-200 px-4 pb-4">
           <form onSubmit={onSubmit} className="mx-auto w-full">
             <div className="bg-secondary/70 flex w-full flex-col items-end rounded-2xl border-2 border-border/80 shadow-sm backdrop-blur transition-all focus-within:border-border">

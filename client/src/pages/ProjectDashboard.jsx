@@ -14,6 +14,7 @@ import {
   useNavigate,
   useLocation,
 } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import Header from '@/components/Header';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
@@ -29,9 +30,7 @@ function ProjectDashboard() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [projectStatus, setProjectStatus] = useState(null); // null = loading
-  const pollRef = useRef(null);
+  const queryClient = useQueryClient();
 
   // Determine active tab from current route
   const currentPath = location.pathname.split('/').pop();
@@ -46,33 +45,36 @@ function ProjectDashboard() {
   };
 
   // Check project status on mount
+  const { data: statusRes, isLoading: isStatusLoading } = useQuery({
+    queryKey: ['projectStatus', id],
+    queryFn: () => projectAPI.getProjectStatus(id),
+    staleTime: 5000,
+  });
+
+  const projectStatus = statusRes?.data?.status;
+
   useEffect(() => {
-    let cancelled = false;
-
-    async function checkStatus() {
-      try {
-        const res = await projectAPI.getProjectStatus(id);
-        if (cancelled) return;
-        const status = res.data?.status;
-        if (status === 'documenting') {
-          // Redirect to upload page with resume param
-          navigate(`/upload?resume=${id}`, { replace: true });
-        } else {
-          setProjectStatus(status || 'ready');
-        }
-      } catch {
-        if (!cancelled) setProjectStatus('ready');
-      }
+    if (projectStatus === 'documenting') {
+      navigate(`/upload?resume=${id}`, { replace: true });
+    } else if (projectStatus === 'ready') {
+      // Prefetch the 3 core data pillars so sub-pages load instantly
+      queryClient.prefetchQuery({
+        queryKey: ['project', id],
+        queryFn: () => projectAPI.getProject(id),
+      });
+      queryClient.prefetchQuery({
+        queryKey: ['projectDocs', id],
+        queryFn: () => projectAPI.getProjectDocs(id),
+      });
+      queryClient.prefetchQuery({
+        queryKey: ['projectChats', id],
+        queryFn: () => projectAPI.listProjectChats(id),
+      });
     }
-
-    checkStatus();
-    return () => {
-      cancelled = true;
-    };
-  }, [id, navigate]);
+  }, [projectStatus, id, navigate, queryClient]);
 
   // Loading state
-  if (projectStatus === null) {
+  if (isStatusLoading || !projectStatus) {
     return (
       <div className="h-screen flex flex-col">
         <Header />

@@ -16,16 +16,31 @@ You will receive:
 BEHAVIOR RULES:
 1. Answer the user question directly and clearly.
 2. If project context is relevant and available, use it for project-specific details.
-3. If project context is missing or unrelated, still answer using general software knowledge. Do not refuse with "out of context".
-4. If AVAILABLE_SOURCE_PATHS is empty, add this exact note at the very end:
-   Project usage note: No relevant files found in this project for this topic.
-5. Never hallucinate project-specific facts when context does not support them.
-6. Does not include sources of answer anywhere like citations.
+3. If project context is missing, partial, or unrelated, still answer using strong general software engineering knowledge. Do not refuse with "out of context".
+4. Prefer a hybrid response style: first explain what can be inferred from retrieved project context, then fill gaps with clearly general best-practice guidance.
+5. Never append any footer/disclaimer like "Project usage note" or "No relevant files found".
+6. Never hallucinate project-specific facts when context does not support them.
+7. Does not include sources of answer anywhere like citations.
 
 STYLE RULES:
 1. Use Markdown.
 2. Keep answers concise but technical.
 3. Use inline code formatting for symbols and APIs when useful.`;
+
+const LEGACY_PROJECT_USAGE_NOTE =
+  'Project usage note: No relevant files found in this project for this topic.';
+
+function stripLegacyProjectUsageNote(answerText) {
+  if (typeof answerText !== 'string' || !answerText) return '';
+
+  // Legacy responses sometimes append this hardcoded footer; remove it if present at the end.
+  const escaped = LEGACY_PROJECT_USAGE_NOTE.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&',
+  );
+  const footerPattern = new RegExp(`(?:\\n\\s*)*${escaped}\\s*$`, 'i');
+  return answerText.replace(footerPattern, '').trimEnd();
+}
 
 function sanitizeChatHistory(history) {
   return history
@@ -592,7 +607,8 @@ export async function answerQuestionWithContext({
       ],
     });
 
-    return response.choices?.[0]?.message?.content?.trim() || '';
+    const rawAnswer = response.choices?.[0]?.message?.content?.trim() || '';
+    return stripLegacyProjectUsageNote(rawAnswer);
   });
 }
 

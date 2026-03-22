@@ -4,6 +4,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const UserDashboard = lazy(() => import('./pages/UserDashboard.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
@@ -14,8 +17,9 @@ const ProjectDashboard = lazy(() => import('./pages/ProjectDashboard.jsx'));
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
         <ThemeProvider>
           <Suspense
             fallback={
@@ -68,6 +72,7 @@ function App() {
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

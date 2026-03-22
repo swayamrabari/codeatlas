@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -35,50 +35,26 @@ function getLanguage(filePath) {
 const MAX_DISPLAY_FILE_SIZE = 512 * 1024; // 512KB - avoid rendering huge files as code
 
 export default function Source({ projectId }) {
-  const { state } = useLocation();
-  const [data, setData] = useState(state?.data?.data ?? null);
-  const [loading, setLoading] = useState(!data);
-  const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [selectedFileSummary, setSelectedFileSummary] = useState('');
-  const [fileContent, setFileContent] = useState('');
-  const [fileContentLoading, setFileContentLoading] = useState(false);
-  const [fileContentError, setFileContentError] = useState(null);
-  const fileContentAbortRef = useRef(null);
 
   // useTheme
   const { theme } = useTheme();
 
-  // Load project: API returns { success, data: analysis }; we store analysis (has .files)
-  useEffect(() => {
-    if (!projectId) return;
-    if (data) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    projectAPI
-      .getProject(projectId)
-      .then((response) => {
-        if (cancelled) return;
-        const analysis = response?.data?.data ?? response?.data ?? response;
-        setData(analysis);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(
-            'Failed to load project data: ' + (err?.message || 'Unknown error'),
-          );
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId, data]);
+  const {
+    data: resData,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => projectAPI.getProject(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const data = resData?.data;
+  const error = queryError?.message ? 'Failed to load project data.' : null;
 
   const fileTree = useMemo(() => {
     if (!data?.files?.length) return [];
@@ -89,69 +65,46 @@ export default function Source({ projectId }) {
     return buildFileTree(processed);
   }, [data]);
 
-  // Fetch file content with abort on change and correct response shape (res.content)
+  const {
+    data: fileRes,
+    isLoading: fileContentLoading,
+    error: fileQueryError,
+  } = useQuery({
+    queryKey: ['fileContent', projectId, selectedFile?.path],
+    queryFn: ({ signal }) =>
+      projectAPI.getFileContent(projectId, selectedFile.path, signal),
+    enabled: !!projectId && !!selectedFile?.path,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const fileContentRaw = fileRes?.content ?? fileRes?.data?.content ?? '';
+  const fileOk = fileRes?.success !== false;
+
+  let fileContentError = null;
+  let fileContent = '';
+
+  if (fileQueryError) {
+    fileContentError = fileQueryError.message || 'Failed to load file content.';
+  } else if (fileRes && !fileOk) {
+    fileContentError = 'Could not load file.';
+  } else if (fileRes && typeof fileContentRaw !== 'string') {
+    fileContentError = 'File is not text.';
+  } else if (fileContentRaw.length > MAX_DISPLAY_FILE_SIZE) {
+    fileContentError = `File is too large to display (${(fileContentRaw.length / 1024).toFixed(0)} KB).`;
+  } else if (fileRes) {
+    fileContent = fileContentRaw || 'No content';
+  }
+
+  // Update selected file summary when the detailed API pulls it
   useEffect(() => {
-    if (!selectedFile?.path || !projectId) {
-      setFileContent('');
-      setFileContentError(null);
-      setFileContentLoading(false);
-      setSelectedFileSummary('');
-      return;
+    if (fileRes) {
+      const summary =
+        fileRes?.file?.aiDocumentation?.shortSummary ??
+        fileRes?.data?.file?.aiDocumentation?.shortSummary ??
+        '';
+      if (summary) setSelectedFileSummary(summary);
     }
-    if (fileContentAbortRef.current) {
-      fileContentAbortRef.current.abort();
-    }
-    const ac = new AbortController();
-    fileContentAbortRef.current = ac;
-    setFileContentLoading(true);
-    setFileContentError(null);
-
-    projectAPI
-      .getFileContent(projectId, selectedFile.path, ac.signal)
-      .then((res) => {
-        if (ac.signal.aborted) return;
-        const content = res?.content ?? res?.data?.content ?? '';
-        const summary =
-          res?.file?.aiDocumentation?.shortSummary ??
-          res?.data?.file?.aiDocumentation?.shortSummary ??
-          '';
-        const ok = res?.success !== false;
-        setSelectedFileSummary(typeof summary === 'string' ? summary : '');
-        if (!ok) {
-          setFileContentError('Could not load file.');
-          setFileContent('');
-        } else if (typeof content !== 'string') {
-          setFileContentError('File is not text.');
-          setFileContent('');
-        } else if (content.length > MAX_DISPLAY_FILE_SIZE) {
-          setFileContentError(
-            `File is too large to display (${(content.length / 1024).toFixed(0)} KB).`,
-          );
-          setFileContent('');
-        } else {
-          setFileContent(content || 'No content');
-        }
-        setFileContentLoading(false);
-      })
-      .catch((err) => {
-        if (
-          ac.signal.aborted ||
-          err?.name === 'CanceledError' ||
-          err?.code === 'ERR_CANCELED'
-        )
-          return;
-        setFileContentError(err?.message || 'Failed to load file content.');
-        setFileContent('');
-        setSelectedFileSummary('');
-        setFileContentLoading(false);
-      });
-
-    return () => {
-      ac.abort();
-      if (fileContentAbortRef.current === ac)
-        fileContentAbortRef.current = null;
-    };
-  }, [selectedFile?.path, projectId]);
+  }, [fileRes]);
 
   const handleSelectFile = useCallback((fileData) => {
     setSelectedFile(fileData);
@@ -378,7 +331,7 @@ const FileTreeItem = memo(function FileTreeItem({
   return (
     <div className="max-w-full overflow-hidden">
       <div
-        className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1 font-mono text-sm ${
+        className={`flex my-px cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1 font-mono text-sm ${
           isSelected
             ? 'bg-secondary text-foreground'
             : 'hover:bg-secondary text-foreground'

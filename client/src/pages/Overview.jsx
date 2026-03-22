@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useId } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -28,9 +29,7 @@ mermaid.initialize({
 });
 
 export default function Overview({ projectId }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
   // Selection: { type: 'project' | 'feature' | 'file', key: string }
   const [selected, setSelected] = useState({
@@ -38,22 +37,19 @@ export default function Overview({ projectId }) {
     key: 'overview',
   });
 
-  useEffect(() => {
-    if (!projectId) return;
-    setLoading(true);
-    projectAPI
-      .getProjectDocs(projectId)
-      .then((res) => {
-        console.log('📄 Full documentation object:', res.data);
-        setData(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Failed to load docs:', err);
-        setError('Failed to load documentation.');
-        setLoading(false);
-      });
-  }, [projectId]);
+  const {
+    data: resData,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['projectDocs', projectId],
+    queryFn: () => projectAPI.getProjectDocs(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const data = resData?.data;
+  const error = queryError?.message ? 'Failed to load documentation.' : null;
 
   // Build sidebar items
   const { projectInfo, features } = useMemo(() => {
@@ -156,17 +152,18 @@ export default function Overview({ projectId }) {
 
       if (!res?.success) throw new Error('Regeneration failed');
 
-      // Update local state in-place
-      setData((prev) => {
-        if (!prev) return prev;
-        const next = JSON.parse(JSON.stringify(prev));
+      // Update local state in-place in React Query Cache
+      queryClient.setQueryData(['projectDocs', projectId], (prev) => {
+        if (!prev || !prev.data) return prev;
+        const nextData = JSON.parse(JSON.stringify(prev.data));
+        
         if (type === 'project') {
-          next.project.aiDocumentation = res.data.aiDocumentation;
+          nextData.project.aiDocumentation = res.data.aiDocumentation;
         } else if (type === 'feature') {
-          const feat = next.features.find((f) => f.keyword === key);
+          const feat = nextData.features.find((f) => f.keyword === key);
           if (feat) feat.aiDocumentation = res.data.aiDocumentation;
         } else if (type === 'file') {
-          for (const feat of next.features) {
+          for (const feat of nextData.features) {
             const file = feat.files?.find((f) => f.path === key);
             if (file) {
               file.aiDocumentation = res.data.aiDocumentation;
@@ -174,7 +171,8 @@ export default function Overview({ projectId }) {
             }
           }
         }
-        return next;
+        
+        return { ...prev, data: nextData };
       });
 
       return true;

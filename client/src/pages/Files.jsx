@@ -1,32 +1,26 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileDetails } from '@/components/FileDetails';
 import { File, FolderClosed, FolderOpen } from 'lucide-react';
 
 export default function Files({ projectId }) {
-  const { state } = useLocation();
-  const [data, setData] = useState(state?.data?.data || null);
-  const [loading, setLoading] = useState(!data);
-  const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  useEffect(() => {
-    if (!data && projectId) {
-      projectAPI
-        .getProject(projectId)
-        .then((response) => {
-          setData(response.data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error('Failed to load project data:', err);
-          setError('Failed to load project data.');
-          setLoading(false);
-        });
-    }
-  }, [projectId, data]);
+  const {
+    data: resData,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => projectAPI.getProject(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const data = resData?.data;
+  const error = queryError?.message ? 'Failed to load project data.' : null;
 
   // ---------------- DATA PREPROCESSING ----------------
   const fileTree = useMemo(() => {

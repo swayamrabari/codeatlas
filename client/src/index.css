@@ -1,6 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-/* import geist mono */
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap');
 @import 'tailwindcss';
 
 /* Use class-based dark mode instead of OS media query */
@@ -176,12 +174,15 @@ body > [id^='dmermaid'] {
 /* Force monospace in Explorer code viewer (overrides global Inter) */
 .explorer-code-block,
 .explorer-code-block * {
-  /* set geist mono */
-  font-family: 'Geist Mono', monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 }
 
 .font-mono {
-  font-family: 'Geist Mono', monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 }
 
 /* ── Docs Markdown Styling ── */
@@ -245,7 +246,9 @@ body > [id^='dmermaid'] {
 }
 
 .docs-markdown code {
-  font-family: 'Geist Mono', monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
   font-size: 0.875rem;
   background: var(--secondary);
   color: var(--foreground);

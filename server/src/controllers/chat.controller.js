@@ -6,6 +6,21 @@ import {
 } from '../services/chat.service.js';
 import { generateChatTitle } from '../analysis/ai.service.js';
 
+const LEGACY_PROJECT_USAGE_NOTE =
+  'Project usage note: No relevant files found in this project for this topic.';
+const STREAM_NOTE_GUARD_CHARS = LEGACY_PROJECT_USAGE_NOTE.length + 12;
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stripLegacyProjectUsageNote(answerText) {
+  if (typeof answerText !== 'string' || !answerText) return '';
+  const escaped = escapeRegex(LEGACY_PROJECT_USAGE_NOTE);
+  const footerPattern = new RegExp(`(?:\\n\\s*)*${escaped}\\s*$`, 'i');
+  return answerText.replace(footerPattern, '').trimEnd();
+}
+
 function fallbackChatTitle(message) {
   const cleaned = (message || '').replace(/\s+/g, ' ').trim();
   if (!cleaned) return 'New chat';
@@ -432,13 +447,34 @@ export async function askProjectQuestionStream(req, res) {
 
     // Stream LLM tokens
     let fullAnswer = '';
+    let pendingTail = '';
     for await (const chunk of stream) {
       const delta = chunk.choices?.[0]?.delta?.content;
       if (delta) {
-        fullAnswer += delta;
-        sendSSE('delta', { text: delta });
+        pendingTail += delta;
+
+        // Keep a short trailing buffer unsent so we can safely detect/suppress
+        // the legacy footer when it appears at the very end of a streamed answer.
+        if (pendingTail.length > STREAM_NOTE_GUARD_CHARS) {
+          const emitLength = pendingTail.length - STREAM_NOTE_GUARD_CHARS;
+          const safeChunk = pendingTail.slice(0, emitLength);
+          pendingTail = pendingTail.slice(emitLength);
+
+          if (safeChunk) {
+            fullAnswer += safeChunk;
+            sendSSE('delta', { text: safeChunk });
+          }
+        }
       }
     }
+
+    const cleanedTail = stripLegacyProjectUsageNote(pendingTail);
+    if (cleanedTail) {
+      fullAnswer += cleanedTail;
+      sendSSE('delta', { text: cleanedTail });
+    }
+
+    fullAnswer = stripLegacyProjectUsageNote(fullAnswer);
 
     if (!fullAnswer.trim()) {
       fullAnswer = 'I could not generate an answer from the available context.';

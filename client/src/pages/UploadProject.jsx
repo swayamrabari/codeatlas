@@ -143,7 +143,7 @@ function PipelineView({ stages, activeIndex, error, detail }) {
               isFailed
                 ? 'border-destructive/50 bg-destructive/5'
                 : isActive
-                  ? 'border-primary bg-primary  shadow-sm shadow-primary/10'
+                  ? 'border-primary bg-primary/10 shadow-sm shadow-primary/10'
                   : isComplete
                     ? 'border-border bg-primary/5'
                     : 'border-border bg-card/50 opacity-50'
