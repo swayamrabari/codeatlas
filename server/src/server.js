@@ -147,7 +147,19 @@ connectDB().then(() => {
     );
   });
 
-  // Increase server timeout for long operations like git clone
-  server.keepAliveTimeout = 300000; // 5 minutes
+  server.keepAliveTimeout = 300000;
   server.headersTimeout = 310000;
 });
+
+// self ping to prevent idle timeout
+const SELF_PING_URL = 'https://codeatlas-zhkg.onrender.com/health';
+setInterval(
+  async () => {
+    try {
+      await fetch(SELF_PING_URL);
+    } catch (error) {
+      console.error('❌ Self-ping failed:', error);
+    }
+  },
+  10 * 60 * 1000,
+); // every 10 minutes
