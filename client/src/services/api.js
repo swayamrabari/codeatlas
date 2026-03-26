@@ -110,7 +110,39 @@ export const projectAPI = {
    * Get project analysis data (includes file list + features + relationships)
    */
   getProject: async (id) => {
-    const response = await api.get(`/project/${id}`);
+    const response = await api.get(`/projects/${id}/insights`);
+    return response.data;
+  },
+
+  /**
+   * Get overview page data.
+   */
+  getOverviewPage: async (id) => {
+    const response = await api.get(`/projects/${id}/overview`);
+    return response.data;
+  },
+
+  /**
+   * Get insights page data.
+   */
+  getInsightsPage: async (id) => {
+    const response = await api.get(`/projects/${id}/insights`);
+    return response.data;
+  },
+
+  /**
+   * Get files page data (lightweight file metadata only).
+   */
+  getFilesPage: async (id) => {
+    const response = await api.get(`/projects/${id}/files`);
+    return response.data;
+  },
+
+  /**
+   * Get source page file list.
+   */
+  getSourceFileList: async (id) => {
+    const response = await api.get(`/projects/${id}/source/files`);
     return response.data;
   },
 
@@ -118,7 +150,7 @@ export const projectAPI = {
    * Lightweight status poll — returns { status, name, totalFiles, featureCount }
    */
   getProjectStatus: async (id) => {
-    const response = await api.get(`/project/${id}/status`);
+    const response = await api.get(`/projects/${id}/status`);
     return response.data;
   },
 
@@ -126,7 +158,7 @@ export const projectAPI = {
    * Get full AI documentation (project overview + features with docs + nested files)
    */
   getProjectDocs: async (id) => {
-    const response = await api.get(`/project/${id}/docs`);
+    const response = await api.get(`/projects/${id}/overview`);
     return response.data;
   },
 
@@ -134,7 +166,7 @@ export const projectAPI = {
    * Ask a grounded question against project embeddings.
    */
   askProjectQuestion: async (id, question, history = [], chatId = null) => {
-    const response = await api.post(`/project/${id}/ask`, {
+    const response = await api.post(`/projects/${id}/ask`, {
       question,
       history,
       chatId,
@@ -154,7 +186,7 @@ export const projectAPI = {
     chatId = null,
   ) => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/project/${id}/ask/stream`, {
+    const response = await fetch(`${API_URL}/projects/${id}/ask/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -180,7 +212,7 @@ export const projectAPI = {
    * List persisted chats for a project.
    */
   listProjectChats: async (id) => {
-    const response = await api.get(`/project/${id}/chats`);
+    const response = await api.get(`/projects/${id}/ask/chats`);
     return response.data;
   },
 
@@ -188,7 +220,7 @@ export const projectAPI = {
    * Get a single persisted chat with message history.
    */
   getProjectChat: async (id, chatId) => {
-    const response = await api.get(`/project/${id}/chats/${chatId}`);
+    const response = await api.get(`/projects/${id}/ask/chats/${chatId}`);
     return response.data;
   },
 
@@ -196,7 +228,7 @@ export const projectAPI = {
    * Rename a persisted chat.
    */
   renameProjectChat: async (id, chatId, title) => {
-    const response = await api.patch(`/project/${id}/chats/${chatId}`, {
+    const response = await api.patch(`/projects/${id}/ask/chats/${chatId}`, {
       title,
     });
     return response.data;
@@ -206,7 +238,7 @@ export const projectAPI = {
    * Delete a persisted chat.
    */
   deleteProjectChat: async (id, chatId) => {
-    const response = await api.delete(`/project/${id}/chats/${chatId}`);
+    const response = await api.delete(`/projects/${id}/ask/chats/${chatId}`);
     return response.data;
   },
 
@@ -214,7 +246,7 @@ export const projectAPI = {
    * Get lightweight file list (no content) for Explorer sidebar
    */
   getFileList: async (id) => {
-    const response = await api.get(`/project/${id}/files`);
+    const response = await api.get(`/projects/${id}/files`);
     return response.data;
   },
 
@@ -223,7 +255,18 @@ export const projectAPI = {
    * @param {AbortSignal} [signal] - Optional AbortSignal to cancel the request
    */
   getFileContent: async (id, filePath, signal) => {
-    const response = await api.get(`/project/${id}/file`, {
+    const response = await api.get(`/projects/${id}/source/file`, {
+      params: { path: filePath },
+      signal,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get raw source file content for source page.
+   */
+  getSourceFileContent: async (id, filePath, signal) => {
+    const response = await api.get(`/projects/${id}/source/file`, {
       params: { path: filePath },
       signal,
     });
@@ -234,7 +277,7 @@ export const projectAPI = {
    * Get features for a project
    */
   getFeatures: async (id) => {
-    const response = await api.get(`/project/${id}/features`);
+    const response = await api.get(`/projects/${id}/files/features`);
     return response.data;
   },
 
@@ -242,7 +285,7 @@ export const projectAPI = {
    * Get a single feature with populated file references
    */
   getFeatureDetail: async (id, keyword) => {
-    const response = await api.get(`/project/${id}/features/${keyword}`);
+    const response = await api.get(`/projects/${id}/files/features/${keyword}`);
     return response.data;
   },
 
@@ -250,7 +293,7 @@ export const projectAPI = {
    * Delete a project and all associated data
    */
   deleteProject: async (id) => {
-    const response = await api.delete(`/project/${id}`);
+    const response = await api.delete(`/projects/${id}`);
     return response.data;
   },
 
@@ -260,9 +303,25 @@ export const projectAPI = {
    * Regenerate docs for a single file
    */
   regenerateFileDoc: async (projectId, filePath) => {
-    const response = await api.post(`/project/${projectId}/regenerate/file`, {
-      filePath,
-    });
+    const response = await api.post(
+      `/projects/${projectId}/overview/regenerate/file`,
+      {
+        filePath,
+      },
+    );
+    return response.data;
+  },
+
+  /**
+   * Regenerate docs for a single file (overview page alias)
+   */
+  regenerateOverviewFileDoc: async (projectId, filePath) => {
+    const response = await api.post(
+      `/projects/${projectId}/overview/regenerate/file`,
+      {
+        filePath,
+      },
+    );
     return response.data;
   },
 
@@ -271,7 +330,7 @@ export const projectAPI = {
    */
   regenerateFeatureDoc: async (projectId, keyword) => {
     const response = await api.post(
-      `/project/${projectId}/regenerate/feature`,
+      `/projects/${projectId}/overview/regenerate/feature`,
       { keyword },
     );
     return response.data;
@@ -281,7 +340,21 @@ export const projectAPI = {
    * Regenerate project overview docs
    */
   regenerateProjectDoc: async (projectId) => {
-    const response = await api.post(`/project/${projectId}/regenerate/project`);
+    const response = await api.post(
+      `/projects/${projectId}/overview/regenerate`,
+    );
+    return response.data;
+  },
+
+  /**
+   * Ask endpoint alias with page-oriented route naming.
+   */
+  askOnAskPage: async (id, question, history = [], chatId = null) => {
+    const response = await api.post(`/projects/${id}/ask`, {
+      question,
+      history,
+      chatId,
+    });
     return response.data;
   },
 };

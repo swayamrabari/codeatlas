@@ -47,8 +47,8 @@ export default function Source({ projectId }) {
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['project', projectId],
-    queryFn: () => projectAPI.getProject(projectId),
+    queryKey: ['sourceFileList', projectId],
+    queryFn: () => projectAPI.getSourceFileList(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
@@ -57,8 +57,9 @@ export default function Source({ projectId }) {
   const error = queryError?.message ? 'Failed to load project data.' : null;
 
   const fileTree = useMemo(() => {
-    if (!data?.files?.length) return [];
-    const processed = data.files.map((f) => ({
+    const files = Array.isArray(data) ? data : data?.files;
+    if (!files?.length) return [];
+    const processed = files.map((f) => ({
       ...f,
       path: (f.path || '').replace(/\\/g, '/'),
     }));
@@ -72,7 +73,7 @@ export default function Source({ projectId }) {
   } = useQuery({
     queryKey: ['fileContent', projectId, selectedFile?.path],
     queryFn: ({ signal }) =>
-      projectAPI.getFileContent(projectId, selectedFile.path, signal),
+      projectAPI.getSourceFileContent(projectId, selectedFile.path, signal),
     enabled: !!projectId && !!selectedFile?.path,
     staleTime: 5 * 60 * 1000,
   });

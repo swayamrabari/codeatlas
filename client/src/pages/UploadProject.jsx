@@ -330,7 +330,7 @@ export default function UploadProject() {
         return;
       }
 
-      const url = `${API_URL}/project/${pid}/progress?token=${encodeURIComponent(token)}`;
+      const url = `${API_URL}/projects/${pid}/overview/progress?token=${encodeURIComponent(token)}`;
       const es = new EventSource(url);
       sseRef.current = es;
 

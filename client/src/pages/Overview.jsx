@@ -42,8 +42,8 @@ export default function Overview({ projectId }) {
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['projectDocs', projectId],
-    queryFn: () => projectAPI.getProjectDocs(projectId),
+    queryKey: ['overviewPage', projectId],
+    queryFn: () => projectAPI.getOverviewPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
@@ -153,10 +153,10 @@ export default function Overview({ projectId }) {
       if (!res?.success) throw new Error('Regeneration failed');
 
       // Update local state in-place in React Query Cache
-      queryClient.setQueryData(['projectDocs', projectId], (prev) => {
+      queryClient.setQueryData(['overviewPage', projectId], (prev) => {
         if (!prev || !prev.data) return prev;
         const nextData = JSON.parse(JSON.stringify(prev.data));
-        
+
         if (type === 'project') {
           nextData.project.aiDocumentation = res.data.aiDocumentation;
         } else if (type === 'feature') {
@@ -171,7 +171,7 @@ export default function Overview({ projectId }) {
             }
           }
         }
-        
+
         return { ...prev, data: nextData };
       });
 

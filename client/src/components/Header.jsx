@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LayoutDashboard, LogOut, Upload } from 'lucide-react';
 
-export default function Header() {
+export default function Header({ projectName = '' }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -25,10 +25,21 @@ export default function Header() {
   return (
     <header>
       <div className="mx-auto flex items-center justify-between px-6 pt-4 pb-0.5">
-        <Link to="/" className="logo flex gap-3 items-baseline">
-          <LogoIcon className="h-4.5 w-auto themed-svg" />
-          <Wordmark className="h-3.75 w-auto themed-svg" />
-        </Link>
+        <div className="logo flex items-center gap-3 min-w-0">
+          <Link to="/" className="flex gap-3 items-baseline shrink-0">
+            <LogoIcon className="h-4.5 w-auto themed-svg" />
+            <Wordmark className="h-3.75 w-auto themed-svg" />
+          </Link>
+
+          {projectName ? (
+            <div className="min-w-0 flex items-center gap-2 pt-1.5">
+              <span className="text-muted-foreground">/</span>
+              <p className="truncate font-medium text-foreground/90 max-w-[40vw]">
+                {projectName}
+              </p>
+            </div>
+          ) : null}
+        </div>
 
         <div className="flex items-center gap-3">
           {user ? (

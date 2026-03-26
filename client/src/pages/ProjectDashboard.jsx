@@ -1,11 +1,4 @@
-import {
-  lazy,
-  Suspense,
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import {
   Routes,
   Route,
@@ -52,19 +45,28 @@ function ProjectDashboard() {
   });
 
   const projectStatus = statusRes?.data?.status;
+  const projectName = statusRes?.data?.name || '';
 
   useEffect(() => {
     if (projectStatus === 'documenting') {
       navigate(`/upload?resume=${id}`, { replace: true });
     } else if (projectStatus === 'ready') {
-      // Prefetch the 3 core data pillars so sub-pages load instantly
+      // Prefetch core page datasets so route switches feel instant.
       queryClient.prefetchQuery({
-        queryKey: ['project', id],
-        queryFn: () => projectAPI.getProject(id),
+        queryKey: ['overviewPage', id],
+        queryFn: () => projectAPI.getOverviewPage(id),
       });
       queryClient.prefetchQuery({
-        queryKey: ['projectDocs', id],
-        queryFn: () => projectAPI.getProjectDocs(id),
+        queryKey: ['insightsPage', id],
+        queryFn: () => projectAPI.getInsightsPage(id),
+      });
+      queryClient.prefetchQuery({
+        queryKey: ['filesPage', id],
+        queryFn: () => projectAPI.getFilesPage(id),
+      });
+      queryClient.prefetchQuery({
+        queryKey: ['sourceFileList', id],
+        queryFn: () => projectAPI.getSourceFileList(id),
       });
       queryClient.prefetchQuery({
         queryKey: ['projectChats', id],
@@ -77,7 +79,7 @@ function ProjectDashboard() {
   if (isStatusLoading || !projectStatus) {
     return (
       <div className="h-screen flex flex-col">
-        <Header />
+        <Header projectName={projectName} />
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <Spinner className="h-8 w-8 text-primary" />
@@ -90,7 +92,7 @@ function ProjectDashboard() {
 
   return (
     <div className="h-screen flex flex-col">
-      <Header />
+      <Header projectName={projectName} />
       <div className="border-b px-4 flex gap-6">
         {/* tabs */}
         <Tabs

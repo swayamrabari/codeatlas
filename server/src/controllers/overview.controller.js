@@ -11,7 +11,7 @@ import {
 /**
  * Get full AI documentation for a project — project overview, features with docs, files grouped by feature.
  */
-export async function getProjectDocs(req, res) {
+export async function getOverviewPageData(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user._id;
@@ -20,7 +20,6 @@ export async function getProjectDocs(req, res) {
       { _id: id, userId },
       {
         name: 1,
-        status: 1,
         aiDocumentation: 1,
         'stats.projectType': 1,
         'stats.frameworks': 1,
@@ -45,11 +44,13 @@ export async function getProjectDocs(req, res) {
         fileIds: 1,
         aiDocumentation: 1,
       },
-    ).populate({
-      path: 'fileIds',
-      select:
-        'path extension analysis.type analysis.role analysis.category analysis.tier aiDocumentation',
-    });
+    )
+      .populate({
+        path: 'fileIds',
+        select:
+          'path analysis.role analysis.category analysis.tier aiDocumentation',
+      })
+      .lean();
 
     // Build response
     const featuresData = features.map((feat) => ({
@@ -59,8 +60,6 @@ export async function getProjectDocs(req, res) {
       aiDocumentation: feat.aiDocumentation || {},
       files: (feat.fileIds || []).map((f) => ({
         path: f.path,
-        extension: f.extension,
-        type: f.analysis?.type || 'unknown',
         role: f.analysis?.role || 'Unknown',
         category: f.analysis?.category || 'infrastructure',
         tier: f.analysis?.tier ?? 3,
@@ -73,7 +72,6 @@ export async function getProjectDocs(req, res) {
       data: {
         project: {
           name: project.name,
-          status: project.status,
           projectType: project.stats?.projectType || '',
           frameworks: project.stats?.frameworks || {},
           totalFiles: project.stats?.totalFiles || 0,
@@ -95,7 +93,7 @@ export async function getProjectDocs(req, res) {
  * SSE endpoint — streams real-time documentation pipeline progress.
  * GET /api/project/:id/progress?token=JWT
  */
-export async function streamProgress(req, res) {
+export async function streamOverviewProgress(req, res) {
   const { id } = req.params;
   const userId = req.user._id;
 
@@ -187,7 +185,7 @@ export async function streamProgress(req, res) {
  * Regenerate documentation for a single file.
  * POST /project/:id/regenerate/file  body: { filePath }
  */
-export async function regenerateFileDocs(req, res) {
+export async function regenerateOverviewFileDoc(req, res) {
   try {
     const { id } = req.params;
     const { filePath } = req.body;
@@ -231,7 +229,7 @@ export async function regenerateFileDocs(req, res) {
  * Regenerate documentation for a single feature.
  * POST /project/:id/regenerate/feature  body: { keyword }
  */
-export async function regenerateFeatureDocs(req, res) {
+export async function regenerateOverviewFeatureDoc(req, res) {
   try {
     const { id } = req.params;
     const { keyword } = req.body;
@@ -275,7 +273,7 @@ export async function regenerateFeatureDocs(req, res) {
  * Regenerate project overview documentation only.
  * POST /project/:id/regenerate/project
  */
-export async function regenerateProjectDocs(req, res) {
+export async function regenerateOverviewDoc(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user._id;

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '@/components/Header';
@@ -130,23 +131,25 @@ function formatDate(iso) {
 export default function UserDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    projectAPI
-      .listProjects()
-      .then((res) => setProjects(res.data || []))
-      .catch((err) => {
-        console.error('Failed to load projects:', err);
-        setError('Failed to load projects. Please refresh.');
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const {
+    data: projectsRes,
+    isLoading: loading,
+    isError: hasProjectsError,
+  } = useQuery({
+    queryKey: ['userProjects'],
+    queryFn: () => projectAPI.listProjects(),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const projects = Array.isArray(projectsRes?.data) ? projectsRes.data : [];
 
   const openDeleteDialog = (e, project) => {
     e.stopPropagation();
@@ -158,7 +161,15 @@ export default function UserDashboard() {
     setDeleting(true);
     try {
       await projectAPI.deleteProject(deleteTarget._id);
-      setProjects((prev) => prev.filter((p) => p._id !== deleteTarget._id));
+
+      queryClient.setQueryData(['userProjects'], (prev) => {
+        const prevProjects = Array.isArray(prev?.data) ? prev.data : [];
+        return {
+          ...prev,
+          data: prevProjects.filter((p) => p._id !== deleteTarget._id),
+        };
+      });
+
       setDeleteTarget(null);
     } catch (err) {
       console.error('Failed to delete project:', err);
@@ -227,10 +238,10 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          {error && (
+          {(error || hasProjectsError) && (
             <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/8 px-4 py-3 text-sm text-destructive">
               <AlertCircle className="h-4 w-4 shrink-0" />
-              {error}
+              {error || 'Failed to load projects. Please refresh.'}
             </div>
           )}
 
@@ -282,7 +293,7 @@ export default function UserDashboard() {
                         ? navigate(`/upload?resume=${project._id}`)
                         : navigate(`/project/${project._id}`)
                     }
-                    className={`group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5`}
+                    className={`group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden cursor-pointer transition-all duration-200`}
                   >
                     {/* Delete button */}
                     <button

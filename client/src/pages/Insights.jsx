@@ -25,8 +25,8 @@ export default function Insights({ projectId }) {
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['project', projectId],
-    queryFn: () => projectAPI.getProject(projectId),
+    queryKey: ['insightsPage', projectId],
+    queryFn: () => projectAPI.getInsightsPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });

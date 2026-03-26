@@ -13,8 +13,8 @@ export default function Files({ projectId }) {
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['project', projectId],
-    queryFn: () => projectAPI.getProject(projectId),
+    queryKey: ['filesPage', projectId],
+    queryFn: () => projectAPI.getFilesPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
@@ -25,7 +25,9 @@ export default function Files({ projectId }) {
   // ---------------- DATA PREPROCESSING ----------------
   const fileTree = useMemo(() => {
     if (!data) return [];
-    const rawFiles = data.files ?? data.data?.files;
+    const rawFiles = Array.isArray(data)
+      ? data
+      : (data.files ?? data.data?.files);
     const processed =
       rawFiles?.map((f) => ({
         ...f,
@@ -174,7 +176,7 @@ function FileTreeItem({ item, onSelect, selectedPath, level }) {
   return (
     <div className="max-w-full overflow-hidden">
       <div
-        className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1 font-mono text-sm ${
+        className={`flex my-px cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded py-1 font-mono text-sm ${
           isSelected
             ? 'bg-secondary text-foreground'
             : 'hover:bg-secondary text-foreground'

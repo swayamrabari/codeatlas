@@ -53,7 +53,7 @@ async function buildChatTitle(firstMessage) {
 /**
  * List persisted chats for a project, newest first.
  */
-export async function listProjectChats(req, res) {
+export async function listAskChats(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user._id;
@@ -92,7 +92,7 @@ export async function listProjectChats(req, res) {
 /**
  * Get a single persisted chat with all messages.
  */
-export async function getProjectChat(req, res) {
+export async function getAskChat(req, res) {
   try {
     const { id, chatId } = req.params;
     const userId = req.user._id;
@@ -104,12 +104,23 @@ export async function getProjectChat(req, res) {
         .json({ success: false, error: 'Project not found' });
     }
 
-    const chat = await Chat.findOne({
-      _id: chatId,
-      userId,
-      projectId: id,
-      messageCount: { $gt: 0 },
-    }).lean();
+    const chat = await Chat.findOne(
+      {
+        _id: chatId,
+        userId,
+        projectId: id,
+        messageCount: { $gt: 0 },
+      },
+      {
+        title: 1,
+        titleSource: 1,
+        messageCount: 1,
+        firstMessagePreview: 1,
+        lastMessageAt: 1,
+        updatedAt: 1,
+        messages: 1,
+      },
+    ).lean();
 
     if (!chat) {
       return res.status(404).json({ success: false, error: 'Chat not found' });
@@ -127,7 +138,7 @@ export async function getProjectChat(req, res) {
 /**
  * Rename a persisted chat title.
  */
-export async function renameProjectChat(req, res) {
+export async function renameAskChat(req, res) {
   try {
     const { id, chatId } = req.params;
     const userId = req.user._id;
@@ -186,7 +197,7 @@ export async function renameProjectChat(req, res) {
 /**
  * Delete a persisted chat.
  */
-export async function deleteProjectChat(req, res) {
+export async function deleteAskChat(req, res) {
   try {
     const { id, chatId } = req.params;
     const userId = req.user._id;
@@ -225,7 +236,7 @@ export async function deleteProjectChat(req, res) {
  * Ask a question against project embeddings and return a grounded answer.
  * POST /project/:id/ask
  */
-export async function askProjectQuestion(req, res) {
+export async function askQuestion(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user._id;
@@ -360,7 +371,7 @@ export async function askProjectQuestion(req, res) {
  *   event: done        — { chat }          (after DB save)
  *   event: error       — { error }         (on failure)
  */
-export async function askProjectQuestionStream(req, res) {
+export async function streamAskQuestion(req, res) {
   // ── Validate input ──
   let id;
   let userId;
