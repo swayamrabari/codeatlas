@@ -1,7 +1,7 @@
 import './App.css';
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -18,6 +18,87 @@ const ProjectDashboard = lazy(() => import('./pages/ProjectDashboard.jsx'));
 const PublicProjectDashboard = lazy(
   () => import('./pages/PublicProjectDashboard.jsx'),
 );
+const NotFound = lazy(() => import('./pages/NotFound.jsx'));
+
+function AuthLoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+      Loading...
+    </div>
+  );
+}
+
+function RedirectIfAuthenticated({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <AuthLoadingScreen />;
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
+function RootRoute() {
+  return <Home />;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<RootRoute />} />
+      <Route path="/explore/*" element={<PublicProjectDashboard />} />
+      <Route
+        path="/login"
+        element={
+          <RedirectIfAuthenticated>
+            <Login />
+          </RedirectIfAuthenticated>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <RedirectIfAuthenticated>
+            <Register />
+          </RedirectIfAuthenticated>
+        }
+      />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+
+      {/* Protected routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <UserDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/upload"
+        element={
+          <ProtectedRoute>
+            <UploadProject />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/project/:id/*"
+        element={
+          <ProtectedRoute>
+            <ProjectDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
 function App() {
   return (
@@ -32,40 +113,7 @@ function App() {
                 </div>
               }
             >
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/explore/*" element={<PublicProjectDashboard />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-
-                {/* Protected routes */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <UserDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/upload"
-                  element={
-                    <ProtectedRoute>
-                      <UploadProject />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/project/:id/*"
-                  element={
-                    <ProtectedRoute>
-                      <ProjectDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
+              <AppRoutes />
             </Suspense>
           </ThemeProvider>
         </AuthProvider>
