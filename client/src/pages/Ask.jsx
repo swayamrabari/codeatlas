@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useLocation } from 'react-router-dom';
 import { projectAPI } from '../services/api';
 import LogoIcon from '@/assets/logo';
 import { Input } from '@/components/ui/input';
@@ -52,15 +53,21 @@ function mapStoredMessages(messages = []) {
     }));
 }
 
-export default function Ask({ projectId, isPublic = false }) {
+export default function Ask({ projectId, isPublic }) {
+  const location = useLocation();
   const queryClient = useQueryClient();
-  const chatIdStorageKey = isPublic
+  const isPublicMode =
+    typeof isPublic === 'boolean'
+      ? isPublic
+      : location.pathname.startsWith('/explore');
+
+  const chatIdStorageKey = isPublicMode
     ? null
     : buildProjectTabStateKey(projectId, 'ask', 'chat-id');
-  const chatTitleStorageKey = isPublic
+  const chatTitleStorageKey = isPublicMode
     ? null
     : buildProjectTabStateKey(projectId, 'ask', 'chat-title');
-  const draftStorageKey = isPublic
+  const draftStorageKey = isPublicMode
     ? null
     : buildProjectTabStateKey(projectId, 'ask', 'draft');
 
@@ -76,29 +83,31 @@ export default function Ask({ projectId, isPublic = false }) {
   const [ephemeralChatId, setEphemeralChatId] = useState(null);
   const [ephemeralChatTitle, setEphemeralChatTitle] = useState('New chat');
 
-  const currentChatId = isPublic ? ephemeralChatId : persistedChatId;
-  const currentChatTitle = isPublic ? ephemeralChatTitle : persistedChatTitle;
+  const currentChatId = isPublicMode ? ephemeralChatId : persistedChatId;
+  const currentChatTitle = isPublicMode
+    ? ephemeralChatTitle
+    : persistedChatTitle;
 
   const setCurrentChatId = useCallback(
     (value) => {
-      if (isPublic) {
+      if (isPublicMode) {
         setEphemeralChatId(value);
         return;
       }
       setPersistedChatId(value);
     },
-    [isPublic, setPersistedChatId],
+    [isPublicMode, setPersistedChatId],
   );
 
   const setCurrentChatTitle = useCallback(
     (value) => {
-      if (isPublic) {
+      if (isPublicMode) {
         setEphemeralChatTitle(value);
         return;
       }
       setPersistedChatTitle(value);
     },
-    [isPublic, setPersistedChatTitle],
+    [isPublicMode, setPersistedChatTitle],
   );
 
   const {
@@ -106,14 +115,14 @@ export default function Ask({ projectId, isPublic = false }) {
     isLoading: recentLoading,
     error: queryError,
   } = useQuery({
-    queryKey: ['projectChats', projectId],
+    queryKey: ['projectChats', projectId, isPublicMode ? 'public' : 'private'],
     queryFn: () => projectAPI.listProjectChats(projectId),
-    enabled: !!projectId && !isPublic,
+    enabled: !!projectId && !isPublicMode,
     staleTime: 5 * 60 * 1000,
   });
 
   const recentError =
-    !isPublic &&
+    !isPublicMode &&
     (queryError?.message || (queryError ? 'Failed to load recent chats.' : ''));
   const recentChats = Array.isArray(chatsRes?.data) ? chatsRes.data : [];
 
@@ -133,16 +142,16 @@ export default function Ask({ projectId, isPublic = false }) {
     '',
   );
   const [ephemeralQuestion, setEphemeralQuestion] = useState('');
-  const question = isPublic ? ephemeralQuestion : persistedQuestion;
+  const question = isPublicMode ? ephemeralQuestion : persistedQuestion;
   const setQuestion = useCallback(
     (value) => {
-      if (isPublic) {
+      if (isPublicMode) {
         setEphemeralQuestion(value);
         return;
       }
       setPersistedQuestion(value);
     },
-    [isPublic, setPersistedQuestion],
+    [isPublicMode, setPersistedQuestion],
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -363,7 +372,7 @@ export default function Ask({ projectId, isPublic = false }) {
     startTypingAnimation(assistantMsgId);
 
     try {
-      const response = isPublic
+      const response = isPublicMode
         ? await projectAPI.askPublicProjectQuestionStream(
             projectId,
             trimmed,
@@ -433,7 +442,7 @@ export default function Ask({ projectId, isPublic = false }) {
                   : msg,
               ),
             );
-          } else if (eventType === 'done' && !isPublic) {
+          } else if (eventType === 'done' && !isPublicMode) {
             if (data.chat?._id) {
               setCurrentChatId(data.chat._id);
               setCurrentChatTitle(data.chat.title || 'New chat');
@@ -530,7 +539,7 @@ export default function Ask({ projectId, isPublic = false }) {
   );
 
   useEffect(() => {
-    if (isPublic) return;
+    if (isPublicMode) return;
     if (!projectId || restoredProjectRef.current === projectId) return;
 
     let storedChatId = null;
@@ -558,7 +567,7 @@ export default function Ask({ projectId, isPublic = false }) {
   }, [
     chatIdStorageKey,
     currentChatId,
-    isPublic,
+    isPublicMode,
     onOpenRecentChat,
     projectId,
     setCurrentChatTitle,
@@ -650,7 +659,7 @@ export default function Ask({ projectId, isPublic = false }) {
       <section className="shrink-0 border-b bg-background/90 backdrop-blur">
         <div className="flex w-full items-center justify-between px-10 py-2">
           <p className="max-w-[70%] truncate text-sm font-semibold text-foreground/90">
-            {isPublic ? 'Public Demo Chat' : currentChatTitle}
+            {isPublicMode ? 'Public Demo Chat' : currentChatTitle}
           </p>
 
           <div className="flex items-center gap-2">
@@ -664,7 +673,7 @@ export default function Ask({ projectId, isPublic = false }) {
               New
             </Button>
 
-            {!isPublic ? (
+            {!isPublicMode ? (
               <Popover open={recentOpen} onOpenChange={setRecentOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -882,7 +891,7 @@ export default function Ask({ projectId, isPublic = false }) {
         </div>
       </section>
 
-      {!isPublic ? (
+      {!isPublicMode ? (
         <Dialog
           open={!!editingChatId}
           onOpenChange={(open) => {
@@ -930,7 +939,7 @@ export default function Ask({ projectId, isPublic = false }) {
         </Dialog>
       ) : null}
 
-      {!isPublic ? (
+      {!isPublicMode ? (
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent className="sm:max-w-sm">
             <DialogHeader>
