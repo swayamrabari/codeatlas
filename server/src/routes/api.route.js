@@ -7,10 +7,12 @@ import insightsRoutes from './insights.route.js';
 import filesRoutes from './files.route.js';
 import sourceRoutes from './source.route.js';
 import askRoutes from './ask.route.js';
+import publicRoutes from './public.route.js';
 
 const router = Router();
 
 router.use(authRoutes);
+router.use(publicRoutes);
 router.use(uploadRoutes);
 router.use(projectCoreRoutes);
 router.use(overviewRoutes);

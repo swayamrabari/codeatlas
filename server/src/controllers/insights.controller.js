@@ -20,6 +20,7 @@ export async function getInsightsPageData(req, res) {
     const project = await Project.findOne(
       { _id: id, userId },
       {
+        name: 1,
         'stats.totalFiles': 1,
         'stats.frameworks': 1,
         'stats.projectType': 1,
@@ -101,6 +102,7 @@ export async function getInsightsPageData(req, res) {
     }
 
     const data = {
+      projectName: project.name || 'Unnamed Project',
       totalFiles: project.stats?.totalFiles || files.length,
       frameworks: project.stats?.frameworks || {},
       projectType: project.stats?.projectType || '',

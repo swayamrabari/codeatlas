@@ -30,6 +30,10 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
+import {
+  buildProjectTabStateKey,
+  usePersistentState,
+} from '@/hooks/usePersistentState';
 
 function mapStoredMessages(messages = []) {
   return messages
@@ -50,10 +54,23 @@ function mapStoredMessages(messages = []) {
 
 export default function Ask({ projectId }) {
   const queryClient = useQueryClient();
+  const chatIdStorageKey = buildProjectTabStateKey(projectId, 'ask', 'chat-id');
+  const chatTitleStorageKey = buildProjectTabStateKey(
+    projectId,
+    'ask',
+    'chat-title',
+  );
+  const draftStorageKey = buildProjectTabStateKey(projectId, 'ask', 'draft');
 
   const [messages, setMessages] = useState([]);
-  const [currentChatId, setCurrentChatId] = useState(null);
-  const [currentChatTitle, setCurrentChatTitle] = useState('New chat');
+  const [currentChatId, setCurrentChatId] = usePersistentState(
+    chatIdStorageKey,
+    null,
+  );
+  const [currentChatTitle, setCurrentChatTitle] = usePersistentState(
+    chatTitleStorageKey,
+    'New chat',
+  );
 
   const {
     data: chatsRes,
@@ -81,7 +98,7 @@ export default function Ask({ projectId }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTargetChat, setDeleteTargetChat] = useState(null);
 
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = usePersistentState(draftStorageKey, '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [recentOpen, setRecentOpen] = useState(false);
@@ -92,6 +109,7 @@ export default function Ask({ projectId }) {
   const streamBufferRef = useRef('');
   const streamTimerRef = useRef(null);
   const streamMessageIdRef = useRef('');
+  const restoredProjectRef = useRef('');
 
   const history = useMemo(
     () =>
@@ -210,13 +228,23 @@ export default function Ask({ projectId }) {
   );
 
   useEffect(() => {
+    restoredProjectRef.current = '';
     setMessages([]);
-    setCurrentChatId(null);
-    setCurrentChatTitle('New chat');
     streamBufferRef.current = '';
     streamMessageIdRef.current = '';
     stopTypingAnimation();
-  }, [projectId]);
+    setLoading(false);
+    setError('');
+    setRecentOpen(false);
+    setStickToBottom(true);
+    setLoadingChatId('');
+    setDeletingChatId('');
+    setRenaming(false);
+    setEditingChatId('');
+    setEditingTitle('');
+    setDeleteDialogOpen(false);
+    setDeleteTargetChat(null);
+  }, [projectId, stopTypingAnimation]);
 
   useEffect(() => {
     const viewport = chatViewportRef.current?.querySelector(
@@ -404,33 +432,84 @@ export default function Ask({ projectId }) {
     });
   };
 
-  const onOpenRecentChat = async (chatId) => {
-    if (!chatId || loadingChatId || renaming) return;
+  const onOpenRecentChat = useCallback(
+    async (chatId, { closeRecent = true, silent = false } = {}) => {
+      if (!chatId || loadingChatId || renaming) return;
 
-    setLoadingChatId(chatId);
-    setError('');
-    stopTypingAnimation();
-    streamBufferRef.current = '';
-    streamMessageIdRef.current = '';
-    try {
-      const response = await projectAPI.getProjectChat(projectId, chatId);
-      const chat = response?.data?.data || response?.data;
-      if (!chat?._id) return;
+      setLoadingChatId(chatId);
+      setError('');
+      stopTypingAnimation();
+      streamBufferRef.current = '';
+      streamMessageIdRef.current = '';
+      try {
+        const response = await projectAPI.getProjectChat(projectId, chatId);
+        const chat = response?.data?.data || response?.data;
+        if (!chat?._id) return;
 
-      setCurrentChatId(chat._id);
-      setCurrentChatTitle(chat.title || 'New chat');
-      setMessages(mapStoredMessages(chat.messages));
-      setQuestion('');
-      setRecentOpen(false);
-      setStickToBottom(true);
-      upsertRecentChat(chat);
-    } catch (err) {
-      const apiError = err?.response?.data?.error;
-      setError(apiError || 'Failed to load chat. Please try again.');
-    } finally {
-      setLoadingChatId('');
+        setCurrentChatId(chat._id);
+        setCurrentChatTitle(chat.title || 'New chat');
+        setMessages(mapStoredMessages(chat.messages));
+        setQuestion('');
+        if (closeRecent) setRecentOpen(false);
+        setStickToBottom(true);
+        upsertRecentChat(chat);
+      } catch (err) {
+        if (silent) {
+          setCurrentChatId(null);
+          setCurrentChatTitle('New chat');
+          setMessages([]);
+        } else {
+          const apiError = err?.response?.data?.error;
+          setError(apiError || 'Failed to load chat. Please try again.');
+        }
+      } finally {
+        setLoadingChatId('');
+      }
+    },
+    [
+      loadingChatId,
+      renaming,
+      projectId,
+      stopTypingAnimation,
+      setCurrentChatId,
+      setCurrentChatTitle,
+      setQuestion,
+      upsertRecentChat,
+    ],
+  );
+
+  useEffect(() => {
+    if (!projectId || restoredProjectRef.current === projectId) return;
+
+    let storedChatId = null;
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = window.localStorage.getItem(chatIdStorageKey);
+        storedChatId = raw ? JSON.parse(raw) : null;
+      } catch {
+        storedChatId = null;
+      }
     }
-  };
+
+    // Wait until the persisted-state hook has synced this project's key.
+    if (currentChatId !== storedChatId) return;
+
+    restoredProjectRef.current = projectId;
+
+    if (!storedChatId) {
+      setMessages([]);
+      setCurrentChatTitle('New chat');
+      return;
+    }
+
+    onOpenRecentChat(storedChatId, { closeRecent: false, silent: true });
+  }, [
+    chatIdStorageKey,
+    currentChatId,
+    onOpenRecentChat,
+    projectId,
+    setCurrentChatTitle,
+  ]);
 
   // ── Rename helpers ──
   const onStartRename = (chat) => {
@@ -669,7 +748,7 @@ export default function Ask({ projectId }) {
                       ) : isEmpty && isStreaming ? (
                         <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                           <Spinner className="h-4 w-4" />
-                          Thinking with your codebase context...
+                          Getting answer...
                         </div>
                       ) : (
                         <div className="docs-markdown text-sm font-medium">

@@ -230,9 +230,9 @@ export default function UserDashboard() {
                 Your Projects
               </h2>
               {!loading && projects.length > 0 && (
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {projects.length} project{projects.length !== 1 ? 's' : ''} ·{' '}
-                  {projects.filter((p) => p.status === 'ready').length} ready
+                <p className="text-sm font-medium text-muted-foreground mt-0.5">
+                  {projects.length} Project{projects.length !== 1 ? 's' : ''} ·{' '}
+                  {projects.filter((p) => p.status === 'ready').length} Ready
                 </p>
               )}
             </div>
@@ -329,7 +329,12 @@ export default function UserDashboard() {
                       {/* Description */}
                       <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1">
                         {project.description ||
-                          `${project.stats?.projectType || 'Unknown'} project with ${project.stats?.totalFiles || 0} files analyzed.`}
+                          `${
+                            project.stats?.projectType
+                              .slice(0, 1)[0]
+                              .toUpperCase() +
+                              project.stats?.projectType.slice(1) || 'Unknown'
+                          } project with ${project.stats?.totalFiles || 0} files analyzed.`}
                       </p>
 
                       {/* Divider */}
@@ -349,12 +354,6 @@ export default function UserDashboard() {
                           <Clock className="h-3 w-3" />
                           {formatDate(project.createdAt)}
                         </div>
-                      </div>
-
-                      {/* Open hint */}
-                      <div className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground/50 group-hover:text-muted-foreground transition-colors -mt-1">
-                        <span>Open project</span>
-                        <ArrowRight className="h-3 w-3 translate-x-0 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
                   </div>

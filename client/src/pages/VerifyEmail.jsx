@@ -76,7 +76,7 @@ export default function VerifyEmail() {
     try {
       const data = await authAPI.verifyEmail(email, fullCode);
       login(data.token, data.user);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       const msg =
         err.response?.data?.error || 'Verification failed. Please try again.';
@@ -158,7 +158,9 @@ export default function VerifyEmail() {
 
           <Button
             type="submit"
-            variant={loading || code.join('').length !== 6 ? 'disabled' : 'default'}
+            variant={
+              loading || code.join('').length !== 6 ? 'disabled' : 'default'
+            }
             className="w-full flex items-center justify-center gap-2 font-semibold"
           >
             {loading && <Spinner className="h-4 w-4" />}

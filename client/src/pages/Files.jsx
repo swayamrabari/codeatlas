@@ -1,20 +1,35 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { FileDetails } from '@/components/FileDetails';
 import { File, FolderClosed, FolderOpen } from 'lucide-react';
+import {
+  buildProjectTabStateKey,
+  usePersistentState,
+} from '@/hooks/usePersistentState';
 
-export default function Files({ projectId }) {
-  const [selectedFile, setSelectedFile] = useState(null);
+export default function Files({ projectId, isPublic = false }) {
+  const selectedFileStorageKey = buildProjectTabStateKey(
+    projectId,
+    'files',
+    'selected-file-path',
+  );
+  const [selectedFilePath, setSelectedFilePath] = usePersistentState(
+    selectedFileStorageKey,
+    null,
+  );
 
   const {
     data: resData,
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['filesPage', projectId],
-    queryFn: () => projectAPI.getFilesPage(projectId),
+    queryKey: ['filesPage', projectId, isPublic ? 'public' : 'private'],
+    queryFn: () =>
+      isPublic
+        ? projectAPI.getPublicFilesPage(projectId)
+        : projectAPI.getFilesPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
@@ -23,19 +38,43 @@ export default function Files({ projectId }) {
   const error = queryError?.message ? 'Failed to load project data.' : null;
 
   // ---------------- DATA PREPROCESSING ----------------
-  const fileTree = useMemo(() => {
+  const processedFiles = useMemo(() => {
     if (!data) return [];
     const rawFiles = Array.isArray(data)
       ? data
       : (data.files ?? data.data?.files);
-    const processed =
+    return (
       rawFiles?.map((f) => ({
         ...f,
         path: f.path.replace(/\\/g, '/'),
-      })) || [];
-
-    return buildFileTree(processed);
+      })) || []
+    );
   }, [data]);
+
+  const fileTree = useMemo(() => {
+    if (!processedFiles.length) return [];
+    return buildFileTree(processedFiles);
+  }, [processedFiles]);
+
+  const selectedFile = useMemo(() => {
+    if (!selectedFilePath) return null;
+    return processedFiles.find((f) => f.path === selectedFilePath) || null;
+  }, [processedFiles, selectedFilePath]);
+
+  const handleSelectFile = useCallback(
+    (fileData) => {
+      setSelectedFilePath(fileData?.path || null);
+    },
+    [setSelectedFilePath],
+  );
+
+  useEffect(() => {
+    if (!selectedFilePath || !processedFiles.length) return;
+    const stillExists = processedFiles.some((f) => f.path === selectedFilePath);
+    if (!stillExists) {
+      setSelectedFilePath(null);
+    }
+  }, [processedFiles, selectedFilePath, setSelectedFilePath]);
 
   if (loading) {
     return (
@@ -65,8 +104,8 @@ export default function Files({ projectId }) {
               ) : (
                 <FileTree
                   items={fileTree}
-                  onSelect={setSelectedFile}
-                  selectedPath={selectedFile?.path}
+                  onSelect={handleSelectFile}
+                  selectedPath={selectedFilePath}
                 />
               )}
             </div>
@@ -163,6 +202,16 @@ function FileTree({ items, onSelect, selectedPath, level = 0 }) {
 function FileTreeItem({ item, onSelect, selectedPath, level }) {
   const [isOpen, setIsOpen] = useState(false);
   const isSelected = selectedPath === item.path;
+
+  useEffect(() => {
+    if (
+      item.type === 'folder' &&
+      selectedPath &&
+      selectedPath.startsWith(`${item.path}/`)
+    ) {
+      setIsOpen(true);
+    }
+  }, [item.path, item.type, selectedPath]);
 
   const handleClick = (e) => {
     e.stopPropagation();

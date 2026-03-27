@@ -7,6 +7,10 @@ import { FileDetails } from '@/components/FileDetails';
 import { SectionHeader } from '@/components/SectionHeader';
 import { TintedBadge } from '@/components/TintedBadge';
 import {
+  buildProjectTabStateKey,
+  usePersistentState,
+} from '@/hooks/usePersistentState';
+import {
   Box,
   File,
   Share2,
@@ -15,18 +19,32 @@ import {
   BookOpen,
   ChevronRight,
   ChevronDown,
+  GitGraph,
+  Files,
 } from 'lucide-react';
 
-export default function Insights({ projectId }) {
-  const [selected, setSelected] = useState({ type: 'overview' });
+export default function Insights({ projectId, isPublic = false }) {
+  const selectionStorageKey = buildProjectTabStateKey(
+    projectId,
+    'insights',
+    'selected',
+  );
+  const [selected, setSelected] = usePersistentState(selectionStorageKey, {
+    type: 'overview',
+  });
+  const activeSelection =
+    selected && typeof selected === 'object' ? selected : { type: 'overview' };
 
   const {
     data: resData,
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['insightsPage', projectId],
-    queryFn: () => projectAPI.getInsightsPage(projectId),
+    queryKey: ['insightsPage', projectId, isPublic ? 'public' : 'private'],
+    queryFn: () =>
+      isPublic
+        ? projectAPI.getPublicInsightsPage(projectId)
+        : projectAPI.getInsightsPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
@@ -67,14 +85,14 @@ export default function Insights({ projectId }) {
   }, [data]);
 
   const selectedFeature = useMemo(() => {
-    if (selected.type !== 'feature') return null;
-    return featuresList.find((f) => f.keyword === selected.key) || null;
-  }, [selected, featuresList]);
+    if (activeSelection.type !== 'feature') return null;
+    return featuresList.find((f) => f.keyword === activeSelection.key) || null;
+  }, [activeSelection, featuresList]);
 
   const selectedFile = useMemo(() => {
-    if (selected.type !== 'file') return null;
-    return processedFiles.find((f) => f.path === selected.key) || null;
-  }, [selected, processedFiles]);
+    if (activeSelection.type !== 'file') return null;
+    return processedFiles.find((f) => f.path === activeSelection.key) || null;
+  }, [activeSelection, processedFiles]);
 
   if (loading) {
     return (
@@ -101,7 +119,7 @@ export default function Insights({ projectId }) {
             {/* Project Overview */}
             <div
               className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 my-1 font-mono text-sm transition-colors ${
-                selected.type === 'overview'
+                activeSelection.type === 'overview'
                   ? 'bg-secondary text-foreground'
                   : 'hover:bg-secondary text-foreground'
               }`}
@@ -123,10 +141,10 @@ export default function Insights({ projectId }) {
                   <FeatureSidebarItem
                     key={feat.keyword}
                     feature={feat}
-                    selected={selected}
+                    selected={activeSelection}
                     isSelected={
-                      selected.type === 'feature' &&
-                      selected.key === feat.keyword
+                      activeSelection.type === 'feature' &&
+                      activeSelection.key === feat.keyword
                     }
                     onSelect={() =>
                       setSelected({ type: 'feature', key: feat.keyword })
@@ -148,7 +166,7 @@ export default function Insights({ projectId }) {
 
       {/* RIGHT CONTENT PANE */}
       <div className="flex-1 h-full overflow-auto">
-        {selected.type === 'overview' ? (
+        {activeSelection.type === 'overview' ? (
           <ProjectMetadataPane
             data={resolvedData}
             processedFiles={processedFiles}
@@ -269,17 +287,20 @@ function ProjectMetadataPane({
   featuresList,
 }) {
   return (
-    <div className="mx-auto max-w-5xl space-y-10 animate-in fade-in duration-300 p-10 md:p-16 lg:p-20">
+    <div className="mx-auto max-w-4xl space-y-10 animate-in fade-in duration-300 p-10 md:p-16 lg:p-20">
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-500/20 rounded-lg">
-            <BookOpen className="h-8 w-8 text-blue-500" />
+          <div className="p-2.5 bg-secondary rounded-lg">
+            <BookOpen className="h-8 w-8" />
           </div>
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-foreground">
-              Project Overview
+              {data.projectName}
             </h1>
+            <p className="text-muted-foreground text-sm font-medium">
+              Project Insights & Metadata
+            </p>
           </div>
         </div>
       </div>
@@ -315,6 +336,11 @@ function ProjectMetadataPane({
             value={
               new Set(processedFiles.map((f) => f.type).filter(Boolean)).size
             }
+          />
+          <StatCard
+            icon={<Files className="h-8 w-8 text-primary" />}
+            label="Files in Graph"
+            value={data.relationshipStats?.filesInGraph ?? '—'}
           />
         </div>
       </section>
@@ -416,12 +442,12 @@ function FeatureDetails({ feature }) {
   ].filter((s) => categorized[s.key]?.length > 0);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10 animate-in fade-in duration-300 p-10 md:p-16 lg:p-20">
+    <div className="mx-auto max-w-4xl space-y-10 animate-in fade-in duration-300 p-10 md:p-16 lg:p-20">
       {/* HEADER */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-500/20 rounded-lg">
-            <Layers className="h-8 w-8 text-blue-500" />
+          <div className="p-2.5 bg-secondary rounded-lg">
+            <Layers className="h-8 w-8" />
           </div>
           <div className="flex-1">
             <h1 className="text-3xl font-bold capitalize">{feature.name}</h1>

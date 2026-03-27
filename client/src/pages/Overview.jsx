@@ -7,6 +7,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import mermaid from 'mermaid';
 import {
+  buildProjectTabStateKey,
+  usePersistentState,
+} from '@/hooks/usePersistentState';
+import {
   BookOpen,
   Layers,
   FileText,
@@ -28,22 +32,34 @@ mermaid.initialize({
   },
 });
 
-export default function Overview({ projectId }) {
+export default function Overview({ projectId, isPublic = false }) {
   const queryClient = useQueryClient();
+  const selectionStorageKey = buildProjectTabStateKey(
+    projectId,
+    'overview',
+    'selected',
+  );
 
   // Selection: { type: 'project' | 'feature' | 'file', key: string }
-  const [selected, setSelected] = useState({
+  const [selected, setSelected] = usePersistentState(selectionStorageKey, {
     type: 'project',
     key: 'overview',
   });
+  const activeSelection =
+    selected && typeof selected === 'object'
+      ? selected
+      : { type: 'project', key: 'overview' };
 
   const {
     data: resData,
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['overviewPage', projectId],
-    queryFn: () => projectAPI.getOverviewPage(projectId),
+    queryKey: ['overviewPage', projectId, isPublic ? 'public' : 'private'],
+    queryFn: () =>
+      isPublic
+        ? projectAPI.getPublicOverviewPage(projectId)
+        : projectAPI.getOverviewPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
@@ -63,7 +79,7 @@ export default function Overview({ projectId }) {
   // Get currently selected content
   const selectedContent = useMemo(() => {
     if (!data) return null;
-    if (selected.type === 'project') {
+    if (activeSelection.type === 'project') {
       return {
         type: 'project',
         name: projectInfo?.name || 'Project',
@@ -74,8 +90,8 @@ export default function Overview({ projectId }) {
         docs: projectInfo?.aiDocumentation || {},
       };
     }
-    if (selected.type === 'feature') {
-      const feat = features.find((f) => f.keyword === selected.key);
+    if (activeSelection.type === 'feature') {
+      const feat = features.find((f) => f.keyword === activeSelection.key);
       if (!feat) return null;
       return {
         type: 'feature',
@@ -85,16 +101,18 @@ export default function Overview({ projectId }) {
         docs: feat.aiDocumentation || {},
       };
     }
-    if (selected.type === 'file') {
+    if (activeSelection.type === 'file') {
       // Use featureKeyword to look in the exact feature first (handles shared files)
-      const searchFeatures = selected.featureKeyword
+      const searchFeatures = activeSelection.featureKeyword
         ? [
-            features.find((f) => f.keyword === selected.featureKeyword),
-            ...features.filter((f) => f.keyword !== selected.featureKeyword),
+            features.find((f) => f.keyword === activeSelection.featureKeyword),
+            ...features.filter(
+              (f) => f.keyword !== activeSelection.featureKeyword,
+            ),
           ].filter(Boolean)
         : features;
       for (const feat of searchFeatures) {
-        const file = feat.files?.find((f) => f.path === selected.key);
+        const file = feat.files?.find((f) => f.path === activeSelection.key);
         if (file) {
           return {
             type: 'file',
@@ -110,7 +128,7 @@ export default function Overview({ projectId }) {
       return null;
     }
     return null;
-  }, [data, selected, projectInfo, features]);
+  }, [data, activeSelection, projectInfo, features]);
 
   if (loading) {
     return (
@@ -203,7 +221,7 @@ export default function Overview({ projectId }) {
                   <FeatureSidebarItem
                     key={feat.keyword}
                     feature={feat}
-                    selected={selected}
+                    selected={activeSelection}
                     onSelectFeature={() =>
                       setSelected({ type: 'feature', key: feat.keyword })
                     }
@@ -253,7 +271,11 @@ export default function Overview({ projectId }) {
 function DocSidebarItem({ label, onClick }) {
   return (
     <div
-      className="flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 my-1 hover:bg-secondary font-mono text-sm transition-colors"
+      className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 my-1 font-mono text-sm transition-colors${
+        label === 'Project Overview'
+          ? ' bg-secondary text-foreground'
+          : ' hover:bg-secondary text-foreground'
+      }`}
       onClick={onClick}
     >
       <span className="shrink-0 text-muted-foreground">
@@ -379,8 +401,8 @@ function ContentPane({ content, onRegenerate }) {
         {type === 'project' && (
           <>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 pt-3 bg-blue-500/20 rounded-lg">
-                <BookOpen className="h-8 w-8 -mb-0.5 text-blue-500" />
+              <div className="p-2.5 bg-muted rounded-lg">
+                <BookOpen className="h-8 w-8" />
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-foreground">
@@ -397,8 +419,8 @@ function ContentPane({ content, onRegenerate }) {
         {type === 'feature' && (
           <>
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-500/20 rounded-lg">
-                <Layers className="h-8 w-8 text-blue-500" />
+              <div className="p-2.5 bg-secondary rounded-lg">
+                <Layers className="h-8 w-8" />
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-foreground capitalize">
@@ -415,13 +437,13 @@ function ContentPane({ content, onRegenerate }) {
         {type === 'file' && (
           <>
             <div className="space-y-3">
-              <div className="text-3xl font-bold flex items-center gap-3 break-all ">
-                <span className="p-2.5 bg-blue-500/20 rounded-lg">
-                  <File className="h-8 w-8 text-blue-500 " />
+              <div className="text-3xl font-bold flex items-center gap-3">
+                <span className="p-2.5 bg-secondary rounded-lg">
+                  <File className="h-8 w-8" />
                 </span>
                 <div>
                   <span>{content.path.split('/').pop()}</span>
-                  <p className="text-muted-foreground font-medium font-mono text-base">
+                  <p className="text-muted-foreground font-medium font-mono text-sm">
                     {content.path}
                   </p>
                 </div>

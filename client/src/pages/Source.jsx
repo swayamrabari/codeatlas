@@ -25,6 +25,10 @@ import { useTheme } from '../contexts/ThemeContext';
 import { themes } from 'prism-react-renderer';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import {
+  buildProjectTabStateKey,
+  usePersistentState,
+} from '@/hooks/usePersistentState';
 
 function getLanguage(filePath) {
   const ext = filePath.split('.').pop()?.toLowerCase() || '';
@@ -34,8 +38,16 @@ function getLanguage(filePath) {
 
 const MAX_DISPLAY_FILE_SIZE = 512 * 1024; // 512KB - avoid rendering huge files as code
 
-export default function Source({ projectId }) {
-  const [selectedFile, setSelectedFile] = useState(null);
+export default function Source({ projectId, isPublic = false }) {
+  const selectedFileStorageKey = buildProjectTabStateKey(
+    projectId,
+    'source',
+    'selected-file-path',
+  );
+  const [selectedFilePath, setSelectedFilePath] = usePersistentState(
+    selectedFileStorageKey,
+    null,
+  );
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [selectedFileSummary, setSelectedFileSummary] = useState('');
 
@@ -47,8 +59,11 @@ export default function Source({ projectId }) {
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['sourceFileList', projectId],
-    queryFn: () => projectAPI.getSourceFileList(projectId),
+    queryKey: ['sourceFileList', projectId, isPublic ? 'public' : 'private'],
+    queryFn: () =>
+      isPublic
+        ? projectAPI.getPublicSourceFileList(projectId)
+        : projectAPI.getSourceFileList(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
   });
@@ -56,24 +71,44 @@ export default function Source({ projectId }) {
   const data = resData?.data;
   const error = queryError?.message ? 'Failed to load project data.' : null;
 
-  const fileTree = useMemo(() => {
+  const processedFiles = useMemo(() => {
     const files = Array.isArray(data) ? data : data?.files;
     if (!files?.length) return [];
-    const processed = files.map((f) => ({
+    return files.map((f) => ({
       ...f,
       path: (f.path || '').replace(/\\/g, '/'),
     }));
-    return buildFileTree(processed);
   }, [data]);
+
+  const selectedFile = useMemo(() => {
+    if (!selectedFilePath) return null;
+    return processedFiles.find((f) => f.path === selectedFilePath) || null;
+  }, [processedFiles, selectedFilePath]);
+
+  const fileTree = useMemo(() => {
+    if (!processedFiles.length) return [];
+    return buildFileTree(processedFiles);
+  }, [processedFiles]);
 
   const {
     data: fileRes,
     isLoading: fileContentLoading,
     error: fileQueryError,
   } = useQuery({
-    queryKey: ['fileContent', projectId, selectedFile?.path],
+    queryKey: [
+      'fileContent',
+      projectId,
+      selectedFile?.path,
+      isPublic ? 'public' : 'private',
+    ],
     queryFn: ({ signal }) =>
-      projectAPI.getSourceFileContent(projectId, selectedFile.path, signal),
+      isPublic
+        ? projectAPI.getPublicSourceFileContent(
+            projectId,
+            selectedFile.path,
+            signal,
+          )
+        : projectAPI.getSourceFileContent(projectId, selectedFile.path, signal),
     enabled: !!projectId && !!selectedFile?.path,
     staleTime: 5 * 60 * 1000,
   });
@@ -107,10 +142,30 @@ export default function Source({ projectId }) {
     }
   }, [fileRes]);
 
-  const handleSelectFile = useCallback((fileData) => {
-    setSelectedFile(fileData);
-    setSelectedFileSummary(fileData?.aiDocumentation?.shortSummary || '');
-  }, []);
+  useEffect(() => {
+    if (!selectedFile) {
+      setSelectedFileSummary('');
+      return;
+    }
+
+    setSelectedFileSummary(selectedFile?.aiDocumentation?.shortSummary || '');
+  }, [selectedFile]);
+
+  useEffect(() => {
+    if (!selectedFilePath || !processedFiles.length) return;
+    const stillExists = processedFiles.some((f) => f.path === selectedFilePath);
+    if (!stillExists) {
+      setSelectedFilePath(null);
+    }
+  }, [processedFiles, selectedFilePath, setSelectedFilePath]);
+
+  const handleSelectFile = useCallback(
+    (fileData) => {
+      setSelectedFilePath(fileData?.path || null);
+      setSelectedFileSummary(fileData?.aiDocumentation?.shortSummary || '');
+    },
+    [setSelectedFilePath],
+  );
 
   useEffect(() => {
     setSummaryDialogOpen(false);
@@ -145,7 +200,7 @@ export default function Source({ projectId }) {
                 <FileTree
                   items={fileTree}
                   onSelect={handleSelectFile}
-                  selectedPath={selectedFile?.path}
+                  selectedPath={selectedFilePath}
                 />
               )}
             </div>
@@ -319,6 +374,16 @@ const FileTreeItem = memo(function FileTreeItem({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isSelected = selectedPath === item.path;
+
+  useEffect(() => {
+    if (
+      item.type === 'folder' &&
+      selectedPath &&
+      selectedPath.startsWith(`${item.path}/`)
+    ) {
+      setIsOpen(true);
+    }
+  }, [item.path, item.type, selectedPath]);
 
   const handleClick = (e) => {
     e.stopPropagation();

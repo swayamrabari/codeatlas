@@ -26,7 +26,7 @@ export default function Login() {
     try {
       const data = await authAPI.login(email, password);
       login(data.token, data.user);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       const msg =
         err.response?.data?.error || 'Login failed. Please try again.';

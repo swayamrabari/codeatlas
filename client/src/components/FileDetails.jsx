@@ -5,12 +5,12 @@ import { TintedBadge } from '@/components/TintedBadge';
 
 export function FileDetails({ file }) {
   return (
-    <div className="mx-auto max-w-5xl space-y-10 animate-in fade-in duration-300 p-10 md:p-16 lg:p-20">
+    <div className="mx-auto max-w-4xl space-y-10 animate-in fade-in duration-300 p-10 md:p-16 lg:p-20">
       {/* HEADER */}
       <div className="space-y-3">
         <div className="text-3xl font-bold flex items-center gap-3 break-all ">
-          <span className="p-2.5 bg-blue-500/20 rounded-lg">
-            <File className="h-8 w-8 text-blue-500 " />
+          <span className="p-2.5 bg-secondary rounded-lg">
+            <File className="h-8 w-8" />
           </span>
           <div>
             <span>{file.path.split('/').pop()}</span>

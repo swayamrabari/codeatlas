@@ -12,6 +12,7 @@ import { projectAPI } from '../services/api';
 import Header from '@/components/Header';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Spinner } from '@/components/ui/spinner';
+import { buildProjectTabStateKey } from '@/hooks/usePersistentState';
 
 const Overview = lazy(() => import('./Overview'));
 const Files = lazy(() => import('./Files'));
@@ -19,23 +20,55 @@ const Source = lazy(() => import('./Source'));
 const Insights = lazy(() => import('./Insights'));
 const Ask = lazy(() => import('./Ask'));
 
+const PROJECT_TABS = ['overview', 'insights', 'files', 'source', 'ask'];
+
+function getStoredProjectTab(storageKey) {
+  if (typeof window === 'undefined') return 'overview';
+
+  try {
+    const stored = window.localStorage.getItem(storageKey);
+    return PROJECT_TABS.includes(stored) ? stored : 'overview';
+  } catch {
+    return 'overview';
+  }
+}
+
+function setStoredProjectTab(storageKey, tab) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem(storageKey, tab);
+  } catch {
+    // Ignore storage quota errors.
+  }
+}
+
 function ProjectDashboard() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const activeTabStorageKey = buildProjectTabStateKey(
+    id,
+    'dashboard',
+    'active',
+  );
 
   // Determine active tab from current route
   const currentPath = location.pathname.split('/').pop();
-  const activeTab = ['overview', 'source', 'files', 'insights', 'ask'].includes(
-    currentPath,
-  )
+  const activeTab = PROJECT_TABS.includes(currentPath)
     ? currentPath
-    : 'overview';
+    : getStoredProjectTab(activeTabStorageKey);
 
   const handleTabChange = (value) => {
+    setStoredProjectTab(activeTabStorageKey, value);
     navigate(`/project/${id}/${value}`);
   };
+
+  useEffect(() => {
+    if (!PROJECT_TABS.includes(currentPath)) return;
+    setStoredProjectTab(activeTabStorageKey, currentPath);
+  }, [activeTabStorageKey, currentPath]);
 
   // Check project status on mount
   const { data: statusRes, isLoading: isStatusLoading } = useQuery({
@@ -120,7 +153,15 @@ function ProjectDashboard() {
           }
         >
           <Routes>
-            <Route path="/" element={<Navigate to="overview" replace />} />
+            <Route
+              path="/"
+              element={
+                <Navigate
+                  to={getStoredProjectTab(activeTabStorageKey)}
+                  replace
+                />
+              }
+            />
             <Route path="overview" element={<Overview projectId={id} />} />
             <Route path="insights" element={<Insights projectId={id} />} />
             <Route path="files" element={<Files projectId={id} />} />

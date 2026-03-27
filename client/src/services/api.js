@@ -1,6 +1,8 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const PUBLIC_PROJECT_ID =
+  import.meta.env.VITE_PUBLIC_PROJECT_ID || '69a7ead0e60d8f73871a5801';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -155,10 +157,61 @@ export const projectAPI = {
   },
 
   /**
+   * Public lightweight status poll.
+   */
+  getPublicProjectStatus: async (id) => {
+    const response = await api.get(`/public/projects/${id}/status`);
+    return response.data;
+  },
+
+  /**
    * Get full AI documentation (project overview + features with docs + nested files)
    */
   getProjectDocs: async (id) => {
     const response = await api.get(`/projects/${id}/overview`);
+    return response.data;
+  },
+
+  /**
+   * Public overview page data.
+   */
+  getPublicOverviewPage: async (id) => {
+    const response = await api.get(`/public/projects/${id}/overview`);
+    return response.data;
+  },
+
+  /**
+   * Public insights page data.
+   */
+  getPublicInsightsPage: async (id) => {
+    const response = await api.get(`/public/projects/${id}/insights`);
+    return response.data;
+  },
+
+  /**
+   * Public files page data.
+   */
+  getPublicFilesPage: async (id) => {
+    const response = await api.get(`/public/projects/${id}/files`);
+    return response.data;
+  },
+
+  /**
+   * Public source file list.
+   */
+  getPublicSourceFileList: async (id) => {
+    const response = await api.get(`/public/projects/${id}/source/files`);
+    return response.data;
+  },
+
+  /**
+   * Public source file content.
+   */
+  getPublicSourceFileContent: async (id, filePath, signal) => {
+    const response = await api.get(`/public/projects/${id}/source/file`, {
+      params: { path: filePath },
+      signal,
+    });
     return response.data;
   },
 
