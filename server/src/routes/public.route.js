@@ -7,6 +7,7 @@ import {
   getPublicFilesPageFileList,
   getPublicSourceFileList,
   getPublicSourceFileContent,
+  streamPublicAskQuestion,
 } from '../controllers/public.controller.js';
 
 const router = Router();
@@ -40,6 +41,11 @@ router.get(
   '/public/projects/:id/source/file',
   validateObjectId('id'),
   getPublicSourceFileContent,
+);
+router.post(
+  '/public/projects/:id/ask/stream',
+  validateObjectId('id'),
+  streamPublicAskQuestion,
 );
 
 export default router;

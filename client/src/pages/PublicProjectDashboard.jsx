@@ -18,8 +18,9 @@ const Overview = lazy(() => import('./Overview'));
 const Files = lazy(() => import('./Files'));
 const Source = lazy(() => import('./Source'));
 const Insights = lazy(() => import('./Insights'));
+const Ask = lazy(() => import('./Ask'));
 
-const PUBLIC_TABS = ['overview', 'insights', 'files', 'source'];
+const PUBLIC_TABS = ['overview', 'insights', 'files', 'source', 'ask'];
 
 function getStoredPublicTab(storageKey) {
   if (typeof window === 'undefined') return 'overview';
@@ -98,6 +99,10 @@ export default function PublicProjectDashboard() {
       queryKey: ['sourceFileList', projectId, 'public'],
       queryFn: () => projectAPI.getPublicSourceFileList(projectId),
     });
+    queryClient.prefetchQuery({
+      queryKey: ['projectChats', projectId, 'public'],
+      queryFn: async () => ({ success: true, data: [] }),
+    });
   }, [projectStatus, projectId, queryClient]);
 
   if (isStatusLoading || !projectStatus) {
@@ -134,7 +139,7 @@ export default function PublicProjectDashboard() {
   return (
     <div className="h-screen flex flex-col">
       <Header projectName={projectName} />
-      <div className="border-b px-4 py-1.5 flex items-center justify-between gap-4">
+      <div className="border-b px-4 pt-1.5 flex items-center justify-between gap-4">
         <Tabs
           value={activeTab}
           onValueChange={handleTabChange}
@@ -145,6 +150,7 @@ export default function PublicProjectDashboard() {
             <TabsTrigger value="insights">Insights</TabsTrigger>
             <TabsTrigger value="files">Files</TabsTrigger>
             <TabsTrigger value="source">Source</TabsTrigger>
+            <TabsTrigger value="ask">Ask</TabsTrigger>
           </TabsList>
         </Tabs>
         <Badge
@@ -188,6 +194,10 @@ export default function PublicProjectDashboard() {
             <Route
               path="source"
               element={<Source projectId={projectId} isPublic />}
+            />
+            <Route
+              path="ask"
+              element={<Ask projectId={projectId} isPublic />}
             />
             <Route path="*" element={<Navigate to="overview" replace />} />
           </Routes>

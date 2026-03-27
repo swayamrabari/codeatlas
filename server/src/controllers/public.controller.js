@@ -1,12 +1,27 @@
 import Project from '../models/Project.js';
 import File from '../models/File.js';
 import Feature from '../models/Feature.js';
+import { streamAnswerForProject } from '../services/chat.service.js';
 
 const PUBLIC_PROJECT_ID =
   process.env.PUBLIC_PROJECT_ID || '69a7ead0e60d8f73871a5801';
+const LEGACY_PROJECT_USAGE_NOTE =
+  'Project usage note: No relevant files found in this project for this topic.';
+const STREAM_NOTE_GUARD_CHARS = LEGACY_PROJECT_USAGE_NOTE.length + 12;
 
 function isAllowedPublicProject(projectId) {
   return String(projectId) === String(PUBLIC_PROJECT_ID);
+}
+
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stripLegacyProjectUsageNote(answerText) {
+  if (typeof answerText !== 'string' || !answerText) return '';
+  const escaped = escapeRegex(LEGACY_PROJECT_USAGE_NOTE);
+  const footerPattern = new RegExp(`(?:\\n\\s*)*${escaped}\\s*$`, 'i');
+  return answerText.replace(footerPattern, '').trimEnd();
 }
 
 async function findPublicProjectById(projectId, projection = {}) {
@@ -400,5 +415,115 @@ export async function getPublicSourceFileContent(req, res) {
     return res
       .status(500)
       .json({ success: false, error: 'Failed to read public file content' });
+  }
+}
+
+/**
+ * Public Ask streaming endpoint (read-only, no chat persistence).
+ */
+export async function streamPublicAskQuestion(req, res) {
+  let id;
+  let normalizedQuestion;
+  let history;
+
+  try {
+    ({ id } = req.params);
+
+    const body = req.body || {};
+    const { question, history: incomingHistory = [] } = body;
+    history = incomingHistory;
+
+    if (typeof question !== 'string' || !question.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, error: 'question is required' });
+    }
+
+    normalizedQuestion = question.trim();
+    if (normalizedQuestion.length > 2000) {
+      return res.status(400).json({
+        success: false,
+        error: 'question is too long (max 2000 characters)',
+      });
+    }
+
+    const project = await findPublicProjectById(id, { _id: 1, status: 1 });
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, error: 'Public project not found' });
+    }
+
+    if (project.status === 'documenting') {
+      return res.status(409).json({
+        success: false,
+        error: 'Project is still generating documentation and embeddings',
+      });
+    }
+  } catch (error) {
+    console.error('Error validating public ask request:', error);
+    return res
+      .status(500)
+      .json({ success: false, error: 'Failed to validate request' });
+  }
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+
+  const sendSSE = (event, data) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const { stream, citations, usage } = await streamAnswerForProject({
+      projectId: id,
+      question: normalizedQuestion,
+      history: Array.isArray(history) ? history : [],
+    });
+
+    sendSSE('citations', { citations, usage });
+
+    let fullAnswer = '';
+    let pendingTail = '';
+    for await (const chunk of stream) {
+      const delta = chunk.choices?.[0]?.delta?.content;
+      if (delta) {
+        pendingTail += delta;
+
+        if (pendingTail.length > STREAM_NOTE_GUARD_CHARS) {
+          const emitLength = pendingTail.length - STREAM_NOTE_GUARD_CHARS;
+          const safeChunk = pendingTail.slice(0, emitLength);
+          pendingTail = pendingTail.slice(emitLength);
+
+          if (safeChunk) {
+            fullAnswer += safeChunk;
+            sendSSE('delta', { text: safeChunk });
+          }
+        }
+      }
+    }
+
+    const cleanedTail = stripLegacyProjectUsageNote(pendingTail);
+    if (cleanedTail) {
+      fullAnswer += cleanedTail;
+      sendSSE('delta', { text: cleanedTail });
+    }
+
+    fullAnswer = stripLegacyProjectUsageNote(fullAnswer);
+    if (!fullAnswer.trim()) {
+      fullAnswer = 'I could not generate an answer from the available context.';
+      sendSSE('delta', { text: fullAnswer });
+    }
+
+    sendSSE('done', { chat: null });
+  } catch (error) {
+    console.error('Error in public streaming answer:', error);
+    sendSSE('error', { error: 'Failed to answer question' });
+  } finally {
+    res.end();
   }
 }

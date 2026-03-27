@@ -52,24 +52,53 @@ function mapStoredMessages(messages = []) {
     }));
 }
 
-export default function Ask({ projectId }) {
+export default function Ask({ projectId, isPublic = false }) {
   const queryClient = useQueryClient();
-  const chatIdStorageKey = buildProjectTabStateKey(projectId, 'ask', 'chat-id');
-  const chatTitleStorageKey = buildProjectTabStateKey(
-    projectId,
-    'ask',
-    'chat-title',
-  );
-  const draftStorageKey = buildProjectTabStateKey(projectId, 'ask', 'draft');
+  const chatIdStorageKey = isPublic
+    ? null
+    : buildProjectTabStateKey(projectId, 'ask', 'chat-id');
+  const chatTitleStorageKey = isPublic
+    ? null
+    : buildProjectTabStateKey(projectId, 'ask', 'chat-title');
+  const draftStorageKey = isPublic
+    ? null
+    : buildProjectTabStateKey(projectId, 'ask', 'draft');
 
   const [messages, setMessages] = useState([]);
-  const [currentChatId, setCurrentChatId] = usePersistentState(
+  const [persistedChatId, setPersistedChatId] = usePersistentState(
     chatIdStorageKey,
     null,
   );
-  const [currentChatTitle, setCurrentChatTitle] = usePersistentState(
+  const [persistedChatTitle, setPersistedChatTitle] = usePersistentState(
     chatTitleStorageKey,
     'New chat',
+  );
+  const [ephemeralChatId, setEphemeralChatId] = useState(null);
+  const [ephemeralChatTitle, setEphemeralChatTitle] = useState('New chat');
+
+  const currentChatId = isPublic ? ephemeralChatId : persistedChatId;
+  const currentChatTitle = isPublic ? ephemeralChatTitle : persistedChatTitle;
+
+  const setCurrentChatId = useCallback(
+    (value) => {
+      if (isPublic) {
+        setEphemeralChatId(value);
+        return;
+      }
+      setPersistedChatId(value);
+    },
+    [isPublic, setPersistedChatId],
+  );
+
+  const setCurrentChatTitle = useCallback(
+    (value) => {
+      if (isPublic) {
+        setEphemeralChatTitle(value);
+        return;
+      }
+      setPersistedChatTitle(value);
+    },
+    [isPublic, setPersistedChatTitle],
   );
 
   const {
@@ -79,12 +108,13 @@ export default function Ask({ projectId }) {
   } = useQuery({
     queryKey: ['projectChats', projectId],
     queryFn: () => projectAPI.listProjectChats(projectId),
-    enabled: !!projectId,
+    enabled: !!projectId && !isPublic,
     staleTime: 5 * 60 * 1000,
   });
 
   const recentError =
-    queryError?.message || (queryError ? 'Failed to load recent chats.' : '');
+    !isPublic &&
+    (queryError?.message || (queryError ? 'Failed to load recent chats.' : ''));
   const recentChats = Array.isArray(chatsRes?.data) ? chatsRes.data : [];
 
   const [loadingChatId, setLoadingChatId] = useState('');
@@ -98,7 +128,22 @@ export default function Ask({ projectId }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTargetChat, setDeleteTargetChat] = useState(null);
 
-  const [question, setQuestion] = usePersistentState(draftStorageKey, '');
+  const [persistedQuestion, setPersistedQuestion] = usePersistentState(
+    draftStorageKey,
+    '',
+  );
+  const [ephemeralQuestion, setEphemeralQuestion] = useState('');
+  const question = isPublic ? ephemeralQuestion : persistedQuestion;
+  const setQuestion = useCallback(
+    (value) => {
+      if (isPublic) {
+        setEphemeralQuestion(value);
+        return;
+      }
+      setPersistedQuestion(value);
+    },
+    [isPublic, setPersistedQuestion],
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [recentOpen, setRecentOpen] = useState(false);
@@ -318,12 +363,18 @@ export default function Ask({ projectId }) {
     startTypingAnimation(assistantMsgId);
 
     try {
-      const response = await projectAPI.askProjectQuestionStream(
-        projectId,
-        trimmed,
-        history,
-        currentChatId,
-      );
+      const response = isPublic
+        ? await projectAPI.askPublicProjectQuestionStream(
+            projectId,
+            trimmed,
+            history,
+          )
+        : await projectAPI.askProjectQuestionStream(
+            projectId,
+            trimmed,
+            history,
+            currentChatId,
+          );
 
       const reader = response.body
         .pipeThrough(new TextDecoderStream())
@@ -382,7 +433,7 @@ export default function Ask({ projectId }) {
                   : msg,
               ),
             );
-          } else if (eventType === 'done') {
+          } else if (eventType === 'done' && !isPublic) {
             if (data.chat?._id) {
               setCurrentChatId(data.chat._id);
               setCurrentChatTitle(data.chat.title || 'New chat');
@@ -479,6 +530,7 @@ export default function Ask({ projectId }) {
   );
 
   useEffect(() => {
+    if (isPublic) return;
     if (!projectId || restoredProjectRef.current === projectId) return;
 
     let storedChatId = null;
@@ -506,6 +558,7 @@ export default function Ask({ projectId }) {
   }, [
     chatIdStorageKey,
     currentChatId,
+    isPublic,
     onOpenRecentChat,
     projectId,
     setCurrentChatTitle,
@@ -597,7 +650,7 @@ export default function Ask({ projectId }) {
       <section className="shrink-0 border-b bg-background/90 backdrop-blur">
         <div className="flex w-full items-center justify-between px-10 py-2">
           <p className="max-w-[70%] truncate text-sm font-semibold text-foreground/90">
-            {currentChatTitle}
+            {isPublic ? 'Public Demo Chat' : currentChatTitle}
           </p>
 
           <div className="flex items-center gap-2">
@@ -611,101 +664,106 @@ export default function Ask({ projectId }) {
               New
             </Button>
 
-            {/* ── Recent Chats Popover ── */}
-            <Popover open={recentOpen} onOpenChange={setRecentOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label="Open chat history"
+            {!isPublic ? (
+              <Popover open={recentOpen} onOpenChange={setRecentOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Open chat history"
+                  >
+                    <History className="size-4" />
+                    Recent
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  className="w-100 p-0"
+                  sideOffset={8}
                 >
-                  <History className="size-4" />
-                  Recent
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-100 p-0" sideOffset={8}>
-                <div className="border-b px-4 py-3">
-                  <p className="text-lg font-semibold">Recent Chats</p>
-                  <p className="text-sm text-muted-foreground">
-                    Your persisted chats for this project.
-                  </p>
-                </div>
+                  <div className="border-b px-4 py-3">
+                    <p className="text-lg font-semibold">Recent Chats</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your persisted chats for this project.
+                    </p>
+                  </div>
 
-                <ScrollArea className="max-h-[50vh] p-1">
-                  {recentLoading ? (
-                    <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground">
-                      <Spinner className="h-4 w-4" />
-                      Loading recent chats...
-                    </div>
-                  ) : recentError ? (
-                    <p className="px-2 py-3 text-sm text-destructive">
-                      {recentError}
-                    </p>
-                  ) : recentChats.length === 0 ? (
-                    <p className="px-2 py-3 text-sm text-muted-foreground">
-                      No recent chats yet.
-                    </p>
-                  ) : (
-                    <div className="space-y-0.5">
-                      {recentChats.map((item) => (
-                        <div
-                          key={item._id}
-                          className={cn(
-                            'group flex w-full items-center gap-2 rounded-md px-3 py-1 text-left transition-colors hover:bg-accent',
-                            (loadingChatId === item._id ||
-                              deletingChatId === item._id) &&
-                              'opacity-70',
-                          )}
-                        >
-                          <button
-                            type="button"
-                            className="min-w-0 flex-1 text-left"
-                            onClick={() => onOpenRecentChat(item._id)}
-                            disabled={
-                              loadingChatId === item._id ||
-                              deletingChatId === item._id
-                            }
+                  <ScrollArea className="max-h-[50vh] p-1">
+                    {recentLoading ? (
+                      <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground">
+                        <Spinner className="h-4 w-4" />
+                        Loading recent chats...
+                      </div>
+                    ) : recentError ? (
+                      <p className="px-2 py-3 text-sm text-destructive">
+                        {recentError}
+                      </p>
+                    ) : recentChats.length === 0 ? (
+                      <p className="px-2 py-3 text-sm text-muted-foreground">
+                        No recent chats yet.
+                      </p>
+                    ) : (
+                      <div className="space-y-0.5">
+                        {recentChats.map((item) => (
+                          <div
+                            key={item._id}
+                            className={cn(
+                              'group flex w-full items-center gap-2 rounded-md px-3 py-1 text-left transition-colors hover:bg-accent',
+                              (loadingChatId === item._id ||
+                                deletingChatId === item._id) &&
+                                'opacity-70',
+                            )}
                           >
-                            <p className="line-clamp-1 text-sm font-medium text-foreground">
-                              {item.title || 'New chat'}
-                            </p>
-                          </button>
+                            <button
+                              type="button"
+                              className="min-w-0 flex-1 text-left"
+                              onClick={() => onOpenRecentChat(item._id)}
+                              disabled={
+                                loadingChatId === item._id ||
+                                deletingChatId === item._id
+                              }
+                            >
+                              <p className="line-clamp-1 text-sm font-medium text-foreground">
+                                {item.title || 'New chat'}
+                              </p>
+                            </button>
 
-                          <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              type="button"
-                              className="h-7 w-7"
-                              onClick={() => onStartRename(item)}
-                              disabled={
-                                loadingChatId === item._id ||
-                                deletingChatId === item._id
-                              }
-                            >
-                              <Pencil className="size-3.5" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              type="button"
-                              className="h-7 w-7 text-destructive hover:text-destructive"
-                              onClick={() => onRequestDelete(item)}
-                              disabled={
-                                loadingChatId === item._id ||
-                                deletingChatId === item._id
-                              }
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
+                            <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                type="button"
+                                className="h-7 w-7"
+                                onClick={() => onStartRename(item)}
+                                disabled={
+                                  loadingChatId === item._id ||
+                                  deletingChatId === item._id
+                                }
+                              >
+                                <Pencil className="size-3.5" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                type="button"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                onClick={() => onRequestDelete(item)}
+                                disabled={
+                                  loadingChatId === item._id ||
+                                  deletingChatId === item._id
+                                }
+                              >
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
+            ) : null}
           </div>
         </div>
       </section>
@@ -824,85 +882,87 @@ export default function Ask({ projectId }) {
         </div>
       </section>
 
-      {/* ── Rename Chat Dialog ── */}
-      <Dialog
-        open={!!editingChatId}
-        onOpenChange={(open) => {
-          if (!open) onCancelRename();
-        }}
-      >
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Rename Chat</DialogTitle>
-            <DialogDescription>
-              Enter a new title for this chat.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            autoFocus
-            value={editingTitle}
-            onChange={(e) => setEditingTitle(e.target.value)}
-            placeholder="Chat title"
-            disabled={renaming}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                onSaveRename();
-              }
-            }}
-          />
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={onCancelRename}
+      {!isPublic ? (
+        <Dialog
+          open={!!editingChatId}
+          onOpenChange={(open) => {
+            if (!open) onCancelRename();
+          }}
+        >
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Rename Chat</DialogTitle>
+              <DialogDescription>
+                Enter a new title for this chat.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              autoFocus
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              placeholder="Chat title"
               disabled={renaming}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={onSaveRename}
-              disabled={renaming || !editingTitle.trim()}
-            >
-              {renaming ? <Spinner className="mr-2 h-4 w-4" /> : null}
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Delete Chat Confirmation Dialog ── */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete Chat</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete the chat? <br />
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDeleteDialogOpen(false);
-                setDeleteTargetChat(null);
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  onSaveRename();
+                }
               }}
-              disabled={!!deletingChatId}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructiveoutline"
-              onClick={onConfirmDelete}
-              disabled={!!deletingChatId}
-            >
-              {deletingChatId ? <Spinner className="mr-2 h-4 w-4" /> : null}
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            />
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={onCancelRename}
+                disabled={renaming}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={onSaveRename}
+                disabled={renaming || !editingTitle.trim()}
+              >
+                {renaming ? <Spinner className="mr-2 h-4 w-4" /> : null}
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
+
+      {!isPublic ? (
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Delete Chat</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the chat? <br />
+                This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setDeleteTargetChat(null);
+                }}
+                disabled={!!deletingChatId}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructiveoutline"
+                onClick={onConfirmDelete}
+                disabled={!!deletingChatId}
+              >
+                {deletingChatId ? <Spinner className="mr-2 h-4 w-4" /> : null}
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   );
 }

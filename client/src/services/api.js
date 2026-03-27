@@ -262,6 +262,34 @@ export const projectAPI = {
   },
 
   /**
+   * Stream a grounded answer for public demo project (no auth required).
+   */
+  askPublicProjectQuestionStream: async (id, question, history = []) => {
+    const response = await fetch(
+      `${API_URL}/public/projects/${id}/ask/stream`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question, history }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw {
+        response: {
+          data: errorBody,
+          status: response.status,
+        },
+      };
+    }
+
+    return response;
+  },
+
+  /**
    * List persisted chats for a project.
    */
   listProjectChats: async (id) => {
