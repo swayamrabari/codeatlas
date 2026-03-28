@@ -209,6 +209,7 @@ export default function Overview({ projectId, isPublic = false }) {
             <DocSidebarItem
               label="Project Overview"
               onClick={() => setSelected({ type: 'project', key: 'overview' })}
+              isSelected={activeSelection.type === 'project'}
             />
 
             {/* Features */}
@@ -268,11 +269,11 @@ export default function Overview({ projectId, isPublic = false }) {
 }
 
 /* ── Sidebar Item (Project Overview row) ── */
-function DocSidebarItem({ label, onClick }) {
+function DocSidebarItem({ label, onClick, isSelected }) {
   return (
     <div
       className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 my-1 font-mono text-sm transition-colors${
-        label === 'Project Overview'
+        isSelected
           ? ' bg-secondary text-foreground'
           : ' hover:bg-secondary text-foreground'
       }`}
