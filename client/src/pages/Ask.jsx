@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -53,6 +59,44 @@ function mapStoredMessages(messages = []) {
     }));
 }
 
+function getChatListFromCache(cacheValue) {
+  if (Array.isArray(cacheValue)) return cacheValue;
+  if (Array.isArray(cacheValue?.data)) return cacheValue.data;
+  if (Array.isArray(cacheValue?.data?.data)) return cacheValue.data.data;
+  return [];
+}
+
+function setChatListOnCache(prev, chats) {
+  if (Array.isArray(prev)) return chats;
+  if (prev && typeof prev === 'object') {
+    if (Array.isArray(prev.data)) {
+      return { ...prev, data: chats };
+    }
+    if (prev.data && typeof prev.data === 'object') {
+      return { ...prev, data: { ...prev.data, data: chats } };
+    }
+    return { ...prev, data: chats };
+  }
+  return { success: true, data: chats };
+}
+
+function buildChatSnapshot(messages = []) {
+  return messages
+    .filter(
+      (message) =>
+        message &&
+        (message.role === 'user' || message.role === 'assistant') &&
+        typeof message.content === 'string',
+    )
+    .slice(-50)
+    .map((message) => ({
+      role: message.role,
+      content: message.content,
+      citations: Array.isArray(message.citations) ? message.citations : [],
+      createdAt: message.createdAt || null,
+    }));
+}
+
 export default function Ask({ projectId, isPublic }) {
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -60,6 +104,7 @@ export default function Ask({ projectId, isPublic }) {
     typeof isPublic === 'boolean'
       ? isPublic
       : location.pathname.startsWith('/explore');
+  const cacheScope = isPublicMode ? 'public' : 'private';
 
   const chatIdStorageKey = isPublicMode
     ? null
@@ -70,6 +115,9 @@ export default function Ask({ projectId, isPublic }) {
   const draftStorageKey = isPublicMode
     ? null
     : buildProjectTabStateKey(projectId, 'ask', 'draft');
+  const snapshotStorageKey = isPublicMode
+    ? null
+    : buildProjectTabStateKey(projectId, 'ask', 'snapshot');
 
   const [messages, setMessages] = useState([]);
   const [persistedChatId, setPersistedChatId] = usePersistentState(
@@ -115,10 +163,12 @@ export default function Ask({ projectId, isPublic }) {
     isLoading: recentLoading,
     error: queryError,
   } = useQuery({
-    queryKey: ['projectChats', projectId, isPublicMode ? 'public' : 'private'],
+    queryKey: ['projectChats', projectId, cacheScope],
     queryFn: () => projectAPI.listProjectChats(projectId),
     enabled: !!projectId && !isPublicMode,
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const recentError =
@@ -157,6 +207,7 @@ export default function Ask({ projectId, isPublic }) {
   const [error, setError] = useState('');
   const [recentOpen, setRecentOpen] = useState(false);
   const [stickToBottom, setStickToBottom] = useState(true);
+  const [isRestoringChat, setIsRestoringChat] = useState(!isPublicMode);
 
   const inputRef = useRef(null);
   const chatViewportRef = useRef(null);
@@ -164,6 +215,7 @@ export default function Ask({ projectId, isPublic }) {
   const streamTimerRef = useRef(null);
   const streamMessageIdRef = useRef('');
   const restoredProjectRef = useRef('');
+  const suppressNextAutoScrollRef = useRef(false);
 
   const history = useMemo(
     () =>
@@ -262,23 +314,26 @@ export default function Ask({ projectId, isPublic }) {
     (chat) => {
       if (!chat?._id) return;
 
-      queryClient.setQueryData(['projectChats', projectId], (prev) => {
-        const prevChats = Array.isArray(prev?.data) ? prev.data : [];
-        const withoutCurrent = prevChats.filter(
-          (item) => item._id !== chat._id,
-        );
-        const updated = [chat, ...withoutCurrent]
-          .sort(
-            (a, b) =>
-              new Date(b.lastMessageAt || b.updatedAt || 0).getTime() -
-              new Date(a.lastMessageAt || a.updatedAt || 0).getTime(),
-          )
-          .slice(0, 60);
+      queryClient.setQueryData(
+        ['projectChats', projectId, cacheScope],
+        (prev) => {
+          const prevChats = getChatListFromCache(prev);
+          const withoutCurrent = prevChats.filter(
+            (item) => item._id !== chat._id,
+          );
+          const updated = [chat, ...withoutCurrent]
+            .sort(
+              (a, b) =>
+                new Date(b.lastMessageAt || b.updatedAt || 0).getTime() -
+                new Date(a.lastMessageAt || a.updatedAt || 0).getTime(),
+            )
+            .slice(0, 60);
 
-        return { ...prev, data: updated };
-      });
+          return setChatListOnCache(prev, updated);
+        },
+      );
     },
-    [projectId, queryClient],
+    [projectId, queryClient, cacheScope],
   );
 
   useEffect(() => {
@@ -298,6 +353,7 @@ export default function Ask({ projectId, isPublic }) {
     setEditingTitle('');
     setDeleteDialogOpen(false);
     setDeleteTargetChat(null);
+    setIsRestoringChat(!isPublicMode);
   }, [projectId, stopTypingAnimation]);
 
   useEffect(() => {
@@ -330,8 +386,50 @@ export default function Ask({ projectId, isPublic }) {
 
   useEffect(() => {
     if (!stickToBottom) return;
-    scrollToBottom(loading ? 'auto' : 'smooth');
+    const shouldUseAuto = suppressNextAutoScrollRef.current || loading;
+    suppressNextAutoScrollRef.current = false;
+    scrollToBottom(shouldUseAuto ? 'auto' : 'smooth');
   }, [messages, loading, stickToBottom, scrollToBottom]);
+
+  useEffect(() => {
+    if (isPublicMode) return;
+
+    if (!currentChatId || messages.length === 0) {
+      if (snapshotStorageKey) {
+        try {
+          window.localStorage.removeItem(snapshotStorageKey);
+        } catch {
+          // Ignore storage errors.
+        }
+      }
+      return;
+    }
+
+    const hasStreaming = messages.some((message) => message.streaming);
+    if (loading || hasStreaming) return;
+
+    const snapshot = {
+      chatId: currentChatId,
+      title: currentChatTitle || 'New chat',
+      messages: buildChatSnapshot(messages),
+      updatedAt: Date.now(),
+    };
+
+    if (snapshotStorageKey) {
+      try {
+        window.localStorage.setItem(snapshotStorageKey, JSON.stringify(snapshot));
+      } catch {
+        // Ignore storage errors.
+      }
+    }
+  }, [
+    currentChatId,
+    currentChatTitle,
+    isPublicMode,
+    loading,
+    messages,
+    snapshotStorageKey,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -493,7 +591,10 @@ export default function Ask({ projectId, isPublic }) {
   };
 
   const onOpenRecentChat = useCallback(
-    async (chatId, { closeRecent = true, silent = false } = {}) => {
+    async (
+      chatId,
+      { closeRecent = true, silent = false, instantScroll = false } = {},
+    ) => {
       if (!chatId || loadingChatId || renaming) return;
 
       setLoadingChatId(chatId);
@@ -506,6 +607,9 @@ export default function Ask({ projectId, isPublic }) {
         const chat = response?.data?.data || response?.data;
         if (!chat?._id) return;
 
+        if (instantScroll) {
+          suppressNextAutoScrollRef.current = true;
+        }
         setCurrentChatId(chat._id);
         setCurrentChatTitle(chat.title || 'New chat');
         setMessages(mapStoredMessages(chat.messages));
@@ -539,7 +643,10 @@ export default function Ask({ projectId, isPublic }) {
   );
 
   useEffect(() => {
-    if (isPublicMode) return;
+    if (isPublicMode) {
+      setIsRestoringChat(false);
+      return;
+    }
     if (!projectId || restoredProjectRef.current === projectId) return;
 
     let storedChatId = null;
@@ -557,13 +664,41 @@ export default function Ask({ projectId, isPublic }) {
 
     restoredProjectRef.current = projectId;
 
+    let snapshot = null;
+    if (typeof window !== 'undefined' && snapshotStorageKey) {
+      try {
+        const rawSnapshot = window.localStorage.getItem(snapshotStorageKey);
+        snapshot = rawSnapshot ? JSON.parse(rawSnapshot) : null;
+      } catch {
+        snapshot = null;
+      }
+    }
+
     if (!storedChatId) {
       setMessages([]);
       setCurrentChatTitle('New chat');
+      setIsRestoringChat(false);
       return;
     }
 
-    onOpenRecentChat(storedChatId, { closeRecent: false, silent: true });
+    if (
+      snapshot?.chatId === storedChatId &&
+      Array.isArray(snapshot.messages) &&
+      snapshot.messages.length > 0
+    ) {
+      suppressNextAutoScrollRef.current = true;
+      setCurrentChatTitle(snapshot.title || 'New chat');
+      setMessages(mapStoredMessages(snapshot.messages));
+      setStickToBottom(true);
+    }
+
+    onOpenRecentChat(storedChatId, {
+      closeRecent: false,
+      silent: true,
+      instantScroll: true,
+    }).finally(() => {
+      setIsRestoringChat(false);
+    });
   }, [
     chatIdStorageKey,
     currentChatId,
@@ -571,6 +706,7 @@ export default function Ask({ projectId, isPublic }) {
     onOpenRecentChat,
     projectId,
     setCurrentChatTitle,
+    snapshotStorageKey,
   ]);
 
   // ── Rename helpers ──
@@ -626,11 +762,14 @@ export default function Ask({ projectId, isPublic }) {
     try {
       await projectAPI.deleteProjectChat(projectId, chatId);
 
-      queryClient.setQueryData(['projectChats', projectId], (prev) => {
-        const prevChats = Array.isArray(prev?.data) ? prev.data : [];
-        const updated = prevChats.filter((item) => item._id !== chatId);
-        return { ...prev, data: updated };
-      });
+      queryClient.setQueryData(
+        ['projectChats', projectId, cacheScope],
+        (prev) => {
+          const prevChats = getChatListFromCache(prev);
+          const updated = prevChats.filter((item) => item._id !== chatId);
+          return setChatListOnCache(prev, updated);
+        },
+      );
 
       if (editingChatId === chatId) {
         onCancelRename();
@@ -718,6 +857,8 @@ export default function Ask({ projectId, isPublic }) {
                             key={item._id}
                             className={cn(
                               'group flex w-full items-center gap-2 rounded-md px-3 py-1 text-left transition-colors hover:bg-accent',
+                              currentChatId === item._id &&
+                                'bg-accent ring-1 ring-border/70',
                               (loadingChatId === item._id ||
                                 deletingChatId === item._id) &&
                                 'opacity-70',
@@ -781,7 +922,12 @@ export default function Ask({ projectId, isPublic }) {
         <div ref={chatViewportRef} className="h-full w-full">
           <ScrollArea className="h-full w-full">
             <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-4">
-              {messages.length === 0 && (
+              {isRestoringChat ? (
+                <div className="flex min-h-[56vh] flex-col items-center justify-center gap-4 pt-8 text-center text-muted-foreground">
+                  <Spinner className="h-6 w-6" />
+                  <p className="text-sm">Restoring last chat...</p>
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="flex min-h-[56vh] flex-col items-center justify-center gap-5 pt-8 text-center">
                   <LogoIcon className="themed-svg h-16 w-16" />
                   <h2 className="text-3xl font-semibold">
@@ -789,7 +935,7 @@ export default function Ask({ projectId, isPublic }) {
                     Ask me about your codebase.
                   </h2>
                 </div>
-              )}
+              ) : null}
 
               {messages.map((message) => {
                 const isUser = message.role === 'user';

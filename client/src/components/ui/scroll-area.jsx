@@ -5,7 +5,12 @@ import { ScrollArea as ScrollAreaPrimitive } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-function ScrollArea({ className, children, ...props }) {
+function ScrollArea({
+  className,
+  children,
+  showHorizontalScrollbar = false,
+  ...props
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -19,7 +24,8 @@ function ScrollArea({ className, children, ...props }) {
         {children}
       </ScrollAreaPrimitive.Viewport>
       <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
+      {showHorizontalScrollbar && <ScrollBar orientation="horizontal" />}
+      {showHorizontalScrollbar && <ScrollAreaPrimitive.Corner />}
     </ScrollAreaPrimitive.Root>
   );
 }

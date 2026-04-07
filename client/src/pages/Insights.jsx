@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { Badge } from '@/components/ui/badge';
@@ -47,30 +47,34 @@ export default function Insights({ projectId, isPublic = false }) {
         : projectAPI.getInsightsPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const data = resData?.data;
+  const deferredData = useDeferredValue(data);
+  const isPreparingData = !!data && deferredData !== data;
   const error = queryError?.message ? 'Failed to load project data.' : null;
 
   const { processedFiles, frameworksList, featuresList } = useMemo(() => {
-    if (!data)
+    if (!deferredData)
       return { processedFiles: [], frameworksList: [], featuresList: [] };
 
     const fwList = [];
-    if (data.frameworks) {
-      Object.values(data.frameworks).forEach((list) => {
+    if (deferredData.frameworks) {
+      Object.values(deferredData.frameworks).forEach((list) => {
         if (Array.isArray(list)) fwList.push(...list);
       });
     }
 
-    const rawFiles = data.files ?? data.data?.files;
+    const rawFiles = deferredData.files ?? deferredData.data?.files;
     const processed =
       rawFiles?.map((f) => ({
         ...f,
         path: f.path.replace(/\\/g, '/'),
       })) || [];
 
-    const rawFeatures = data.features ?? data.data?.features;
+    const rawFeatures = deferredData.features ?? deferredData.data?.features;
     const features = rawFeatures
       ? Object.entries(rawFeatures)
           .map(([keyword, feat]) => ({ keyword, ...feat }))
@@ -82,7 +86,7 @@ export default function Insights({ projectId, isPublic = false }) {
       frameworksList: [...new Set(fwList)],
       featuresList: features,
     };
-  }, [data]);
+  }, [deferredData]);
 
   const selectedFeature = useMemo(() => {
     if (activeSelection.type !== 'feature') return null;
@@ -106,6 +110,18 @@ export default function Insights({ projectId, isPublic = false }) {
   }
 
   if (error) return <div className="p-8 text-destructive">{error}</div>;
+
+  if (isPreparingData) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p>Preparing insights view...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!data) return null;
 
   const resolvedData = data.data ?? data;
@@ -165,24 +181,26 @@ export default function Insights({ projectId, isPublic = false }) {
       </div>
 
       {/* RIGHT CONTENT PANE */}
-      <div className="flex-1 h-full overflow-auto">
-        {activeSelection.type === 'overview' ? (
-          <ProjectMetadataPane
-            data={resolvedData}
-            processedFiles={processedFiles}
-            frameworksList={frameworksList}
-            featuresList={featuresList}
-          />
-        ) : selectedFile ? (
-          <FileDetails file={selectedFile} />
-        ) : selectedFeature ? (
-          <FeatureDetails feature={selectedFeature} />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            <p>Select an item from the sidebar</p>
-          </div>
-        )}
-      </div>
+      <ScrollArea className="flex-1 h-full" showHorizontalScrollbar>
+        <div className="min-h-full">
+          {activeSelection.type === 'overview' ? (
+            <ProjectMetadataPane
+              data={resolvedData}
+              processedFiles={processedFiles}
+              frameworksList={frameworksList}
+              featuresList={featuresList}
+            />
+          ) : selectedFile ? (
+            <FileDetails file={selectedFile} />
+          ) : selectedFeature ? (
+            <FeatureDetails feature={selectedFeature} />
+          ) : (
+            <div className="flex min-h-full items-center justify-center text-muted-foreground">
+              <p>Select an item from the sidebar</p>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }

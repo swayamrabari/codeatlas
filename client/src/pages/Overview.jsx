@@ -1,11 +1,17 @@
-import { useState, useEffect, useMemo, useRef, useId } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useId,
+  useDeferredValue,
+} from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import mermaid from 'mermaid';
 import {
   buildProjectTabStateKey,
   usePersistentState,
@@ -21,19 +27,31 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-// ── Mermaid Init ──
-mermaid.initialize({
-  theme: 'dark',
-  securityLevel: 'loose',
-  fontFamily: 'inherit',
-  themeVariables: {
-    secondaryColor: '#3b82f6', // Tailwind blue-500
-    edgeLabelBackground: '#141414',
-  },
-});
+let mermaidLoader = null;
+
+async function getMermaid() {
+  if (!mermaidLoader) {
+    mermaidLoader = import('mermaid').then((mod) => {
+      const mermaidApi = mod.default;
+      mermaidApi.initialize({
+        theme: 'dark',
+        securityLevel: 'loose',
+        fontFamily: 'inherit',
+        themeVariables: {
+          secondaryColor: '#3b82f6',
+          edgeLabelBackground: '#141414',
+        },
+      });
+      return mermaidApi;
+    });
+  }
+
+  return mermaidLoader;
+}
 
 export default function Overview({ projectId, isPublic = false }) {
   const queryClient = useQueryClient();
+  const cacheScope = isPublic ? 'public' : 'private';
   const selectionStorageKey = buildProjectTabStateKey(
     projectId,
     'overview',
@@ -55,30 +73,34 @@ export default function Overview({ projectId, isPublic = false }) {
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ['overviewPage', projectId, isPublic ? 'public' : 'private'],
+    queryKey: ['overviewPage', projectId, cacheScope],
     queryFn: () =>
       isPublic
         ? projectAPI.getPublicOverviewPage(projectId)
         : projectAPI.getOverviewPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const data = resData?.data;
+  const deferredData = useDeferredValue(data);
+  const isPreparingData = !!data && deferredData !== data;
   const error = queryError?.message ? 'Failed to load documentation.' : null;
 
   // Build sidebar items
   const { projectInfo, features } = useMemo(() => {
-    if (!data) return { projectInfo: null, features: [] };
+    if (!deferredData) return { projectInfo: null, features: [] };
     return {
-      projectInfo: data.project,
-      features: data.features || [],
+      projectInfo: deferredData.project,
+      features: deferredData.features || [],
     };
-  }, [data]);
+  }, [deferredData]);
 
   // Get currently selected content
   const selectedContent = useMemo(() => {
-    if (!data) return null;
+    if (!deferredData) return null;
     if (activeSelection.type === 'project') {
       return {
         type: 'project',
@@ -128,7 +150,7 @@ export default function Overview({ projectId, isPublic = false }) {
       return null;
     }
     return null;
-  }, [data, activeSelection, projectInfo, features]);
+  }, [deferredData, activeSelection, projectInfo, features]);
 
   if (loading) {
     return (
@@ -147,6 +169,17 @@ export default function Overview({ projectId, isPublic = false }) {
         <div className="flex flex-col items-center gap-3 text-destructive">
           <AlertCircle className="h-8 w-8" />
           <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPreparingData) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p>Preparing documentation view...</p>
         </div>
       </div>
     );
@@ -171,27 +204,30 @@ export default function Overview({ projectId, isPublic = false }) {
       if (!res?.success) throw new Error('Regeneration failed');
 
       // Update local state in-place in React Query Cache
-      queryClient.setQueryData(['overviewPage', projectId], (prev) => {
-        if (!prev || !prev.data) return prev;
-        const nextData = JSON.parse(JSON.stringify(prev.data));
+      queryClient.setQueryData(
+        ['overviewPage', projectId, cacheScope],
+        (prev) => {
+          if (!prev || !prev.data) return prev;
+          const nextData = JSON.parse(JSON.stringify(prev.data));
 
-        if (type === 'project') {
-          nextData.project.aiDocumentation = res.data.aiDocumentation;
-        } else if (type === 'feature') {
-          const feat = nextData.features.find((f) => f.keyword === key);
-          if (feat) feat.aiDocumentation = res.data.aiDocumentation;
-        } else if (type === 'file') {
-          for (const feat of nextData.features) {
-            const file = feat.files?.find((f) => f.path === key);
-            if (file) {
-              file.aiDocumentation = res.data.aiDocumentation;
-              break;
+          if (type === 'project') {
+            nextData.project.aiDocumentation = res.data.aiDocumentation;
+          } else if (type === 'feature') {
+            const feat = nextData.features.find((f) => f.keyword === key);
+            if (feat) feat.aiDocumentation = res.data.aiDocumentation;
+          } else if (type === 'file') {
+            for (const feat of nextData.features) {
+              const file = feat.files?.find((f) => f.path === key);
+              if (file) {
+                file.aiDocumentation = res.data.aiDocumentation;
+                break;
+              }
             }
           }
-        }
 
-        return { ...prev, data: nextData };
-      });
+          return { ...prev, data: nextData };
+        },
+      );
 
       return true;
     } catch (err) {
@@ -238,32 +274,35 @@ export default function Overview({ projectId, isPublic = false }) {
       </div>
 
       {/* ── RIGHT CONTENT PANE ── */}
-      <div className="flex-1 h-full overflow-auto">
-        {!hasDocs &&
-        !selectedContent?.docs?.shortSummary &&
-        !selectedContent?.docs?.detailedSummary ? (
-          <div className="flex h-full items-center justify-center">
-            <div className="flex flex-col items-center gap-3 text-muted-foreground">
-              <BookOpen className="h-12 w-12 stroke-[1.5px]" />
-              <p className="text-lg font-semibold">
-                No documentation generated yet
-              </p>
-              <p className="text-sm">
-                Documentation will appear here after the AI pipeline completes.
-              </p>
+      <ScrollArea className="flex-1 h-full" showHorizontalScrollbar>
+        <div className="min-h-full">
+          {!hasDocs &&
+          !selectedContent?.docs?.shortSummary &&
+          !selectedContent?.docs?.detailedSummary ? (
+            <div className="flex min-h-full items-center justify-center">
+              <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                <BookOpen className="h-12 w-12 stroke-[1.5px]" />
+                <p className="text-lg font-semibold">
+                  No documentation generated yet
+                </p>
+                <p className="text-sm">
+                  Documentation will appear here after the AI pipeline
+                  completes.
+                </p>
+              </div>
             </div>
-          </div>
-        ) : selectedContent ? (
-          <ContentPane
-            content={selectedContent}
-            onRegenerate={handleRegenerate}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            <p>Select an item from the sidebar</p>
-          </div>
-        )}
-      </div>
+          ) : selectedContent ? (
+            <ContentPane
+              content={selectedContent}
+              onRegenerate={handleRegenerate}
+            />
+          ) : (
+            <div className="flex min-h-full items-center justify-center text-muted-foreground">
+              <p>Select an item from the sidebar</p>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
@@ -563,7 +602,8 @@ function MermaidDiagram({ chart }) {
         // mermaid needs a unique DOM id (no colons from useId)
         const id = `mermaid-${uniqueId.replace(/:/g, '')}`;
         const sanitized = sanitizeMermaid(chart);
-        const { svg: rendered } = await mermaid.render(id, sanitized);
+        const mermaidApi = await getMermaid();
+        const { svg: rendered } = await mermaidApi.render(id, sanitized);
         if (!cancelled) {
           setSvg(rendered);
           setError(null);
@@ -585,7 +625,7 @@ function MermaidDiagram({ chart }) {
 
   if (error) {
     return (
-      <div className="rounded-lg border bg-muted/30 p-4 overflow-x-auto">
+      <div className="rounded-lg border bg-muted/30 p-4">
         <pre className="text-sm font-mono text-foreground whitespace-pre-wrap">
           {error}
         </pre>
@@ -596,7 +636,7 @@ function MermaidDiagram({ chart }) {
   if (!svg) {
     return (
       // min-h prevents height collapse on first load, reducing scrollbar jitter
-      <div className="rounded-lg border bg-muted/30 p-6 flex items-center justify-center min-h-[160px]">
+      <div className="rounded-lg border bg-muted/30 p-6 flex items-center justify-center min-h-40">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
@@ -605,7 +645,7 @@ function MermaidDiagram({ chart }) {
   return (
     <div
       ref={containerRef}
-      className="rounded-lg border bg-muted/30 p-4 overflow-x-auto flex items-center justify-center [&>svg]:max-w-full"
+      className="rounded-lg border bg-muted/30 p-4 flex items-center justify-center [&>svg]:max-w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );

@@ -1,4 +1,10 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useDeferredValue,
+} from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -32,24 +38,28 @@ export default function Files({ projectId, isPublic = false }) {
         : projectAPI.getFilesPage(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const data = resData?.data;
+  const deferredData = useDeferredValue(data);
+  const isPreparingData = !!data && deferredData !== data;
   const error = queryError?.message ? 'Failed to load project data.' : null;
 
   // ---------------- DATA PREPROCESSING ----------------
   const processedFiles = useMemo(() => {
-    if (!data) return [];
-    const rawFiles = Array.isArray(data)
-      ? data
-      : (data.files ?? data.data?.files);
+    if (!deferredData) return [];
+    const rawFiles = Array.isArray(deferredData)
+      ? deferredData
+      : (deferredData.files ?? deferredData.data?.files);
     return (
       rawFiles?.map((f) => ({
         ...f,
         path: f.path.replace(/\\/g, '/'),
       })) || []
     );
-  }, [data]);
+  }, [deferredData]);
 
   const fileTree = useMemo(() => {
     if (!processedFiles.length) return [];
@@ -88,6 +98,18 @@ export default function Files({ projectId, isPublic = false }) {
   }
 
   if (error) return <div className="p-8 text-destructive">{error}</div>;
+
+  if (isPreparingData) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p>Preparing file index...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!data) return null;
 
   return (
@@ -114,8 +136,11 @@ export default function Files({ projectId, isPublic = false }) {
 
         {/* RIGHT: FILE DETAILS PANE */}
         <div className="flex flex-1 min-h-0 h-full flex-col overflow-hidden">
-          <div className="flex-1 min-h-0 overflow-auto bg-background flex flex-col">
-            <div className="flex-1 flex flex-col">
+          <ScrollArea
+            className="flex-1 min-h-0 bg-background"
+            showHorizontalScrollbar
+          >
+            <div className="min-h-full flex flex-col">
               {selectedFile ? (
                 <div className="w-full">
                   <FileDetails file={selectedFile} />
@@ -131,7 +156,7 @@ export default function Files({ projectId, isPublic = false }) {
                 </div>
               )}
             </div>
-          </div>
+          </ScrollArea>
         </div>
       </div>
     </div>

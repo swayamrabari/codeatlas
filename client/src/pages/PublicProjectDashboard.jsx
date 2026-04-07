@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useTransition } from 'react';
 import {
   Routes,
   Route,
@@ -6,74 +6,62 @@ import {
   useNavigate,
   useLocation,
 } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { projectAPI, PUBLIC_PROJECT_ID } from '../services/api';
 import Header from '@/components/Header';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Spinner } from '@/components/ui/spinner';
-import { buildProjectTabStateKey } from '@/hooks/usePersistentState';
 import { Badge } from '@/components/ui/badge';
+import { RefreshCw } from 'lucide-react';
 
-const Overview = lazy(() => import('./Overview'));
-const Files = lazy(() => import('./Files'));
-const Source = lazy(() => import('./Source'));
-const Insights = lazy(() => import('./Insights'));
-const Ask = lazy(() => import('./Ask'));
+const loadOverviewPage = () => import('./Overview');
+const loadFilesPage = () => import('./Files');
+const loadSourcePage = () => import('./Source');
+const loadInsightsPage = () => import('./Insights');
+const loadAskPage = () => import('./Ask');
+
+const Overview = lazy(loadOverviewPage);
+const Files = lazy(loadFilesPage);
+const Source = lazy(loadSourcePage);
+const Insights = lazy(loadInsightsPage);
+const Ask = lazy(loadAskPage);
 
 const PUBLIC_TABS = ['overview', 'insights', 'files', 'source', 'ask'];
-
-function getStoredPublicTab(storageKey) {
-  if (typeof window === 'undefined') return 'overview';
-
-  try {
-    const stored = window.localStorage.getItem(storageKey);
-    return PUBLIC_TABS.includes(stored) ? stored : 'overview';
-  } catch {
-    return 'overview';
-  }
-}
-
-function setStoredPublicTab(storageKey, tab) {
-  if (typeof window === 'undefined') return;
-
-  try {
-    window.localStorage.setItem(storageKey, tab);
-  } catch {
-    // Ignore storage errors.
-  }
-}
 
 export default function PublicProjectDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
+  const [isSwitchingTab, startTabTransition] = useTransition();
 
   const projectId = PUBLIC_PROJECT_ID;
-  const activeTabStorageKey = buildProjectTabStateKey(
-    projectId,
-    'public-dashboard',
-    'active',
-  );
 
   const currentPath = location.pathname.split('/').pop();
   const activeTab = PUBLIC_TABS.includes(currentPath)
     ? currentPath
-    : getStoredPublicTab(activeTabStorageKey);
+    : 'overview';
 
   const handleTabChange = (value) => {
-    setStoredPublicTab(activeTabStorageKey, value);
-    navigate(`/explore/${value}`);
+    if (value === activeTab) return;
+    startTabTransition(() => {
+      navigate(`/explore/${value}`);
+    });
   };
 
-  useEffect(() => {
-    if (!PUBLIC_TABS.includes(currentPath)) return;
-    setStoredPublicTab(activeTabStorageKey, currentPath);
-  }, [activeTabStorageKey, currentPath]);
+  const preloadTabChunk = (tab) => {
+    if (tab === 'overview') return loadOverviewPage();
+    if (tab === 'insights') return loadInsightsPage();
+    if (tab === 'files') return loadFilesPage();
+    if (tab === 'source') return loadSourcePage();
+    if (tab === 'ask') return loadAskPage();
+    return Promise.resolve();
+  };
 
   const { data: statusRes, isLoading: isStatusLoading } = useQuery({
     queryKey: ['publicProjectStatus', projectId],
     queryFn: () => projectAPI.getPublicProjectStatus(projectId),
     staleTime: 5000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
     enabled: !!projectId,
   });
 
@@ -83,27 +71,23 @@ export default function PublicProjectDashboard() {
   useEffect(() => {
     if (projectStatus !== 'ready') return;
 
-    queryClient.prefetchQuery({
-      queryKey: ['overviewPage', projectId, 'public'],
-      queryFn: () => projectAPI.getPublicOverviewPage(projectId),
-    });
-    queryClient.prefetchQuery({
-      queryKey: ['insightsPage', projectId, 'public'],
-      queryFn: () => projectAPI.getPublicInsightsPage(projectId),
-    });
-    queryClient.prefetchQuery({
-      queryKey: ['filesPage', projectId, 'public'],
-      queryFn: () => projectAPI.getPublicFilesPage(projectId),
-    });
-    queryClient.prefetchQuery({
-      queryKey: ['sourceFileList', projectId, 'public'],
-      queryFn: () => projectAPI.getPublicSourceFileList(projectId),
-    });
-    queryClient.prefetchQuery({
-      queryKey: ['projectChats', projectId, 'public'],
-      queryFn: async () => ({ success: true, data: [] }),
-    });
-  }, [projectStatus, projectId, queryClient]);
+    const preload = () => {
+      loadInsightsPage();
+      loadFilesPage();
+      loadSourcePage();
+      loadAskPage();
+    };
+
+    if (typeof window === 'undefined') return;
+
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(preload, { timeout: 1200 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preload, 120);
+    return () => window.clearTimeout(timeoutId);
+  }, [projectStatus]);
 
   if (isStatusLoading || !projectStatus) {
     return (
@@ -146,13 +130,48 @@ export default function PublicProjectDashboard() {
           className="w-full"
         >
           <TabsList variant="line" className="justify-start *:cursor-pointer">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="insights">Insights</TabsTrigger>
-            <TabsTrigger value="files">Files</TabsTrigger>
-            <TabsTrigger value="source">Source</TabsTrigger>
-            <TabsTrigger value="ask">Ask</TabsTrigger>
+            <TabsTrigger
+              value="overview"
+              onMouseEnter={() => preloadTabChunk('overview')}
+              onFocus={() => preloadTabChunk('overview')}
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="insights"
+              onMouseEnter={() => preloadTabChunk('insights')}
+              onFocus={() => preloadTabChunk('insights')}
+            >
+              Insights
+            </TabsTrigger>
+            <TabsTrigger
+              value="files"
+              onMouseEnter={() => preloadTabChunk('files')}
+              onFocus={() => preloadTabChunk('files')}
+            >
+              Files
+            </TabsTrigger>
+            <TabsTrigger
+              value="source"
+              onMouseEnter={() => preloadTabChunk('source')}
+              onFocus={() => preloadTabChunk('source')}
+            >
+              Source
+            </TabsTrigger>
+            <TabsTrigger
+              value="ask"
+              onMouseEnter={() => preloadTabChunk('ask')}
+              onFocus={() => preloadTabChunk('ask')}
+            >
+              Ask
+            </TabsTrigger>
           </TabsList>
         </Tabs>
+        {isSwitchingTab && (
+          <div className="flex items-center text-muted-foreground">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          </div>
+        )}
         <Badge
           variant="secondary"
           className="whitespace-nowrap text-xs font-semibold"
@@ -164,21 +183,13 @@ export default function PublicProjectDashboard() {
       <div className="flex-1 overflow-hidden min-h-0">
         <Suspense
           fallback={
-            <div className="h-full flex items-center justify-center">
+            <div className="min-h-full flex items-center justify-center">
               <Spinner className="h-8 w-8 text-primary" />
             </div>
           }
         >
           <Routes>
-            <Route
-              path="/"
-              element={
-                <Navigate
-                  to={getStoredPublicTab(activeTabStorageKey)}
-                  replace
-                />
-              }
-            />
+            <Route path="/" element={<Navigate to="overview" replace />} />
             <Route
               path="overview"
               element={<Overview projectId={projectId} isPublic />}

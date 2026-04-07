@@ -1,37 +1,20 @@
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
-/**
- * Create a Nodemailer transporter.
- * Uses EMAIL_USER and EMAIL_PASS from env for Gmail SMTP.
- * Falls back to Ethereal (test account) in development if no credentials are set.
- */
-let transporter = null;
+let initialized = false;
 
-async function getTransporter() {
-  if (transporter) return transporter;
+function initSendGrid() {
+  if (initialized) return;
 
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
-
-  if (emailUser && emailPass) {
-    // Real SMTP (Gmail / custom provider)
-    transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: emailUser,
-        pass: emailPass,
-      },
-    });
-    console.log('📧 Email transporter configured with Gmail SMTP');
-  } else {
-    // Fallback: log to console in dev mode
+  if (!process.env.SENDGRID_API_KEY) {
     console.log(
-      '⚠️  No EMAIL_USER/EMAIL_PASS set — verification codes will be logged to console',
+      '⚠️  No SENDGRID_API_KEY set — verification codes will be logged to console',
     );
-    transporter = null;
+    return;
   }
 
-  return transporter;
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('📧 SendGrid configured');
+  initialized = true;
 }
 
 /**
@@ -48,7 +31,7 @@ export function generateVerificationCode() {
  * @param {string} code - 6-digit verification code
  */
 export async function sendVerificationEmail(toEmail, name, code) {
-  const transport = await getTransporter();
+  initSendGrid();
 
   const htmlContent = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; background: #0a0a0a; border-radius: 12px;">
@@ -70,7 +53,7 @@ export async function sendVerificationEmail(toEmail, name, code) {
     </div>
   `;
 
-  if (!transport) {
+  if (!process.env.SENDGRID_API_KEY) {
     // Dev fallback: log the code to console
     console.log(`\n📬 ─────────────────────────────────────────`);
     console.log(`   Verification email for: ${toEmail}`);
@@ -80,12 +63,16 @@ export async function sendVerificationEmail(toEmail, name, code) {
     return;
   }
 
-  await transport.sendMail({
-    from: `"CodeAtlas" <${process.env.EMAIL_USER}>`,
-    to: toEmail,
-    subject: `${code} is your CodeAtlas verification code`,
-    html: htmlContent,
-  });
-
-  console.log(`📧 Verification email sent to ${toEmail}`);
+  try {
+    await sgMail.send({
+      to: toEmail,
+      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@codeatlas.com',
+      subject: `${code} is your CodeAtlas verification code`,
+      html: htmlContent,
+    });
+    console.log(`📧 Verification email sent to ${toEmail}`);
+  } catch (error) {
+    console.error('❌ SendGrid error:', error.message);
+    throw error;
+  }
 }

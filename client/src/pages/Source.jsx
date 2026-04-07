@@ -1,4 +1,11 @@
-import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  memo,
+  useDeferredValue,
+} from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,6 +44,7 @@ function getLanguage(filePath) {
 }
 
 const MAX_DISPLAY_FILE_SIZE = 512 * 1024; // 512KB - avoid rendering huge files as code
+const MAX_SYNTAX_HIGHLIGHT_SIZE = 128 * 1024; // Avoid expensive tokenization for large files
 
 export default function Source({ projectId, isPublic = false }) {
   const selectedFileStorageKey = buildProjectTabStateKey(
@@ -50,6 +58,7 @@ export default function Source({ projectId, isPublic = false }) {
   );
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [selectedFileSummary, setSelectedFileSummary] = useState('');
+  const [isPreviewReady, setIsPreviewReady] = useState(false);
 
   // useTheme
   const { theme } = useTheme();
@@ -66,19 +75,25 @@ export default function Source({ projectId, isPublic = false }) {
         : projectAPI.getSourceFileList(projectId),
     enabled: !!projectId,
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const data = resData?.data;
+  const deferredData = useDeferredValue(data);
+  const isPreparingData = !!data && deferredData !== data;
   const error = queryError?.message ? 'Failed to load project data.' : null;
 
   const processedFiles = useMemo(() => {
-    const files = Array.isArray(data) ? data : data?.files;
+    const files = Array.isArray(deferredData)
+      ? deferredData
+      : deferredData?.files;
     if (!files?.length) return [];
     return files.map((f) => ({
       ...f,
       path: (f.path || '').replace(/\\/g, '/'),
     }));
-  }, [data]);
+  }, [deferredData]);
 
   const selectedFile = useMemo(() => {
     if (!selectedFilePath) return null;
@@ -111,6 +126,8 @@ export default function Source({ projectId, isPublic = false }) {
         : projectAPI.getSourceFileContent(projectId, selectedFile.path, signal),
     enabled: !!projectId && !!selectedFile?.path,
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const fileContentRaw = fileRes?.content ?? fileRes?.data?.content ?? '';
@@ -144,12 +161,13 @@ export default function Source({ projectId, isPublic = false }) {
 
   useEffect(() => {
     if (!selectedFile) {
+      if (isPreparingData) return;
       setSelectedFileSummary('');
       return;
     }
 
     setSelectedFileSummary(selectedFile?.aiDocumentation?.shortSummary || '');
-  }, [selectedFile]);
+  }, [selectedFile, isPreparingData]);
 
   useEffect(() => {
     if (!selectedFilePath || !processedFiles.length) return;
@@ -171,6 +189,31 @@ export default function Source({ projectId, isPublic = false }) {
     setSummaryDialogOpen(false);
   }, [selectedFile?.path]);
 
+  useEffect(() => {
+    if (!selectedFile?.path) {
+      setIsPreviewReady(false);
+      return;
+    }
+
+    setIsPreviewReady(false);
+    let timeoutId = null;
+    const rafId = window.requestAnimationFrame(() => {
+      timeoutId = window.setTimeout(() => {
+        setIsPreviewReady(true);
+      }, 0);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [selectedFile?.path]);
+
+  const shouldUsePlainTextPreview =
+    !!fileContent && fileContent.length > MAX_SYNTAX_HIGHLIGHT_SIZE;
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -183,6 +226,18 @@ export default function Source({ projectId, isPublic = false }) {
   }
 
   if (error) return <div className="p-8 text-destructive">{error}</div>;
+
+  if (isPreparingData) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p>Preparing source view...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!data) return null;
 
   return (
@@ -260,8 +315,11 @@ export default function Source({ projectId, isPublic = false }) {
               </div>
             </div>
           )}
-          <div className="flex-1 min-h-0 overflow-auto bg-background flex flex-col">
-            <div className="flex-1 flex flex-col">
+          <ScrollArea
+            className="flex-1 min-h-0 bg-background"
+            showHorizontalScrollbar
+          >
+            <div className="min-h-full flex flex-col">
               {!selectedFile ? (
                 <div className="flex flex-1 items-center justify-center w-full">
                   <div className="flex flex-col items-center justify-center text-muted-foreground">
@@ -279,8 +337,25 @@ export default function Source({ projectId, isPublic = false }) {
                 <div className="flex flex-1 items-center justify-center p-4 text-destructive">
                   {fileContentError}
                 </div>
+              ) : !isPreviewReady ? (
+                <div className="flex flex-1 items-center justify-center w-full">
+                  <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                    <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                    <p className="text-sm">Preparing source preview...</p>
+                  </div>
+                </div>
+              ) : shouldUsePlainTextPreview ? (
+                <div className="w-full min-w-max">
+                  <div className="border-b bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
+                    Large file detected. Showing plain text preview for smooth
+                    navigation.
+                  </div>
+                  <pre className="px-4 py-3 pb-20 text-sm leading-6 whitespace-pre font-mono">
+                    {fileContent}
+                  </pre>
+                </div>
               ) : (
-                <div className="explorer-code-block w-full min-w-0 overflow-x-auto overflow-y-auto">
+                <div className="explorer-code-block w-full min-w-max">
                   <CodeBlock
                     code={fileContent}
                     theme={theme === 'light' ? themes.vsLight : codeTheme}
@@ -298,7 +373,7 @@ export default function Source({ projectId, isPublic = false }) {
                 </div>
               )}
             </div>
-          </div>
+          </ScrollArea>
         </div>
       </div>
     </div>

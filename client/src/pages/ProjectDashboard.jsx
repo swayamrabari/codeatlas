@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useTransition } from 'react';
 import {
   Routes,
   Route,
@@ -7,74 +7,63 @@ import {
   useNavigate,
   useLocation,
 } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import Header from '@/components/Header';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Spinner } from '@/components/ui/spinner';
-import { buildProjectTabStateKey } from '@/hooks/usePersistentState';
+import { RefreshCw } from 'lucide-react';
 
-const Overview = lazy(() => import('./Overview'));
-const Files = lazy(() => import('./Files'));
-const Source = lazy(() => import('./Source'));
-const Insights = lazy(() => import('./Insights'));
-const Ask = lazy(() => import('./Ask'));
+const loadOverviewPage = () => import('./Overview');
+const loadFilesPage = () => import('./Files');
+const loadSourcePage = () => import('./Source');
+const loadInsightsPage = () => import('./Insights');
+const loadAskPage = () => import('./Ask');
+
+const Overview = lazy(loadOverviewPage);
+const Files = lazy(loadFilesPage);
+const Source = lazy(loadSourcePage);
+const Insights = lazy(loadInsightsPage);
+const Ask = lazy(loadAskPage);
 
 const PROJECT_TABS = ['overview', 'insights', 'files', 'source', 'ask'];
-
-function getStoredProjectTab(storageKey) {
-  if (typeof window === 'undefined') return 'overview';
-
-  try {
-    const stored = window.localStorage.getItem(storageKey);
-    return PROJECT_TABS.includes(stored) ? stored : 'overview';
-  } catch {
-    return 'overview';
-  }
-}
-
-function setStoredProjectTab(storageKey, tab) {
-  if (typeof window === 'undefined') return;
-
-  try {
-    window.localStorage.setItem(storageKey, tab);
-  } catch {
-    // Ignore storage quota errors.
-  }
-}
 
 function ProjectDashboard() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
-  const activeTabStorageKey = buildProjectTabStateKey(
-    id,
-    'dashboard',
-    'active',
-  );
+  const [isSwitchingTab, startTabTransition] = useTransition();
 
   // Determine active tab from current route
   const currentPath = location.pathname.split('/').pop();
   const activeTab = PROJECT_TABS.includes(currentPath)
     ? currentPath
-    : getStoredProjectTab(activeTabStorageKey);
+    : 'overview';
 
   const handleTabChange = (value) => {
-    setStoredProjectTab(activeTabStorageKey, value);
-    navigate(`/project/${id}/${value}`);
+    if (value === activeTab) return;
+    startTabTransition(() => {
+      navigate(`/project/${id}/${value}`);
+    });
   };
 
-  useEffect(() => {
-    if (!PROJECT_TABS.includes(currentPath)) return;
-    setStoredProjectTab(activeTabStorageKey, currentPath);
-  }, [activeTabStorageKey, currentPath]);
+  const preloadTabChunk = (tab) => {
+    if (tab === 'overview') return loadOverviewPage();
+    if (tab === 'insights') return loadInsightsPage();
+    if (tab === 'files') return loadFilesPage();
+    if (tab === 'source') return loadSourcePage();
+    if (tab === 'ask') return loadAskPage();
+    return Promise.resolve();
+  };
 
   // Check project status on mount
   const { data: statusRes, isLoading: isStatusLoading } = useQuery({
     queryKey: ['projectStatus', id],
     queryFn: () => projectAPI.getProjectStatus(id),
+    enabled: !!id,
     staleTime: 5000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const projectStatus = statusRes?.data?.status;
@@ -83,30 +72,29 @@ function ProjectDashboard() {
   useEffect(() => {
     if (projectStatus === 'documenting') {
       navigate(`/upload?resume=${id}`, { replace: true });
-    } else if (projectStatus === 'ready') {
-      // Prefetch core page datasets so route switches feel instant.
-      queryClient.prefetchQuery({
-        queryKey: ['overviewPage', id],
-        queryFn: () => projectAPI.getOverviewPage(id),
-      });
-      queryClient.prefetchQuery({
-        queryKey: ['insightsPage', id],
-        queryFn: () => projectAPI.getInsightsPage(id),
-      });
-      queryClient.prefetchQuery({
-        queryKey: ['filesPage', id],
-        queryFn: () => projectAPI.getFilesPage(id),
-      });
-      queryClient.prefetchQuery({
-        queryKey: ['sourceFileList', id],
-        queryFn: () => projectAPI.getSourceFileList(id),
-      });
-      queryClient.prefetchQuery({
-        queryKey: ['projectChats', id],
-        queryFn: () => projectAPI.listProjectChats(id),
-      });
     }
-  }, [projectStatus, id, navigate, queryClient]);
+  }, [projectStatus, id, navigate]);
+
+  useEffect(() => {
+    if (projectStatus !== 'ready') return;
+
+    const preload = () => {
+      loadInsightsPage();
+      loadFilesPage();
+      loadSourcePage();
+      loadAskPage();
+    };
+
+    if (typeof window === 'undefined') return;
+
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(preload, { timeout: 1200 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(preload, 120);
+    return () => window.clearTimeout(timeoutId);
+  }, [projectStatus]);
 
   // Loading state
   if (isStatusLoading || !projectStatus) {
@@ -134,34 +122,61 @@ function ProjectDashboard() {
           className="w-full"
         >
           <TabsList variant="line" className="justify-start *:cursor-pointer">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="insights">Insights</TabsTrigger>
-            <TabsTrigger value="files">Files</TabsTrigger>
-            <TabsTrigger value="source">Source</TabsTrigger>
-            <TabsTrigger value="ask">Ask</TabsTrigger>
+            <TabsTrigger
+              value="overview"
+              onMouseEnter={() => preloadTabChunk('overview')}
+              onFocus={() => preloadTabChunk('overview')}
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="insights"
+              onMouseEnter={() => preloadTabChunk('insights')}
+              onFocus={() => preloadTabChunk('insights')}
+            >
+              Insights
+            </TabsTrigger>
+            <TabsTrigger
+              value="files"
+              onMouseEnter={() => preloadTabChunk('files')}
+              onFocus={() => preloadTabChunk('files')}
+            >
+              Files
+            </TabsTrigger>
+            <TabsTrigger
+              value="source"
+              onMouseEnter={() => preloadTabChunk('source')}
+              onFocus={() => preloadTabChunk('source')}
+            >
+              Source
+            </TabsTrigger>
+            <TabsTrigger
+              value="ask"
+              onMouseEnter={() => preloadTabChunk('ask')}
+              onFocus={() => preloadTabChunk('ask')}
+            >
+              Ask
+            </TabsTrigger>
           </TabsList>
         </Tabs>
+        {isSwitchingTab && (
+          <div className="flex items-center text-muted-foreground pr-2">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          </div>
+        )}
       </div>
 
       {/* Sub Pages */}
       <div className="flex-1 overflow-hidden min-h-0">
         <Suspense
           fallback={
-            <div className="h-full flex items-center justify-center">
+            <div className="min-h-full flex items-center justify-center">
               <Spinner className="h-8 w-8 text-primary" />
             </div>
           }
         >
           <Routes>
-            <Route
-              path="/"
-              element={
-                <Navigate
-                  to={getStoredProjectTab(activeTabStorageKey)}
-                  replace
-                />
-              }
-            />
+            <Route path="/" element={<Navigate to="overview" replace />} />
             <Route path="overview" element={<Overview projectId={id} />} />
             <Route path="insights" element={<Insights projectId={id} />} />
             <Route path="files" element={<Files projectId={id} />} />
