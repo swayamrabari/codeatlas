@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -417,7 +411,10 @@ export default function Ask({ projectId, isPublic }) {
 
     if (snapshotStorageKey) {
       try {
-        window.localStorage.setItem(snapshotStorageKey, JSON.stringify(snapshot));
+        window.localStorage.setItem(
+          snapshotStorageKey,
+          JSON.stringify(snapshot),
+        );
       } catch {
         // Ignore storage errors.
       }
