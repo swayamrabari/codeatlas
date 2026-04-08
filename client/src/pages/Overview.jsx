@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Spinner } from '@/components/ui/spinner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -24,7 +25,6 @@ import {
   ChevronDown,
   File,
   AlertCircle,
-  RefreshCw,
 } from 'lucide-react';
 
 let mermaidLoader = null;
@@ -152,12 +152,12 @@ export default function Overview({ projectId, isPublic = false }) {
     return null;
   }, [deferredData, activeSelection, projectInfo, features]);
 
-  if (loading) {
+  if (loading || isPreparingData) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-muted-foreground">Loading documentation...</p>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <Spinner className="h-8 w-8" />
+          <p className="text-sm font-medium">{isPreparingData ? 'Preparing documentation view…' : 'Loading documentation…'}</p>
         </div>
       </div>
     );
@@ -165,21 +165,10 @@ export default function Overview({ projectId, isPublic = false }) {
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-destructive">
           <AlertCircle className="h-8 w-8" />
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isPreparingData) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p>Preparing documentation view...</p>
+          <p className="text-sm font-medium">{error}</p>
         </div>
       </div>
     );
@@ -240,7 +229,7 @@ export default function Overview({ projectId, isPublic = false }) {
     <div className="h-full flex overflow-hidden bg-background">
       <div className="flex h-full min-h-0 w-80 flex-col overflow-hidden border-r bg-muted/5">
         <ScrollArea className="h-full flex-1">
-          <div className="max-w-[320px] overflow-hidden p-2 pb-20 space-y-0.5">
+          <div className="h-full w-full max-w-[320px] overflow-hidden p-2 pb-20 space-y-0.5">
             {/* Project Overview */}
             <DocSidebarItem
               label="Project Overview"
@@ -275,11 +264,11 @@ export default function Overview({ projectId, isPublic = false }) {
 
       {/* ── RIGHT CONTENT PANE ── */}
       <ScrollArea className="flex-1 h-full" showHorizontalScrollbar>
-        <div className="min-h-full">
+        <div className="flex flex-1 w-full flex-col">
           {!hasDocs &&
           !selectedContent?.docs?.shortSummary &&
           !selectedContent?.docs?.detailedSummary ? (
-            <div className="flex min-h-full items-center justify-center">
+            <div className="grid flex-1 w-full place-items-center px-4">
               <div className="flex flex-col items-center gap-3 text-muted-foreground">
                 <BookOpen className="h-12 w-12 stroke-[1.5px]" />
                 <p className="text-lg font-semibold">
@@ -297,7 +286,7 @@ export default function Overview({ projectId, isPublic = false }) {
               onRegenerate={handleRegenerate}
             />
           ) : (
-            <div className="flex min-h-full items-center justify-center text-muted-foreground">
+            <div className="grid flex-1 w-full place-items-center px-4 text-muted-foreground">
               <p>Select an item from the sidebar</p>
             </div>
           )}

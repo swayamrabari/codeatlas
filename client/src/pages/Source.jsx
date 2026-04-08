@@ -15,6 +15,7 @@ import {
   FolderClosed,
   FolderOpen,
   Sparkles,
+  AlertCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { themes } from 'prism-react-renderer';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Spinner } from '@/components/ui/spinner';
 import {
   buildProjectTabStateKey,
   usePersistentState,
@@ -214,25 +216,23 @@ export default function Source({ projectId, isPublic = false }) {
   const shouldUsePlainTextPreview =
     !!fileContent && fileContent.length > MAX_SYNTAX_HIGHLIGHT_SIZE;
 
-  if (loading) {
+  if (loading || isPreparingData) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-muted-foreground">Loading project files...</p>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <Spinner className="h-8 w-8" />
+          <p className="text-sm font-medium">{isPreparingData ? 'Preparing source view…' : 'Loading project files…'}</p>
         </div>
       </div>
     );
   }
 
-  if (error) return <div className="p-8 text-destructive">{error}</div>;
-
-  if (isPreparingData) {
+  if (error) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p>Preparing source view...</p>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-destructive">
+          <AlertCircle className="h-8 w-8" />
+          <p className="text-sm font-medium">{error}</p>
         </div>
       </div>
     );
@@ -246,11 +246,11 @@ export default function Source({ projectId, isPublic = false }) {
         {/* LEFT: FILE TREE */}
         <div className="flex h-full min-h-0 w-80 flex-col overflow-hidden border-r bg-muted/5">
           <ScrollArea className="h-full flex-1">
-            <div className="max-w-[320px] overflow-hidden p-2 pb-20">
+            <div className="flex-1 w-full max-w-[320px] overflow-hidden p-2 pb-20">
               {fileTree.length === 0 ? (
-                <p className="p-2 text-sm text-muted-foreground">
+                <div className="grid flex-1 w-full place-items-center text-center text-sm text-muted-foreground">
                   No files in this project.
-                </p>
+                </div>
               ) : (
                 <FileTree
                   items={fileTree}
@@ -319,9 +319,9 @@ export default function Source({ projectId, isPublic = false }) {
             className="flex-1 min-h-0 bg-background"
             showHorizontalScrollbar
           >
-            <div className="min-h-full flex flex-col">
+            <div className="flex flex-1 w-full flex-col">
               {!selectedFile ? (
-                <div className="flex flex-1 items-center justify-center w-full">
+                <div className="grid flex-1 w-full place-items-center px-4">
                   <div className="flex flex-col items-center justify-center text-muted-foreground">
                     <File className="mb-2 h-12 w-12 stroke-[1.75px]" />
                     <p className="text-lg font-semibold">
@@ -330,18 +330,24 @@ export default function Source({ projectId, isPublic = false }) {
                   </div>
                 </div>
               ) : fileContentLoading ? (
-                <div className="flex flex-1 items-center justify-center w-full">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                <div className="grid flex-1 w-full place-items-center px-4">
+                  <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                    <Spinner className="h-8 w-8" />
+                    <p className="text-sm font-medium">Loading file content…</p>
+                  </div>
                 </div>
               ) : fileContentError ? (
-                <div className="flex flex-1 items-center justify-center p-4 text-destructive">
-                  {fileContentError}
+                <div className="grid flex-1 w-full place-items-center p-4">
+                  <div className="flex flex-col items-center gap-3 text-destructive">
+                    <AlertCircle className="h-8 w-8" />
+                    <p className="text-sm font-medium">{fileContentError}</p>
+                  </div>
                 </div>
               ) : !isPreviewReady ? (
-                <div className="flex flex-1 items-center justify-center w-full">
+                <div className="grid flex-1 w-full place-items-center px-4">
                   <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                    <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                    <p className="text-sm">Preparing source preview...</p>
+                    <Spinner className="h-8 w-8" />
+                    <p className="text-sm font-medium">Preparing source preview…</p>
                   </div>
                 </div>
               ) : shouldUsePlainTextPreview ? (

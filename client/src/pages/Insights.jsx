@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Spinner } from '@/components/ui/spinner';
 import { FileDetails } from '@/components/FileDetails';
 import { SectionHeader } from '@/components/SectionHeader';
 import { TintedBadge } from '@/components/TintedBadge';
@@ -21,6 +22,7 @@ import {
   ChevronDown,
   GitGraph,
   Files,
+  AlertCircle,
 } from 'lucide-react';
 
 export default function Insights({ projectId, isPublic = false }) {
@@ -98,25 +100,23 @@ export default function Insights({ projectId, isPublic = false }) {
     return processedFiles.find((f) => f.path === activeSelection.key) || null;
   }, [activeSelection, processedFiles]);
 
-  if (loading) {
+  if (loading || isPreparingData) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-muted-foreground">Loading analysis data...</p>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <Spinner className="h-8 w-8" />
+          <p className="text-sm font-medium">{isPreparingData ? 'Preparing insights view…' : 'Loading analysis data…'}</p>
         </div>
       </div>
     );
   }
 
-  if (error) return <div className="p-8 text-destructive">{error}</div>;
-
-  if (isPreparingData) {
+  if (error) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p>Preparing insights view...</p>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-destructive">
+          <AlertCircle className="h-8 w-8" />
+          <p className="text-sm font-medium">{error}</p>
         </div>
       </div>
     );
@@ -131,7 +131,7 @@ export default function Insights({ projectId, isPublic = false }) {
       {/* LEFT SIDEBAR */}
       <div className="flex h-full min-h-0 w-80 flex-col overflow-hidden border-r bg-muted/5">
         <ScrollArea className="h-full flex-1">
-          <div className="max-w-[320px] overflow-hidden p-2 pb-20 space-y-0.5">
+          <div className="h-full w-full max-w-[320px] overflow-hidden p-2 pb-20 space-y-0.5">
             {/* Project Overview */}
             <div
               className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 my-1 font-mono text-sm transition-colors ${
@@ -182,7 +182,7 @@ export default function Insights({ projectId, isPublic = false }) {
 
       {/* RIGHT CONTENT PANE */}
       <ScrollArea className="flex-1 h-full" showHorizontalScrollbar>
-        <div className="min-h-full">
+        <div className="flex flex-1 w-full flex-col">
           {activeSelection.type === 'overview' ? (
             <ProjectMetadataPane
               data={resolvedData}
@@ -195,7 +195,7 @@ export default function Insights({ projectId, isPublic = false }) {
           ) : selectedFeature ? (
             <FeatureDetails feature={selectedFeature} />
           ) : (
-            <div className="flex min-h-full items-center justify-center text-muted-foreground">
+            <div className="grid flex-1 w-full place-items-center px-4 text-muted-foreground">
               <p>Select an item from the sidebar</p>
             </div>
           )}

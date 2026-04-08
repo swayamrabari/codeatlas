@@ -835,18 +835,20 @@ export default function Ask({ projectId, isPublic }) {
 
                   <ScrollArea className="max-h-[50vh] p-1">
                     {recentLoading ? (
-                      <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground">
-                        <Spinner className="h-4 w-4" />
-                        Loading recent chats...
+                      <div className="grid min-h-48 place-items-center px-4 py-6 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Spinner className="h-4 w-4" />
+                          Loading recent chats...
+                        </div>
                       </div>
                     ) : recentError ? (
-                      <p className="px-2 py-3 text-sm text-destructive">
+                      <div className="grid min-h-48 place-items-center px-4 py-6 text-center text-sm text-destructive">
                         {recentError}
-                      </p>
+                      </div>
                     ) : recentChats.length === 0 ? (
-                      <p className="px-2 py-3 text-sm text-muted-foreground">
+                      <div className="grid min-h-48 place-items-center px-4 py-6 text-center text-sm text-muted-foreground">
                         No recent chats yet.
-                      </p>
+                      </div>
                     ) : (
                       <div className="space-y-0.5">
                         {recentChats.map((item) => (
@@ -918,14 +920,20 @@ export default function Ask({ projectId, isPublic }) {
       <section className="min-h-0 flex-1">
         <div ref={chatViewportRef} className="h-full w-full">
           <ScrollArea className="h-full w-full">
-            <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-4">
+            <div
+              className={cn(
+                'mx-auto w-full max-w-3xl px-4 py-4',
+                messages.length === 0 && 'flex flex-1 flex-col',
+                messages.length > 0 && 'space-y-6',
+              )}
+            >
               {isRestoringChat ? (
-                <div className="flex min-h-[56vh] flex-col items-center justify-center gap-4 pt-8 text-center text-muted-foreground">
-                  <Spinner className="h-6 w-6" />
-                  <p className="text-sm">Restoring last chat...</p>
+                <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center text-muted-foreground">
+                  <Spinner className="h-8 w-8" />
+                  <p className="text-sm font-medium">Restoring last chat…</p>
                 </div>
               ) : messages.length === 0 ? (
-                <div className="flex min-h-[56vh] flex-col items-center justify-center gap-5 pt-8 text-center">
+                <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
                   <LogoIcon className="themed-svg h-16 w-16" />
                   <h2 className="text-3xl font-semibold">
                     {/* something special */}

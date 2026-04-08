@@ -8,8 +8,9 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Spinner } from '@/components/ui/spinner';
 import { FileDetails } from '@/components/FileDetails';
-import { File, FolderClosed, FolderOpen } from 'lucide-react';
+import { File, FolderClosed, FolderOpen, AlertCircle } from 'lucide-react';
 import {
   buildProjectTabStateKey,
   usePersistentState,
@@ -86,25 +87,23 @@ export default function Files({ projectId, isPublic = false }) {
     }
   }, [processedFiles, selectedFilePath, setSelectedFilePath]);
 
-  if (loading) {
+  if (loading || isPreparingData) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">Loading analysis data...</p>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <Spinner className="h-8 w-8" />
+          <p className="text-sm font-medium">{isPreparingData ? 'Preparing file index…' : 'Loading analysis data…'}</p>
         </div>
       </div>
     );
   }
 
-  if (error) return <div className="p-8 text-destructive">{error}</div>;
-
-  if (isPreparingData) {
+  if (error) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p>Preparing file index...</p>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-destructive">
+          <AlertCircle className="h-8 w-8" />
+          <p className="text-sm font-medium">{error}</p>
         </div>
       </div>
     );
@@ -118,11 +117,11 @@ export default function Files({ projectId, isPublic = false }) {
         {/* LEFT: FILE TREE */}
         <div className="flex h-full min-h-0 w-80 flex-col overflow-hidden border-r bg-muted/5">
           <ScrollArea className="h-full flex-1">
-            <div className="max-w-[320px] overflow-hidden p-2 pb-20">
+            <div className="flex-1 w-full max-w-[320px] overflow-hidden p-2 pb-20">
               {fileTree.length === 0 ? (
-                <p className="p-2 text-sm text-muted-foreground">
+                <div className="grid flex-1 w-full place-items-center text-center text-sm text-muted-foreground">
                   No files in this project.
-                </p>
+                </div>
               ) : (
                 <FileTree
                   items={fileTree}
@@ -140,13 +139,13 @@ export default function Files({ projectId, isPublic = false }) {
             className="flex-1 min-h-0 bg-background"
             showHorizontalScrollbar
           >
-            <div className="min-h-full flex flex-col">
+            <div className="flex flex-1 w-full flex-col">
               {selectedFile ? (
                 <div className="w-full">
                   <FileDetails file={selectedFile} />
                 </div>
               ) : (
-                <div className="flex flex-1 items-center justify-center">
+                <div className="grid flex-1 w-full place-items-center px-4">
                   <div className="flex flex-col items-center justify-center text-muted-foreground">
                     <File className="h-12 w-12 mb-2 stroke-[1.75px]" />
                     <p className="text-lg font-semibold">
