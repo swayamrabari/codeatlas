@@ -51,7 +51,7 @@ export default function Header({ projectName = '' }) {
               {!isDashboard && (
                 <div className="hidden md:flex items-center gap-2">
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => navigate('/dashboard')}
                   >
@@ -59,7 +59,7 @@ export default function Header({ projectName = '' }) {
                     Dashboard
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => navigate('/upload')}
                   >

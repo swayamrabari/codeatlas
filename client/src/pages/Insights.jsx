@@ -105,7 +105,11 @@ export default function Insights({ projectId, isPublic = false }) {
       <div className="flex h-full w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-muted-foreground">
           <Spinner className="h-8 w-8" />
-          <p className="text-sm font-medium">{isPreparingData ? 'Preparing insights view…' : 'Loading analysis data…'}</p>
+          <p className="text-sm font-medium">
+            {isPreparingData
+              ? 'Preparing insights view…'
+              : 'Loading analysis data…'}
+          </p>
         </div>
       </div>
     );
@@ -134,7 +138,7 @@ export default function Insights({ projectId, isPublic = false }) {
           <div className="h-full w-full max-w-[320px] overflow-hidden p-2 pb-20 space-y-0.5">
             {/* Project Overview */}
             <div
-              className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 my-1 font-mono text-sm transition-colors ${
+              className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 font-mono text-sm transition-colors ${
                 activeSelection.type === 'overview'
                   ? 'bg-secondary text-foreground'
                   : 'hover:bg-secondary text-foreground'
@@ -184,16 +188,22 @@ export default function Insights({ projectId, isPublic = false }) {
       <ScrollArea className="flex-1 h-full" showHorizontalScrollbar>
         <div className="flex flex-1 w-full flex-col">
           {activeSelection.type === 'overview' ? (
-            <ProjectMetadataPane
-              data={resolvedData}
-              processedFiles={processedFiles}
-              frameworksList={frameworksList}
-              featuresList={featuresList}
-            />
+            <div className="w-full">
+              <ProjectMetadataPane
+                data={resolvedData}
+                processedFiles={processedFiles}
+                frameworksList={frameworksList}
+                featuresList={featuresList}
+              />
+            </div>
           ) : selectedFile ? (
-            <FileDetails file={selectedFile} />
+            <div className="w-full">
+              <FileDetails file={selectedFile} />
+            </div>
           ) : selectedFeature ? (
-            <FeatureDetails feature={selectedFeature} />
+            <div className="w-full">
+              <FeatureDetails feature={selectedFeature} />
+            </div>
           ) : (
             <div className="grid flex-1 w-full place-items-center px-4 text-muted-foreground">
               <p>Select an item from the sidebar</p>

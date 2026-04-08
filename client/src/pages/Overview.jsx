@@ -157,7 +157,11 @@ export default function Overview({ projectId, isPublic = false }) {
       <div className="flex h-full w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-muted-foreground">
           <Spinner className="h-8 w-8" />
-          <p className="text-sm font-medium">{isPreparingData ? 'Preparing documentation view…' : 'Loading documentation…'}</p>
+          <p className="text-sm font-medium">
+            {isPreparingData
+              ? 'Preparing documentation view…'
+              : 'Loading documentation…'}
+          </p>
         </div>
       </div>
     );
@@ -300,7 +304,7 @@ export default function Overview({ projectId, isPublic = false }) {
 function DocSidebarItem({ label, onClick, isSelected }) {
   return (
     <div
-      className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 my-1 font-mono text-sm transition-colors${
+      className={`flex cursor-pointer select-none items-center gap-1.5 overflow-hidden rounded px-2 py-1.5 font-mono text-sm transition-colors${
         isSelected
           ? ' bg-secondary text-foreground'
           : ' hover:bg-secondary text-foreground'
