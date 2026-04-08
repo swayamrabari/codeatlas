@@ -27,11 +27,11 @@ const allowedOrigins = (
 let server;
 
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
+  console.error('Uncaught Exception:', error);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.error('❌ Unhandled Rejection:', reason);
+  console.error('Unhandled Rejection:', reason);
 });
 
 const shutdown = async (signal) => {
@@ -54,10 +54,10 @@ const shutdown = async (signal) => {
       await mongoose.connection.close(false);
     }
 
-    console.log('✅ HTTP server and MongoDB connection closed');
+    console.log('HTTP server and MongoDB connection closed');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error during graceful shutdown:', error);
+    console.error('Error during graceful shutdown:', error);
     process.exit(1);
   }
 };
@@ -67,17 +67,15 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 
 app.use(requestLogger);
 app.use(helmet());
+
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(new Error('Not allowed by CORS'));
-    },
+    origin: allowedOrigins,
   }),
 );
+
+app.options('*', cors());
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -94,9 +92,9 @@ app.use(errorHandler);
 
 connectDB()
   .then(() => {
-    server = app.listen(PORT, () => {
-      console.log(`🚀 Server is listening on port ${PORT}`);
-      console.log(`📁 Upload directory: ${UPLOAD_DIR}`);
+    server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is listening on port ${PORT}`);
+      console.log(`Upload directory: ${UPLOAD_DIR}`);
     });
 
     server.keepAliveTimeout = 300000;
@@ -107,7 +105,7 @@ connectDB()
         try {
           await fetch(SELF_PING_URL);
         } catch (error) {
-          console.error('❌ Self-ping failed:', error);
+          console.error('Self-ping failed:', error);
         }
       }, SELF_PING_INTERVAL_MS);
 
@@ -115,6 +113,6 @@ connectDB()
     }
   })
   .catch((error) => {
-    console.error('❌ Failed to start server:', error);
+    console.error('Failed to start server:', error);
     process.exit(1);
   });
