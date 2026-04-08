@@ -69,16 +69,13 @@ app.use(requestLogger);
 app.use(helmet());
 app.use(
   cors({
-    // origin: (origin, callback) => {
-    //   if (!origin || allowedOrigins.includes(origin)) {
-    //     callback(null, true);
-    //     return;
-    //   }
-    //   callback(new Error('Not allowed by CORS'));
-    // },
-
-    // temporaryly allow all origins for testing, should be restricted in production
-    origin: '*',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
   }),
 );
 app.use(express.json({ limit: '2mb' }));
