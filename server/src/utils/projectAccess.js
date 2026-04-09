@@ -11,11 +11,7 @@ export function buildAccessibleProjectQuery(projectId, userId) {
   };
 }
 
-export async function findAccessibleProject(
-  projectId,
-  userId,
-  projection = {},
-) {
+export function findAccessibleProject(projectId, userId, projection = {}) {
   return Project.findOne(
     buildAccessibleProjectQuery(projectId, userId),
     projection,

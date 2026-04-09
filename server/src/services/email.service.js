@@ -1,21 +1,48 @@
 import sgMail from '@sendgrid/mail';
 
 let initialized = false;
-const isProduction = process.env.NODE_ENV === 'production';
+
+function getSendGridApiKey() {
+  return String(process.env.SENDGRID_API_KEY || '').trim();
+}
+
+function isConsoleFallbackEnabled() {
+  return (
+    String(process.env.ALLOW_EMAIL_CONSOLE_FALLBACK || '')
+      .trim()
+      .toLowerCase() === 'true'
+  );
+}
 
 function initSendGrid() {
   if (initialized) return;
 
-  if (!process.env.SENDGRID_API_KEY) {
-    console.log(
-      '⚠️  No SENDGRID_API_KEY set — OTP codes will be logged to console',
+  const apiKey = getSendGridApiKey();
+
+  if (!apiKey) {
+    return;
+  }
+
+  sgMail.setApiKey(apiKey);
+  console.log('📧 SendGrid configured');
+  initialized = true;
+}
+
+function ensureEmailProviderConfigured(contextLabel) {
+  if (getSendGridApiKey()) {
+    return;
+  }
+
+  if (isConsoleFallbackEnabled()) {
+    console.warn(
+      `⚠️  SENDGRID_API_KEY is not set. Using console fallback for ${contextLabel}.`,
     );
     return;
   }
 
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log('📧 SendGrid configured');
-  initialized = true;
+  throw new Error(
+    'SENDGRID_API_KEY is required for email delivery. Configure SENDGRID_API_KEY and SENDGRID_FROM_EMAIL, or set ALLOW_EMAIL_CONSOLE_FALLBACK=true for local development only.',
+  );
 }
 
 function getFromEmail() {
@@ -31,15 +58,28 @@ function getFromEmail() {
 }
 
 function extractSendGridErrorMessage(error) {
+  const statusCode =
+    error?.code || error?.response?.statusCode || error?.response?.status;
   const apiErrors = error?.response?.body?.errors;
-  if (Array.isArray(apiErrors) && apiErrors.length > 0) {
-    return apiErrors
-      .map((item) => item?.message)
-      .filter(Boolean)
-      .join(' | ');
+  const parts = [];
+
+  if (statusCode) {
+    parts.push(`status=${statusCode}`);
   }
 
-  return error?.message || 'Unknown SendGrid error';
+  if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+    const apiMessages = apiErrors.map((item) => item?.message).filter(Boolean);
+
+    if (apiMessages.length > 0) {
+      parts.push(apiMessages.join(' | '));
+    }
+  }
+
+  if (parts.length === 0 && error?.message) {
+    parts.push(error.message);
+  }
+
+  return parts.join(' - ') || 'Unknown SendGrid error';
 }
 
 function logOtpFallback(toEmail, code, label, reason) {
@@ -68,6 +108,7 @@ export function generateVerificationCode() {
  */
 export async function sendVerificationEmail(toEmail, name, code) {
   initSendGrid();
+  ensureEmailProviderConfigured('verification emails');
 
   const htmlContent = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; background: #0a0a0a; border-radius: 12px;">
@@ -89,8 +130,7 @@ export async function sendVerificationEmail(toEmail, name, code) {
     </div>
   `;
 
-  if (!process.env.SENDGRID_API_KEY) {
-    // Dev fallback: log the code to console
+  if (!getSendGridApiKey()) {
     logOtpFallback(toEmail, code, 'Verification email');
     return { delivered: false, mode: 'console' };
   }
@@ -111,7 +151,7 @@ export async function sendVerificationEmail(toEmail, name, code) {
       message,
     });
 
-    if (!isProduction) {
+    if (isConsoleFallbackEnabled()) {
       logOtpFallback(
         toEmail,
         code,
@@ -121,7 +161,7 @@ export async function sendVerificationEmail(toEmail, name, code) {
       return { delivered: false, mode: 'console-fallback' };
     }
 
-    throw error;
+    throw new Error(`SendGrid verification email failed: ${message}`);
   }
 }
 
@@ -133,6 +173,7 @@ export async function sendVerificationEmail(toEmail, name, code) {
  */
 export async function sendPasswordResetEmail(toEmail, name, code) {
   initSendGrid();
+  ensureEmailProviderConfigured('password reset emails');
 
   const htmlContent = `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; background: #0a0a0a; border-radius: 12px;">
@@ -154,7 +195,7 @@ export async function sendPasswordResetEmail(toEmail, name, code) {
     </div>
   `;
 
-  if (!process.env.SENDGRID_API_KEY) {
+  if (!getSendGridApiKey()) {
     logOtpFallback(toEmail, code, 'Password reset email');
     return { delivered: false, mode: 'console' };
   }
@@ -175,7 +216,7 @@ export async function sendPasswordResetEmail(toEmail, name, code) {
       message,
     });
 
-    if (!isProduction) {
+    if (isConsoleFallbackEnabled()) {
       logOtpFallback(
         toEmail,
         code,
@@ -185,7 +226,7 @@ export async function sendPasswordResetEmail(toEmail, name, code) {
       return { delivered: false, mode: 'console-fallback' };
     }
 
-    throw error;
+    throw new Error(`SendGrid password reset email failed: ${message}`);
   }
 }
 
@@ -198,6 +239,7 @@ export async function sendPasswordResetEmail(toEmail, name, code) {
  */
 export async function sendAdminNoticeEmail(toEmail, name, subject, message) {
   initSendGrid();
+  ensureEmailProviderConfigured('admin notice emails');
 
   const safeSubject = String(
     subject || 'Important update from CodeAtlas',
@@ -225,7 +267,7 @@ export async function sendAdminNoticeEmail(toEmail, name, subject, message) {
     </div>
   `;
 
-  if (!process.env.SENDGRID_API_KEY) {
+  if (!getSendGridApiKey()) {
     console.log(`\n📬 ─────────────────────────────────────────`);
     console.log(`   Admin notification for: ${toEmail}`);
     console.log(`   Subject: ${safeSubject}`);
@@ -243,7 +285,22 @@ export async function sendAdminNoticeEmail(toEmail, name, subject, message) {
     });
     console.log(`📧 Admin notification sent to ${toEmail}`);
   } catch (error) {
-    console.error('❌ SendGrid admin notification error:', error.message);
-    throw error;
+    const detail = extractSendGridErrorMessage(error);
+    console.error('❌ SendGrid admin notification error:', {
+      toEmail,
+      message: detail,
+    });
+
+    if (isConsoleFallbackEnabled()) {
+      console.log(`\n📬 ─────────────────────────────────────────`);
+      console.log(`   Admin notification for: ${toEmail}`);
+      console.log(`   Subject: ${safeSubject}`);
+      console.log(`   Message: ${safeMessage}`);
+      console.log(`   Fallback reason: SendGrid failed (${detail})`);
+      console.log(`───────────────────────────────────────────\n`);
+      return;
+    }
+
+    throw new Error(`SendGrid admin notification failed: ${detail}`);
   }
 }

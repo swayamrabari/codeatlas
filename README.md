@@ -71,7 +71,7 @@ CodeAtlas helps developers understand unfamiliar repositories quickly by combini
 - **Multer** - ZIP upload handling
 - **simple-git** - Git clone/import support
 - **JWT + bcrypt** - Authentication and password security
-- **Nodemailer** - Verification email delivery
+- **SendGrid Mail** - Verification and transactional email delivery
 - **Helmet + CORS + express-rate-limit** - API security controls
 
 ### AI and Analysis
@@ -88,7 +88,7 @@ CodeAtlas helps developers understand unfamiliar repositories quickly by combini
 - **npm**
 - **MongoDB** (local or cloud instance)
 - **OpenAI API key** (required for AI documentation/chat)
-- **Email credentials** (optional, for real email verification delivery)
+- **SendGrid API key + verified sender identity** (required for real email delivery)
 
 ### Installation
 
@@ -127,12 +127,16 @@ CodeAtlas helps developers understand unfamiliar repositories quickly by combini
    PORT=5000
    NODE_ENV=development
    JWT_EXPIRES_IN=7d
-   CORS_ORIGIN=http://localhost:5173,http://localhost:5174
+   CORS_ORIGINS=http://localhost:5173,http://localhost:5174
    UPLOAD_DIR=./src/temp
 
-   # Optional (email verification via SMTP)
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
+   # Email delivery (SendGrid)
+   SENDGRID_API_KEY=your-sendgrid-api-key
+   SENDGRID_FROM_EMAIL=no-reply@your-verified-domain.com
+
+   # Development-only fallback (optional)
+   # When true, OTPs are logged in server console if SendGrid is missing/fails.
+   ALLOW_EMAIL_CONSOLE_FALLBACK=false
    ```
 
    Create a `.env` file in the `client` directory:
