@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { logger } from '../utils/logger.js';
 import {
   generateVerificationCode,
   sendPasswordResetEmail,
@@ -13,7 +14,7 @@ function normalizeEmail(email) {
 }
 
 function getEmailDeliveryErrorMessage() {
-  return 'Unable to send OTP email right now. Please verify SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, and sender identity in SendGrid.';
+  return 'Unable to send OTP email right now. Please verify BREVO_SMTP_USER, BREVO_SMTP_PASS, BREVO_FROM_EMAIL, and sender identity in Brevo.';
 }
 
 /**
@@ -72,7 +73,7 @@ export async function register(req, res) {
         try {
           await sendVerificationEmail(normalizedEmail, name, code);
         } catch (mailErr) {
-          console.error('❌ Verification resend during register failed:', {
+          logger.error('Verification resend during register failed', {
             email: normalizedEmail,
             message: mailErr.message,
           });
@@ -111,7 +112,7 @@ export async function register(req, res) {
     try {
       await sendVerificationEmail(normalizedEmail, name, code);
     } catch (mailErr) {
-      console.error('❌ Verification email send failed during register:', {
+      logger.error('Verification email send failed during register', {
         email: normalizedEmail,
         message: mailErr.message,
       });
@@ -119,7 +120,7 @@ export async function register(req, res) {
       return res.status(502).json({ error: getEmailDeliveryErrorMessage() });
     }
 
-    console.log(`✅ New user registered: ${normalizedEmail}`);
+    logger.info('New user registered', { email: normalizedEmail });
 
     res.status(201).json({
       message:
@@ -127,7 +128,7 @@ export async function register(req, res) {
       email: user.email,
     });
   } catch (err) {
-    console.error('❌ Registration error:', err.message);
+    logger.error('Registration error', err.message);
 
     // Handle mongoose validation errors
     if (err.name === 'ValidationError') {
@@ -194,7 +195,7 @@ export async function verifyEmail(req, res) {
     // Generate token and auto-login
     const token = signToken(user._id);
 
-    console.log(`✅ Email verified: ${normalizedEmail}`);
+    logger.info('Email verified', { email: normalizedEmail });
 
     res.status(200).json({
       message: 'Email verified successfully!',
@@ -202,7 +203,7 @@ export async function verifyEmail(req, res) {
       user: user.toJSON(),
     });
   } catch (err) {
-    console.error('❌ Verification error:', err.message);
+    logger.error('Verification error', err.message);
     res.status(500).json({ error: 'Verification failed. Please try again.' });
   }
 }
@@ -258,7 +259,7 @@ export async function login(req, res) {
     // Generate token
     const token = signToken(user._id);
 
-    console.log(`✅ User logged in: ${normalizedEmail}`);
+    logger.info('User logged in successfully');
 
     res.status(200).json({
       message: 'Login successful!',
@@ -266,7 +267,7 @@ export async function login(req, res) {
       user: user.toJSON(),
     });
   } catch (err) {
-    console.error('❌ Login error:', err.message);
+    logger.error('Login error', err.message);
     res.status(500).json({ error: 'Login failed. Please try again.' });
   }
 }
@@ -279,7 +280,7 @@ export async function getMe(req, res) {
   try {
     res.status(200).json({ user: req.user.toJSON() });
   } catch (err) {
-    console.error('❌ Get user error:', err.message);
+    logger.error('Get user error', err.message);
     res.status(500).json({ error: 'Failed to get user data.' });
   }
 }
@@ -316,7 +317,7 @@ export async function resendCode(req, res) {
     try {
       await sendVerificationEmail(normalizedEmail, user.name, code);
     } catch (mailErr) {
-      console.error('❌ Verification resend failed:', {
+      logger.error('Verification resend failed', {
         email: normalizedEmail,
         message: mailErr.message,
       });
@@ -324,13 +325,13 @@ export async function resendCode(req, res) {
       return res.status(502).json({ error: getEmailDeliveryErrorMessage() });
     }
 
-    console.log(`📧 Verification code resent to: ${normalizedEmail}`);
+    logger.info('Verification code resent', { email: normalizedEmail });
 
     res.status(200).json({
       message: 'Verification code resent. Please check your email.',
     });
   } catch (err) {
-    console.error('❌ Resend code error:', err.message);
+    logger.error('Resend code error', err.message);
     res.status(500).json({ error: 'Failed to resend code. Please try again.' });
   }
 }
@@ -377,7 +378,7 @@ export async function forgotPassword(req, res) {
     try {
       await sendPasswordResetEmail(normalizedEmail, user.name, code);
     } catch (mailErr) {
-      console.error('❌ Password reset email send failed:', {
+      logger.error('Password reset email send failed', {
         email: normalizedEmail,
         message: mailErr.message,
       });
@@ -390,7 +391,7 @@ export async function forgotPassword(req, res) {
         'If this email is registered, a password reset code has been sent.',
     });
   } catch (err) {
-    console.error('❌ Forgot password error:', err.message);
+    logger.error('Forgot password error', err.message);
     return res
       .status(500)
       .json({ error: 'Failed to start password reset. Please try again.' });
@@ -450,7 +451,7 @@ export async function verifyResetCode(req, res) {
       verified: true,
     });
   } catch (err) {
-    console.error('❌ Verify reset code error:', err.message);
+    logger.error('Verify reset code error', err.message);
     return res
       .status(500)
       .json({ error: 'Failed to verify reset code. Please try again.' });
@@ -516,13 +517,13 @@ export async function resetPassword(req, res) {
     user.resetPasswordCodeExpires = undefined;
     await user.save();
 
-    console.log(`✅ Password reset successful: ${normalizedEmail}`);
+    logger.info('Password reset successful', { email: normalizedEmail });
 
     return res.status(200).json({
       message: 'Password reset successful. You can now log in.',
     });
   } catch (err) {
-    console.error('❌ Reset password error:', err.message);
+    logger.error('Reset password error', err.message);
     return res
       .status(500)
       .json({ error: 'Failed to reset password. Please try again.' });

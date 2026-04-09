@@ -1,16 +1,17 @@
 import multer from 'multer';
 import path from 'path';
 import { uploadConfig } from '../config/upload.config.js';
+import { logger } from '../utils/logger.js';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    console.log(`📥 Storing file: ${file.originalname}`);
+    logger.info('Storing upload file', { file: file.originalname });
     cb(null, uploadConfig.uploadsPath);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const filename = uniqueSuffix + path.extname(file.originalname);
-    console.log(`💾 Filename: ${filename}`);
+    logger.info('Generated upload filename', { filename });
     cb(null, filename);
   },
 });
@@ -38,11 +39,11 @@ const upload = multer({
 });
 
 export function uploadProjectZip(req, res, next) {
-  console.log('\n🔄 Upload middleware started');
+  logger.info('Upload middleware started');
 
   upload.single('project')(req, res, (err) => {
     if (err instanceof multer.MulterError) {
-      console.error(`❌ Multer error: ${err.code} - ${err.message}`);
+      logger.error(`Multer error: ${err.code} - ${err.message}`);
       return res.status(400).json({
         success: false,
         error:
@@ -53,13 +54,13 @@ export function uploadProjectZip(req, res, next) {
     }
 
     if (err) {
-      console.error(`❌ Upload error: ${err.message}`);
+      logger.error(`Upload error: ${err.message}`);
       return res.status(400).json({ success: false, error: err.message });
     }
 
-    console.log(
-      `✅ Multer complete, file: ${req.file ? req.file.originalname : 'none'}`,
-    );
+    logger.info('Upload middleware completed', {
+      file: req.file ? req.file.originalname : 'none',
+    });
     return next();
   });
 }

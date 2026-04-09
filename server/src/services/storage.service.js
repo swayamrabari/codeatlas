@@ -4,6 +4,7 @@ import Project from '../models/Project.js';
 import File from '../models/File.js';
 import Feature from '../models/Feature.js';
 import { getFileExtension } from '../utils/ignoreFolders.js';
+import { logger } from '../utils/logger.js';
 
 const BATCH_SIZE = 20;
 
@@ -22,7 +23,7 @@ export async function createProject(userId, { name, description, uploadType }) {
       uploadedAt: new Date(),
     },
   });
-  console.log(`📦 Created project: ${project._id} (${project.name})`);
+  logger.info(`Created project ${project._id} (${project.name})`);
   return project;
 }
 
@@ -51,8 +52,8 @@ export async function storeFiles(projectId, userId, scannedFiles, projectPath) {
       } catch (readErr) {
         // File might not exist on disk (e.g., was classified from scanner but missing)
         // Still store the metadata without content
-        console.log(
-          `⚠️  Could not read file: ${scannedFile.path} — ${readErr.message}`,
+        logger.warn(
+          `Could not read file ${scannedFile.path}: ${readErr.message}`,
         );
       }
 
@@ -72,10 +73,7 @@ export async function storeFiles(projectId, userId, scannedFiles, projectPath) {
         analysis: buildAnalysis(scannedFile),
       });
     } catch (err) {
-      console.error(
-        `❌ Error processing file ${scannedFile.path}:`,
-        err.message,
-      );
+      logger.error(`Error processing file ${scannedFile.path}`, err.message);
     }
   }
 
@@ -87,22 +85,18 @@ export async function storeFiles(projectId, userId, scannedFiles, projectPath) {
       await fileDoc.validate();
       validDocs.push(doc);
     } catch (valErr) {
-      console.error(
-        `   ❌ Skipping invalid doc "${doc.path}": ${valErr.message}`,
-      );
+      logger.error(`Skipping invalid doc "${doc.path}": ${valErr.message}`);
     }
   }
 
   if (validDocs.length < fileDocs.length) {
-    console.warn(
-      `⚠️  ${fileDocs.length - validDocs.length} files failed pre-validation (still storing ${validDocs.length})`,
+    logger.warn(
+      `${fileDocs.length - validDocs.length} files failed pre-validation (still storing ${validDocs.length})`,
     );
   }
 
   // Batch insert only pre-validated files
-  console.log(
-    `💾 Storing ${validDocs.length} files in batches of ${BATCH_SIZE}...`,
-  );
+  logger.info(`Storing ${validDocs.length} files in batches of ${BATCH_SIZE}`);
   for (let i = 0; i < validDocs.length; i += BATCH_SIZE) {
     const batch = validDocs.slice(i, i + BATCH_SIZE);
     try {
@@ -110,8 +104,8 @@ export async function storeFiles(projectId, userId, scannedFiles, projectPath) {
       for (const doc of inserted) {
         filePathToId.set(doc.path, doc._id);
       }
-      console.log(
-        `   ✅ Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${inserted.length} files`,
+      logger.info(
+        `Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${inserted.length} files stored`,
       );
     } catch (err) {
       // Handle MongoDB-level errors (e.g., duplicate key on re-upload)
@@ -135,8 +129,8 @@ export async function storeFiles(projectId, userId, scannedFiles, projectPath) {
             filePathToId.set(doc.path, doc._id);
           }
           if (found.length > 0) {
-            console.log(
-              `   🔄 Recovered ${found.length} files from batch ${Math.floor(i / BATCH_SIZE) + 1}`,
+            logger.info(
+              `Recovered ${found.length} files from batch ${Math.floor(i / BATCH_SIZE) + 1}`,
             );
           }
         } catch {
@@ -144,20 +138,20 @@ export async function storeFiles(projectId, userId, scannedFiles, projectPath) {
         }
       }
 
-      console.error(
-        `   ⚠️ Batch ${Math.floor(i / BATCH_SIZE) + 1} partial: ${err.message}`,
+      logger.warn(
+        `Batch ${Math.floor(i / BATCH_SIZE) + 1} partial: ${err.message}`,
       );
     }
   }
 
-  console.log(
-    `📁 Stored ${filePathToId.size}/${validDocs.length} files (scanned: ${scannedFiles.length}, valid: ${validDocs.length})`,
+  logger.info(
+    `Stored ${filePathToId.size}/${validDocs.length} files (scanned: ${scannedFiles.length}, valid: ${validDocs.length})`,
   );
 
   // Warn if files were lost
   if (filePathToId.size < scannedFiles.length) {
-    console.warn(
-      `⚠️ ${scannedFiles.length - filePathToId.size} files could not be stored in MongoDB`,
+    logger.warn(
+      `${scannedFiles.length - filePathToId.size} files could not be stored in MongoDB`,
     );
   }
 
@@ -169,7 +163,7 @@ export async function storeFiles(projectId, userId, scannedFiles, projectPath) {
  */
 export async function storeFeatures(projectId, userId, features, filePathToId) {
   if (!features || Object.keys(features).length === 0) {
-    console.log('📭 No features to store');
+    logger.info('No features to store');
     return;
   }
 
@@ -230,9 +224,9 @@ export async function storeFeatures(projectId, userId, features, filePathToId) {
 
   try {
     await Feature.insertMany(featureDocs, { ordered: false });
-    console.log(`🏷️  Stored ${featureDocs.length} features`);
+    logger.info(`Stored ${featureDocs.length} features`);
   } catch (err) {
-    console.error(`⚠️ Feature storage partial: ${err.message}`);
+    logger.warn(`Feature storage partial: ${err.message}`);
   }
 }
 
@@ -277,7 +271,7 @@ export async function finalizeProject(projectId, scanResult, fileCount) {
     },
   });
 
-  console.log(`✅ Project ${projectId} finalized — status: ready`);
+  logger.info(`Project ${projectId} finalized with status ready`);
 }
 
 /**
@@ -289,9 +283,9 @@ export async function failProject(projectId, errorMessage) {
       status: 'failed',
       'metadata.errorMessage': errorMessage,
     });
-    console.log(`❌ Project ${projectId} marked as failed: ${errorMessage}`);
+    logger.warn(`Project ${projectId} marked as failed: ${errorMessage}`);
   } catch (err) {
-    console.error(`❌ Could not mark project as failed:`, err.message);
+    logger.error('Could not mark project as failed', err.message);
   }
 }
 
@@ -303,7 +297,7 @@ export async function cleanupProject(projectId) {
     File.deleteMany({ projectId }),
     Feature.deleteMany({ projectId }),
   ]);
-  console.log(`🧹 Cleaned up files and features for project ${projectId}`);
+  logger.info(`Cleaned up files and features for project ${projectId}`);
 }
 
 // ─── HELPERS ───────────────────────────────────────────────────────────

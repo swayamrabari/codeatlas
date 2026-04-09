@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger.js';
+
 export function errorHandler(err, req, res, next) {
   if (err.type === 'entity.too.large') {
     return res.status(413).json({
@@ -29,8 +31,10 @@ export function errorHandler(err, req, res, next) {
     });
   }
 
-  console.error('❌ Server error:', err.message);
-  console.error('   Stack:', err.stack);
+  logger.error('Server error', {
+    message: err.message,
+    stack: err.stack,
+  });
 
   return res.status(500).json({
     success: false,

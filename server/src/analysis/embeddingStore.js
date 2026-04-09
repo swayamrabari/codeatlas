@@ -1,6 +1,7 @@
 import Embedding from '../models/Embedding.js';
 import { generateEmbeddings } from './ai.service.js';
 import { buildChunks, buildEmbeddingInput } from './ragChunker.js';
+import { logger } from '../utils/logger.js';
 
 const EMBEDDING_BATCH_SIZE = 10;
 const EMBEDDING_BATCH_DELAY_MS = 1000;
@@ -18,11 +19,11 @@ export async function storeEmbeddings(projectId) {
   const chunks = await buildChunks(projectId);
 
   if (chunks.length === 0) {
-    console.log('  📭 No chunks to embed — skipping embedding step.');
+    logger.info('No chunks to embed; skipping embedding step');
     return;
   }
 
-  console.log(`  📊 Built ${chunks.length} chunks for embedding.`);
+  logger.info(`Built ${chunks.length} chunks for embedding`);
 
   // 3. Build embedding inputs
   const embeddingInputs = chunks.map(buildEmbeddingInput);
@@ -39,8 +40,8 @@ export async function storeEmbeddings(projectId) {
     );
 
     try {
-      console.log(
-        `  🔢 Embedding batch ${batchNum}/${totalBatches} (${batchTexts.length} texts)...`,
+      logger.info(
+        `Embedding batch ${batchNum}/${totalBatches} (${batchTexts.length} texts)`,
       );
 
       const vectors = await generateEmbeddings(batchTexts);
@@ -55,8 +56,9 @@ export async function storeEmbeddings(projectId) {
         });
       }
     } catch (err) {
-      console.error(
-        `  ❌ Embedding batch ${batchNum} failed after retries: ${err.message}. Skipping batch.`,
+      logger.error(
+        `Embedding batch ${batchNum} failed after retries; skipping batch`,
+        err.message,
       );
     }
 
@@ -69,8 +71,8 @@ export async function storeEmbeddings(projectId) {
   // 5. Bulk insert all documents
   if (documents.length > 0) {
     await Embedding.insertMany(documents, { ordered: false });
-    console.log(`  ✅ Stored ${documents.length} embeddings in the database.`);
+    logger.info(`Stored ${documents.length} embeddings in the database`);
   } else {
-    console.log('  ⚠ No embeddings were generated successfully.');
+    logger.warn('No embeddings were generated successfully');
   }
 }

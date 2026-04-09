@@ -1,6 +1,16 @@
+import { logger } from '../utils/logger.js';
+
 export function requestLogger(req, res, next) {
-  console.log(`\n📨 ${new Date().toISOString()}`);
-  console.log(`   ${req.method} ${req.url}`);
-  console.log(`   Content-Type: ${req.headers['content-type']}`);
+  const startedAt = process.hrtime.bigint();
+
+  res.on('finish', () => {
+    const finishedAt = process.hrtime.bigint();
+    const durationMs = Number(finishedAt - startedAt) / 1e6;
+    const url = req.originalUrl || req.url;
+    const contentLength = res.getHeader('content-length') ?? '-';
+
+    logger.http(req.method, url, res.statusCode, durationMs, contentLength);
+  });
+
   next();
 }

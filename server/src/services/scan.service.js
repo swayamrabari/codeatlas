@@ -14,6 +14,7 @@ import {
   getRelationshipStats,
 } from '../utils/relationshipBuilder.js';
 import { detectFeatures } from '../utils/featureDetector.js';
+import { logger } from '../utils/logger.js';
 
 // Maximum file size to read (1MB)
 const MAX_FILE_SIZE = 1024 * 1024;
@@ -2155,9 +2156,16 @@ export async function scanProject(projectPath) {
     const names = new Set();
     for (const i of imports || []) {
       const v = (i.value || i.path || '').trim();
-      if (!v || v.startsWith('.') || v.startsWith('/') || /^@\/|^~\/|^\.\.?\//.test(v))
+      if (
+        !v ||
+        v.startsWith('.') ||
+        v.startsWith('/') ||
+        /^@\/|^~\/|^\.\.?\//.test(v)
+      )
         continue;
-      const pkg = v.startsWith('@') ? v.split('/').slice(0, 2).join('/') : v.split('/')[0];
+      const pkg = v.startsWith('@')
+        ? v.split('/').slice(0, 2).join('/')
+        : v.split('/')[0];
       if (pkg) names.add(pkg);
     }
     return names;
@@ -2176,9 +2184,12 @@ export async function scanProject(projectPath) {
 
     // ─── Fix 1b (Store vs Hook): state-manager imports and path/name signals ───
     const externalPackages = getExternalPackageNames(imports);
-    const importsStateManager = [...externalPackages].some((p) => STATE_MANAGER_PACKAGES.has(p));
+    const importsStateManager = [...externalPackages].some((p) =>
+      STATE_MANAGER_PACKAGES.has(p),
+    );
     const pathInStores = /\/stores?\//.test(pathLower);
-    const pathInHooks = /\/hooks?\//.test(pathLower) || /\/composables\//.test(pathLower);
+    const pathInHooks =
+      /\/hooks?\//.test(pathLower) || /\/composables\//.test(pathLower);
     const nameEndsWithStore = /Store\.(jsx?|tsx?)$/i.test(fileName);
     const nameStartsWithUse = /^use[A-Z-]/.test(fileName);
     const isSourceExt = ['.js', '.ts', '.jsx', '.tsx'].includes(ext);
@@ -2271,9 +2282,7 @@ export async function scanProject(projectPath) {
   }
 
   // ─── POST-PROCESSING: Fix 1e — Page vs Component (multi-signal) ─────────
-  const fileMap = new Map(
-    files.map((f) => [f.path.replace(/\\/g, '/'), f]),
-  );
+  const fileMap = new Map(files.map((f) => [f.path.replace(/\\/g, '/'), f]));
 
   for (const file of files) {
     if (file.category !== 'frontend') continue;
@@ -2292,7 +2301,8 @@ export async function scanProject(projectPath) {
     // Signal 1 — Folder path
     if (pathLower.includes('/pages/')) pageScore += 2;
     if (pathLower.includes('/views/')) pageScore += 1;
-    if (pathLower.includes('/components/') || pathLower.includes('/component/')) componentScore += 2;
+    if (pathLower.includes('/components/') || pathLower.includes('/component/'))
+      componentScore += 2;
     if (pathLower.includes('/ui/')) componentScore += 1;
 
     // Signal 2 — File naming
@@ -2304,7 +2314,11 @@ export async function scanProject(projectPath) {
         (i.value === 'react-router-dom' || i.value === 'next/navigation') &&
         (i.imported || []).some((name) => {
           const base = (name.split(/\s+as\s+/)[0] || name).trim();
-          return ROUTER_HOOK_NAMES.has(base) || base === 'useRouter' || base === 'usePathname';
+          return (
+            ROUTER_HOOK_NAMES.has(base) ||
+            base === 'useRouter' ||
+            base === 'usePathname'
+          );
         }),
     );
     if (hasRouterHooks) pageScore += 2;
@@ -2315,7 +2329,11 @@ export async function scanProject(projectPath) {
       if (!importer) return false;
       if (importer.type === 'router-root') return true;
       const impFileName = importerPath.split('/').pop() || '';
-      return /^App\.(jsx?|tsx?)$/i.test(impFileName) || /^main\.(jsx?|tsx?)$/i.test(impFileName) || /^index\.(jsx?|tsx?)$/i.test(impFileName);
+      return (
+        /^App\.(jsx?|tsx?)$/i.test(impFileName) ||
+        /^main\.(jsx?|tsx?)$/i.test(impFileName) ||
+        /^index\.(jsx?|tsx?)$/i.test(impFileName)
+      );
     });
     if (importedByRouterOrApp) pageScore += 2;
 
@@ -2414,9 +2432,7 @@ export async function scanProject(projectPath) {
     } else {
       file.analysis.absoluteRoutes = [];
       if (!mountPrefix && (file.analysis.routes || []).length > 0) {
-        console.warn(
-          `⚠️ No mount prefix found for route file: ${normalizedPath}`,
-        );
+        logger.warn(`No mount prefix found for route file: ${normalizedPath}`);
       }
     }
   }
@@ -2516,7 +2532,9 @@ export async function scanProject(projectPath) {
     })),
     features,
   });
-  const tierByPath = new Map(tierResults.map((r) => [r.path.replace(/\\/g, '/'), r.tier]));
+  const tierByPath = new Map(
+    tierResults.map((r) => [r.path.replace(/\\/g, '/'), r.tier]),
+  );
   for (const file of files) {
     const pathNorm = file.path.replace(/\\/g, '/');
     file.tier = tierByPath.get(pathNorm) ?? 3;

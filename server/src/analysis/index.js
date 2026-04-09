@@ -1,6 +1,7 @@
 import Project from '../models/Project.js';
 import { generateDocumentation } from './docGenerator.js';
 import progressEmitter from './progressEmitter.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Trigger the AI documentation pipeline as a background task.
@@ -14,16 +15,14 @@ import progressEmitter from './progressEmitter.js';
 export function triggerDocumentation(projectId) {
   // Guard: skip if no OpenAI key configured
   if (!process.env.OPENAI_API_KEY) {
-    console.warn(
-      '⚠ OPENAI_API_KEY not set — skipping AI documentation generation.',
-    );
+    logger.warn('OPENAI_API_KEY not set; skipping AI documentation generation');
     return;
   }
 
   // Fire-and-forget (intentionally not awaited)
   _runPipeline(projectId).catch((err) => {
-    console.error(
-      `❌ [DocGen] Unhandled error in background pipeline for ${projectId}:`,
+    logger.error(
+      `[DocGen] Unhandled error in background pipeline for ${projectId}`,
       err,
     );
   });
@@ -56,9 +55,7 @@ async function _runPipeline(projectId) {
       },
     );
   } catch (err) {
-    console.error(
-      `❌ [DocGen] Pipeline failed for project ${projectId}: ${err.message}`,
-    );
+    logger.error(`[DocGen] Pipeline failed for project ${projectId}`, err);
 
     // Emit error to any connected SSE clients
     progressEmitter.emit(`progress:${projectId}`, {

@@ -7,6 +7,8 @@ import { connectDB } from './config/db.js';
 import apiRoutes from './routes/api.route.js';
 import { requestLogger } from './middleware/requestLogger.middleware.js';
 import { errorHandler } from './middleware/errorHandler.middleware.js';
+import { logEmailProviderStatus } from './services/email.service.js';
+import { logger } from './utils/logger.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -27,15 +29,15 @@ const allowedOrigins = (
 let server;
 
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  logger.error('Uncaught exception', error);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled Rejection:', reason);
+  logger.error('Unhandled rejection', reason);
 });
 
 const shutdown = async (signal) => {
-  console.log(`\n${signal} received. Shutting down gracefully...`);
+  logger.info(`${signal} received. Shutting down gracefully`);
 
   try {
     if (server) {
@@ -54,10 +56,10 @@ const shutdown = async (signal) => {
       await mongoose.connection.close(false);
     }
 
-    console.log('HTTP server and MongoDB connection closed');
+    logger.info('HTTP server and MongoDB connection closed');
     process.exit(0);
   } catch (error) {
-    console.error('Error during graceful shutdown:', error);
+    logger.error('Error during graceful shutdown', error);
     process.exit(1);
   }
 };
@@ -91,8 +93,9 @@ app.use(errorHandler);
 connectDB()
   .then(() => {
     server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server is listening on port ${PORT}`);
-      console.log(`Upload directory: ${UPLOAD_DIR}`);
+      logger.info('Server running on port ' + PORT);
+      logger.info('Upload directory set to ' + UPLOAD_DIR);
+      logEmailProviderStatus();
     });
 
     server.keepAliveTimeout = 300000;
@@ -103,7 +106,7 @@ connectDB()
         try {
           await fetch(SELF_PING_URL);
         } catch (error) {
-          console.error('Self-ping failed:', error);
+          logger.warn('Self-ping failed', error);
         }
       }, SELF_PING_INTERVAL_MS);
 
@@ -111,6 +114,6 @@ connectDB()
     }
   })
   .catch((error) => {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server', error);
     process.exit(1);
   });

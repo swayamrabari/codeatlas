@@ -8,6 +8,7 @@ import {
 } from './ai.service.js';
 import { storeEmbeddings } from './embeddingStore.js';
 import progressEmitter from './progressEmitter.js';
+import { logger } from '../utils/logger.js';
 
 // ─────────────────────────────────────────────
 // ── Selective Regeneration (single item)    ──
@@ -47,7 +48,7 @@ export async function regenerateSingleFileDoc(fileId) {
     fileData.fileContent = file.content || '';
   }
 
-  console.log(`🔄 [DocGen] Regenerating file doc: ${file.path} (tier ${tier})`);
+  logger.info(`[DocGen] Regenerating file doc: ${file.path} (tier ${tier})`);
   const doc = await generateFileDoc(fileData, tier);
 
   const update = { shortSummary: doc.shortSummary };
@@ -58,7 +59,7 @@ export async function regenerateSingleFileDoc(fileId) {
   }
 
   await File.updateOne({ _id: fileId }, { aiDocumentation: update });
-  console.log(`✅ [DocGen] File doc regenerated: ${file.path}`);
+  logger.info(`[DocGen] File doc regenerated: ${file.path}`);
   return update;
 }
 
@@ -89,7 +90,7 @@ export async function regenerateSingleFeatureDoc(featureId) {
     shortSummary: f.aiDocumentation?.shortSummary || null,
   }));
 
-  console.log(`🔄 [DocGen] Regenerating feature doc: ${feature.name}`);
+  logger.info(`[DocGen] Regenerating feature doc: ${feature.name}`);
   const doc = await generateFeatureDoc(
     feature.name,
     featureContext,
@@ -105,7 +106,7 @@ export async function regenerateSingleFeatureDoc(featureId) {
   };
 
   await Feature.updateOne({ _id: featureId }, { aiDocumentation: aiDoc });
-  console.log(`✅ [DocGen] Feature doc regenerated: ${feature.name}`);
+  logger.info(`[DocGen] Feature doc regenerated: ${feature.name}`);
   return aiDoc;
 }
 
@@ -146,7 +147,7 @@ export async function regenerateProjectOverviewDoc(projectId) {
     })),
   };
 
-  console.log(`🔄 [DocGen] Regenerating project overview: ${project.name}`);
+  logger.info(`[DocGen] Regenerating project overview: ${project.name}`);
   const doc = await generateProjectDoc(projectContext);
 
   const aiDoc = {
@@ -156,7 +157,7 @@ export async function regenerateProjectOverviewDoc(projectId) {
   };
 
   await Project.updateOne({ _id: projectId }, { aiDocumentation: aiDoc });
-  console.log(`✅ [DocGen] Project overview regenerated: ${project.name}`);
+  logger.info(`[DocGen] Project overview regenerated: ${project.name}`);
   return aiDoc;
 }
 
@@ -192,8 +193,8 @@ const BATCH_DELAY_MS = 2000;
  */
 export async function generateDocumentation(projectId) {
   const startTime = Date.now();
-  console.log(
-    `\n🤖 [DocGen] Starting documentation pipeline for project ${projectId}`,
+  logger.info(
+    `[DocGen] Starting documentation pipeline for project ${projectId}`,
   );
 
   // Load project metadata for context
@@ -225,14 +226,14 @@ export async function generateDocumentation(projectId) {
 
   // ── Step 4: RAG Chunking & Embeddings ──
   await _emitProgress(projectId, 'embeddings', 'Building search embeddings...');
-  console.log('  📦 [DocGen] Step 4/4: Generating embeddings...');
+  logger.info('[DocGen] Step 4/4: Generating embeddings');
   await storeEmbeddings(projectId);
 
   await _emitProgress(projectId, 'done', 'Pipeline complete');
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-  console.log(
-    `✅ [DocGen] Pipeline complete for project ${projectId} in ${elapsed}s\n`,
+  logger.info(
+    `[DocGen] Pipeline complete for project ${projectId} in ${elapsed}s`,
   );
 }
 
@@ -240,8 +241,8 @@ export async function generateDocumentation(projectId) {
 
 async function _generateFileDocs(projectId, projectType, projectFrameworks) {
   const files = await File.find({ projectId }).lean();
-  console.log(
-    `  📄 [DocGen] Step 1/4: Generating file docs for ${files.length} files...`,
+  logger.info(
+    `[DocGen] Step 1/4: Generating file docs for ${files.length} files`,
   );
 
   // Group by tier
@@ -249,8 +250,8 @@ async function _generateFileDocs(projectId, projectType, projectFrameworks) {
   const tier2 = files.filter((f) => (f.analysis?.tier ?? 3) === 2);
   const tier3 = files.filter((f) => (f.analysis?.tier ?? 3) === 3);
 
-  console.log(
-    `    Tier 1: ${tier1.length}, Tier 2: ${tier2.length}, Tier 3: ${tier3.length}`,
+  logger.info(
+    `[DocGen] Tier 1: ${tier1.length}, Tier 2: ${tier2.length}, Tier 3: ${tier3.length}`,
   );
 
   const totalFiles = files.length;
@@ -342,7 +343,7 @@ async function _processFilesBatch(
       } else {
         failed++;
         batchCompleted++;
-        console.error(`    ❌ File doc failed: ${r.reason?.message}`);
+        logger.error(`File doc failed: ${r.reason?.message}`);
       }
     }
 
@@ -356,7 +357,7 @@ async function _processFilesBatch(
   }
 
   const label = fullContent ? 'Tier 1/2' : 'Tier 3';
-  console.log(`    ✅ ${label}: ${completed} done, ${failed} failed`);
+  logger.info(`${label}: ${completed} done, ${failed} failed`);
 }
 
 // ── Step 2: Feature-Level Documentation ──
@@ -368,8 +369,8 @@ async function _generateFeatureDocs(projectId, projectType, projectFrameworks) {
       'path analysis.role analysis.category analysis.tier aiDocumentation.shortSummary',
   });
 
-  console.log(
-    `  🧩 [DocGen] Step 2/4: Generating feature docs for ${features.length} features...`,
+  logger.info(
+    `[DocGen] Step 2/4: Generating feature docs for ${features.length} features`,
   );
 
   const totalFeatures = features.length;
@@ -417,7 +418,7 @@ async function _generateFeatureDocs(projectId, projectType, projectFrameworks) {
         completed++;
       } else {
         failed++;
-        console.error(`    ❌ Feature doc failed: ${r.reason?.message}`);
+        logger.error(`Feature doc failed: ${r.reason?.message}`);
       }
     }
 
@@ -432,13 +433,13 @@ async function _generateFeatureDocs(projectId, projectType, projectFrameworks) {
     }
   }
 
-  console.log(`    ✅ Features: ${completed} done, ${failed} failed`);
+  logger.info(`Features: ${completed} done, ${failed} failed`);
 }
 
 // ── Step 3: Project-Level Documentation ──
 
 async function _generateProjectDocs(projectId, projectType, projectFrameworks) {
-  console.log('  🏗️ [DocGen] Step 3/4: Generating project-level docs...');
+  logger.info('[DocGen] Step 3/4: Generating project-level docs');
 
   const project = await Project.findById(projectId).lean();
 
@@ -483,5 +484,5 @@ async function _generateProjectDocs(projectId, projectType, projectFrameworks) {
     },
   );
 
-  console.log('    ✅ Project docs generated');
+  logger.info('Project docs generated');
 }

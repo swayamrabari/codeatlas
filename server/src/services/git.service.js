@@ -1,5 +1,6 @@
 import simpleGit from 'simple-git';
 import fs from 'fs/promises';
+import { logger } from '../utils/logger.js';
 
 /**
  * Clone a Git repository to a destination directory
@@ -8,8 +9,8 @@ import fs from 'fs/promises';
  * @returns {Promise<string>} - Path to cloned project root
  */
 export async function cloneRepository(repoUrl, destDir) {
-  console.log('🔗 Cloning Git repository...');
-  console.log(`   URL: ${repoUrl}`);
+  logger.info('Cloning Git repository');
+  logger.info(`Repository URL: ${repoUrl}`);
 
   // Ensure destination exists
   await fs.mkdir(destDir, { recursive: true });
@@ -20,17 +21,17 @@ export async function cloneRepository(repoUrl, destDir) {
       block: 60000, // 60 seconds for any single git operation
     },
     progress({ method, stage, progress }) {
-      console.log(`   Git ${method} ${stage} ${progress}%`);
+      logger.info(`Git ${method} ${stage} ${progress}%`);
     },
   });
 
   try {
     // Shallow clone with single branch for speed
     await git.clone(repoUrl, destDir, ['--depth', '1', '--single-branch']);
-    console.log(`✅ Cloned to: ${destDir}`);
+    logger.info(`Repository cloned to ${destDir}`);
     return destDir;
   } catch (err) {
-    console.error('❌ Git clone failed:', err.message);
+    logger.error('Git clone failed', err.message);
 
     // Clean up failed clone directory
     try {

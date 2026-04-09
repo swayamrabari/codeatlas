@@ -1,14 +1,15 @@
 import AdmZip from 'adm-zip';
 import fs from 'fs/promises';
 import path from 'path';
+import { logger } from '../utils/logger.js';
 
 /**
  * Extract a ZIP file to a destination directory
  */
 export async function extractZip(zipPath, destDir) {
-  console.log('📦 Extracting ZIP file...');
-  console.log(`   Source: ${zipPath}`);
-  console.log(`   Destination: ${destDir}`);
+  logger.info('Extracting ZIP file');
+  logger.info(`ZIP source: ${zipPath}`);
+  logger.info(`ZIP destination: ${destDir}`);
 
   // Ensure destination exists
   await fs.mkdir(destDir, { recursive: true });
@@ -16,29 +17,29 @@ export async function extractZip(zipPath, destDir) {
   try {
     const zip = new AdmZip(zipPath);
     const entries = zip.getEntries();
-    console.log(`   Entries in ZIP: ${entries.length}`);
+    logger.info(`Entries in ZIP: ${entries.length}`);
 
     zip.extractAllTo(destDir, true);
-    console.log('   Extraction complete');
+    logger.info('ZIP extraction complete');
 
     // Find project root (handle case where ZIP contains a single root folder)
     const dirEntries = await fs.readdir(destDir);
-    console.log(`   Top-level items: ${dirEntries.join(', ')}`);
+    logger.info(`Top-level extracted items: ${dirEntries.join(', ')}`);
 
     if (dirEntries.length === 1) {
       const singleEntry = path.join(destDir, dirEntries[0]);
       const stat = await fs.stat(singleEntry);
 
       if (stat.isDirectory()) {
-        console.log(`✅ Project root: ${singleEntry}`);
+        logger.info(`Project root detected at ${singleEntry}`);
         return singleEntry;
       }
     }
 
-    console.log(`✅ Project root: ${destDir}`);
+    logger.info(`Project root detected at ${destDir}`);
     return destDir;
   } catch (err) {
-    console.error('❌ Extraction error:', err.message);
+    logger.error('ZIP extraction error', err.message);
     throw err;
   }
 }
@@ -49,9 +50,9 @@ export async function extractZip(zipPath, destDir) {
 export async function cleanupZip(zipPath) {
   try {
     await fs.unlink(zipPath);
-    console.log('🧹 Cleaned up ZIP file');
+    logger.info('Cleaned up ZIP file');
   } catch (err) {
-    console.warn('⚠️ Could not clean up ZIP file:', err.message);
+    logger.warn('Could not clean up ZIP file', err.message);
   }
 }
 
@@ -60,13 +61,13 @@ export async function cleanupZip(zipPath) {
  */
 export function isValidZip(filePath) {
   try {
-    console.log(`🔍 Validating ZIP: ${filePath}`);
+    logger.info(`Validating ZIP: ${filePath}`);
     const zip = new AdmZip(filePath);
     const entries = zip.getEntries();
-    console.log(`   Found ${entries.length} entries`);
+    logger.info(`ZIP validation found ${entries.length} entries`);
     return entries.length > 0;
   } catch (err) {
-    console.error(`❌ ZIP validation error: ${err.message}`);
+    logger.error(`ZIP validation error: ${err.message}`);
     return false;
   }
 }

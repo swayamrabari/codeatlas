@@ -1,3 +1,5 @@
+import { logger } from './logger.js';
+
 /**
  * FEATURE DETECTION ALGORITHM
  *
@@ -794,15 +796,15 @@ function expandFeatures(features, relationships, files) {
  * This is the entry point that orchestrates all the steps above.
  */
 function detectFeatures(analysisData) {
-  console.log('Starting feature detection...\n');
+  logger.info('Starting feature detection');
 
   // Step 1: Identify hubs
   const hubs = identifyHubs(analysisData.files);
-  console.log(`✓ Found ${hubs.length} hubs`);
+  logger.info(`Found ${hubs.length} hubs`);
 
   // Step 2-4: Group hubs by feature
   let features = groupHubsByFeature(hubs);
-  console.log(`✓ Identified ${Object.keys(features).length} unique features`);
+  logger.info(`Identified ${Object.keys(features).length} unique features`);
 
   // Step 5-6: Expand features with connected files
   features = expandFeatures(
@@ -810,7 +812,7 @@ function detectFeatures(analysisData) {
     analysisData.relationships,
     analysisData.files,
   );
-  console.log(`✓ Expanded features with relationships`);
+  logger.info('Expanded features with relationships');
 
   // Calculate coverage
   const filesInFeatures = new Set();
@@ -822,8 +824,8 @@ function detectFeatures(analysisData) {
     (filesInFeatures.size / analysisData.totalFiles) *
     100
   ).toFixed(1);
-  console.log(
-    `\n📊 Coverage: ${filesInFeatures.size}/${analysisData.totalFiles} files (${coverage}%)`,
+  logger.info(
+    `Coverage: ${filesInFeatures.size}/${analysisData.totalFiles} files (${coverage}%)`,
   );
 
   return features;

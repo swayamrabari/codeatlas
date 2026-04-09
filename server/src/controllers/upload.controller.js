@@ -16,6 +16,7 @@ import {
   failProject,
 } from '../services/storage.service.js';
 import { triggerDocumentation } from '../analysis/index.js';
+import { logger } from '../utils/logger.js';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './src/temp';
 
@@ -147,13 +148,12 @@ export async function handleZipUpload(req, res) {
     };
 
     // Log feature summary
-    console.log('\n=== DETECTED FEATURES ===');
+    logger.info('Detected features summary');
     Object.entries(features || {})
       .sort((a, b) => b[1].fileCount - a[1].fileCount)
       .forEach(([name, feature]) => {
-        console.log(`📦 ${name.toUpperCase()} — ${feature.fileCount} files`);
+        logger.info(`${name.toUpperCase()} - ${feature.fileCount} files`);
       });
-    console.log('');
 
     // Cleanup temp files from disk (data is in MongoDB now)
     cleanupTempFiles(extractDir);
@@ -163,7 +163,7 @@ export async function handleZipUpload(req, res) {
 
     return res.status(200).json(response);
   } catch (err) {
-    console.error('Upload error:', err.message);
+    logger.error('Upload error', err.message);
 
     if (project?._id) {
       await failProject(project._id, err.message);
@@ -261,13 +261,12 @@ export async function handleGitUpload(req, res) {
     };
 
     // Log feature summary
-    console.log('\n=== DETECTED FEATURES ===');
+    logger.info('Detected features summary');
     Object.entries(features || {})
       .sort((a, b) => b[1].fileCount - a[1].fileCount)
       .forEach(([name, feature]) => {
-        console.log(`📦 ${name.toUpperCase()} — ${feature.fileCount} files`);
+        logger.info(`${name.toUpperCase()} - ${feature.fileCount} files`);
       });
-    console.log('');
 
     // Cleanup temp files
     cleanupTempFiles(cloneDir);
@@ -277,7 +276,7 @@ export async function handleGitUpload(req, res) {
 
     return res.status(200).json(response);
   } catch (err) {
-    console.error('Git upload error:', err.message);
+    logger.error('Git upload error', err.message);
 
     if (project?._id) {
       await failProject(project._id, err.message);
@@ -300,6 +299,6 @@ export async function handleGitUpload(req, res) {
  */
 function cleanupTempFiles(dirPath) {
   fs.rm(dirPath, { recursive: true, force: true })
-    .then(() => console.log(`🧹 Cleaned up temp: ${dirPath}`))
-    .catch((err) => console.error(`⚠️ Temp cleanup failed: ${err.message}`));
+    .then(() => logger.info(`Cleaned up temp directory: ${dirPath}`))
+    .catch((err) => logger.warn(`Temp cleanup failed: ${err.message}`));
 }
