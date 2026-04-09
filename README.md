@@ -2,9 +2,9 @@
 
 <div align="center">
 
-**A modern code intelligence platform focused on MERN stack projects for analysis, documentation, and AI-powered Q&A**
+**AI-powered repository intelligence platform for code analysis, documentation, and grounded project Q&A**
 
-[Features](#features) | [Tech Stack](#tech-stack) | [Getting Started](#getting-started) | [Project Structure](#project-structure) | [API Documentation](#api-documentation)
+[Features](#features) | [Tech Stack](#tech-stack) | [Getting Started](#getting-started) | [App Routes](#app-routes) | [API Documentation](#api-documentation)
 
 </div>
 
@@ -12,162 +12,315 @@
 
 ## Overview
 
-CodeAtlas helps developers understand unfamiliar repositories quickly by combining static analysis, feature extraction, relationship mapping, AI documentation generation, and contextual project chat. The platform is focused on MERN stack projects (MongoDB, Express, React, Node.js), while still supporting broader JavaScript-based repository analysis workflows. Users can upload a ZIP archive or provide a Git repository URL, then explore files, features, and architecture-level insights through an interactive frontend dashboard.
+CodeAtlas helps developers understand unfamiliar repositories quickly by combining static scanning, feature detection, relationship mapping, AI documentation generation, and contextual chat over the analyzed codebase.
+
+You can ingest projects from ZIP uploads or Git URLs, then explore them through dedicated pages for Overview, Insights, Files, Source, and Ask.
 
 ## Features
 
-### Project Ingestion
+### Project Ingestion and Analysis
 
-- **ZIP Upload Support**: Upload `.zip` projects up to 100MB via authenticated API.
-- **Git Repository Import**: Clone and analyze repositories directly from remote Git URLs.
-- **Per-User Project Isolation**: All projects are scoped to the authenticated user account.
+- Upload `.zip` archives (max 100MB) or import from Git URL.
+- Automatic scanning of file metadata, routes, imports/exports, dependencies, and relationships.
+- Feature grouping with categorized frontend/backend/shared ownership.
+- Persisted project statistics (frameworks, total files, feature count, relationship stats).
 
-### Automated Code Analysis
+### AI Documentation Workflow
 
-- **Repository Scanning**: Detects file metadata, imports, exports, routes, and module relationships.
-- **Feature Clustering**: Groups files into feature-level buckets with categorized frontend/backend/shared ownership.
-- **Project Statistics**: Stores framework signals, file counts, feature counts, and relationship stats.
+- Background AI documentation generation after project ingestion.
+- Overview-level, feature-level, and file-level documentation.
+- Live documentation progress streaming via Server-Sent Events (SSE).
+- Selective regeneration for project overview, a feature, or a single file.
 
-### Documentation Pipeline
+### AI Assistant (Grounded Q&A)
 
-- **AI-Generated File Docs**: Produces concise and detailed documentation per file.
-- **Feature and Project Docs**: Builds aggregate documentation and architecture summaries.
-- **Selective Regeneration**: Regenerate docs for a single file, feature, or project overview.
-- **Real-Time Progress Streaming**: Server-Sent Events endpoint for live documentation progress.
+- Ask contextual questions against indexed project chunks.
+- Non-stream and SSE stream answer endpoints.
+- Citations with file paths and metadata.
+- Persistent project chat history with rename and delete support.
 
-### AI Project Assistant
+### Collaboration and Public Explorer
 
-- **Grounded Q&A**: Ask technical questions against analyzed project context.
-- **Streaming Responses**: Token-style streamed answers over SSE.
-- **Persistent Chat History**: Store, list, rename, and delete chat threads per project.
+- Project sharing with verified users (owner-managed share list).
+- Share suggestions endpoint for quick collaborator lookup.
+- Public Explorer endpoints for a configured showcase project ID.
 
-### Security and Platform Reliability
+### Authentication and Admin Controls
 
-- **JWT Authentication**: Token-based auth with protected routes and user scoping.
-- **Email Verification Flow**: 6-digit verification code workflow for account activation.
-- **Rate Limiting**: Request throttling on auth and upload endpoints.
-- **Secure API Defaults**: CORS controls, Helmet hardening, payload limits, and centralized error handling.
+- JWT auth with protected routes.
+- Email verification with 6-digit OTP.
+- Forgot-password flow with OTP verification.
+- Admin dashboard endpoints for global stats, user management, blocking/unblocking, and notifications.
+
+### Security and Reliability
+
+- Helmet security headers, CORS policy, centralized error handling.
+- Rate limiting on auth/upload related endpoints.
+- Account blocking enforcement across protected APIs.
+- Graceful shutdown and health endpoint support.
 
 ## Tech Stack
 
 ### Frontend
 
-- **React 19** - UI library
-- **Vite** - Build tool and dev server
-- **React Router DOM v7** - Client-side routing
-- **Tailwind CSS v4** - Utility-first styling
-- **Radix UI** - Component primitives
-- **TanStack React Query** - Data fetching and caching
-- **Axios** - HTTP client
-- **Mermaid** - Diagram rendering
-- **React Markdown + remark-gfm** - Markdown rendering
-- **prism-react-renderer** - Code highlighting
+- **React 19**
+- **Vite 7**
+- **React Router DOM 7**
+- **Tailwind CSS 4**
+- **TanStack React Query**
+- **Axios**
+- **Radix UI**
+- **Mermaid**
+- **React Markdown + remark-gfm**
 
 ### Backend
 
-- **Node.js** - Runtime environment
-- **Express 5** - Web framework
-- **MongoDB + Mongoose** - Data layer and modeling
-- **Multer** - ZIP upload handling
-- **simple-git** - Git clone/import support
-- **JWT + bcrypt** - Authentication and password security
-- **SendGrid Mail** - Verification and transactional email delivery
-- **Helmet + CORS + express-rate-limit** - API security controls
+- **Node.js**
+- **Express 5**
+- **MongoDB + Mongoose**
+- **Multer** (ZIP uploads)
+- **simple-git** (Git import)
+- **jsonwebtoken + bcrypt**
+- **@sendgrid/mail**
+- **helmet + cors + express-rate-limit**
 
-### AI and Analysis
+### AI Layer
 
-- **OpenAI API** - LLM and embeddings
-- **LangChain OpenAI** - AI orchestration utilities
-- **Custom analysis pipeline** - File, feature, and relationship extraction
+- **OpenAI API**
+- **@langchain/openai**
+- Custom chunking, embeddings, retrieval, and doc generation pipeline
 
 ## Getting Started
 
 ### Prerequisites
 
-- **Node.js** (v18 or higher)
-- **npm**
-- **MongoDB** (local or cloud instance)
-- **OpenAI API key** (required for AI documentation/chat)
-- **SendGrid API key + verified sender identity** (required for real email delivery)
+- Node.js 18+
+- npm
+- MongoDB instance
+- OpenAI API key (required for AI docs/chat)
+- SendGrid API key + verified sender (required for production email delivery)
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone repository
 
    ```bash
    git clone <repository-url>
    cd CodeAtlas
    ```
 
-2. **Install frontend dependencies**
+2. Install dependencies
 
    ```bash
    cd client
    npm install
-   ```
-
-3. **Install backend dependencies**
-
-   ```bash
    cd ../server
    npm install
    ```
 
-4. **Configure environment variables**
+3. Configure environment variables
 
-   Create a `.env` file in the `server` directory:
+   Create `server/.env`:
 
    ```env
-   # Required
+   # Core
    MONGODB_URI=mongodb://127.0.0.1:27017/codeatlas
    JWT_SECRET=your-strong-jwt-secret
    OPENAI_API_KEY=your-openai-api-key
 
-   # Optional (recommended)
+   # Runtime
    PORT=5000
    NODE_ENV=development
    JWT_EXPIRES_IN=7d
-   CORS_ORIGINS=http://localhost:5173,http://localhost:5174
+   CORS_ORIGINS=http://localhost:5173,https://your-frontend-domain
    UPLOAD_DIR=./src/temp
 
-   # Email delivery (SendGrid)
-   SENDGRID_API_KEY=your-sendgrid-api-key
+   # Public Explorer
+   PUBLIC_PROJECT_ID=<mongo-project-id-used-for-public-explorer>
+
+   # Optional uptime self-ping
+   SELF_PING_URL=https://your-backend-domain/health
+   SELF_PING_INTERVAL_MS=600000
+
+   # Email
+   SENDGRID_API_KEY=your-sendgrid-key
    SENDGRID_FROM_EMAIL=no-reply@your-verified-domain.com
 
-   # Development-only fallback (optional)
-   # When true, OTPs are logged in server console if SendGrid is missing/fails.
+   # Dev-only fallback to console logs when SendGrid is unavailable
    ALLOW_EMAIL_CONSOLE_FALLBACK=false
    ```
 
-   Create a `.env` file in the `client` directory:
+   Create `client/.env`:
 
    ```env
    VITE_API_URL=http://localhost:5000/api
+   VITE_PUBLIC_PROJECT_ID=<same-id-as-server-public-project-id>
    ```
 
-5. **Start the development servers**
+4. Start development servers
 
-   **Terminal 1 - Backend:**
+   Option A: run both with root script
 
    ```bash
+   dev.bat
+   ```
+
+   Option B: run separately
+
+   ```bash
+   # terminal 1
    cd server
    npm run dev
-   ```
 
-   Server runs on `http://localhost:5000`
-
-   **Terminal 2 - Frontend:**
-
-   ```bash
+   # terminal 2
    cd client
    npm run dev
    ```
 
-   Client runs on `http://localhost:5173`
+5. Open app
 
-6. **Open your browser**
+- Frontend: `http://localhost:5173`
+- Backend health: `http://localhost:5000/health`
 
-   Navigate to `http://localhost:5173`
+### Create Admin User
+
+```bash
+cd server
+npm run seed:admin
+```
+
+## App Routes
+
+### Public Frontend Routes
+
+- `/`
+- `/explore/*` (public demo dashboard)
+- `/login`
+- `/register`
+- `/verify-email`
+- `/forgot-password`
+- `/reset-password`
+
+### Protected Frontend Routes
+
+- `/dashboard`
+- `/upload` (non-admin only)
+- `/project/:id/*` with tabs:
+  - `/project/:id/overview`
+  - `/project/:id/insights`
+  - `/project/:id/files`
+  - `/project/:id/source`
+  - `/project/:id/ask`
+- `/admin` (admin only)
+
+## API Documentation
+
+Base URL: `http://localhost:5000/api`
+
+### Health
+
+- `GET /api` - API heartbeat message
+- `GET /health` - service health probe
+
+### Auth (Public)
+
+- `POST /auth/register`
+- `POST /auth/verify-email`
+- `POST /auth/login`
+- `POST /auth/resend-code`
+- `POST /auth/forgot-password`
+- `POST /auth/verify-reset-code`
+- `POST /auth/reset-password`
+
+### Auth (Protected)
+
+- `GET /auth/me`
+
+### Project Ingestion (Protected, Non-admin)
+
+- `POST /upload` - ZIP upload + scan + async docs pipeline trigger
+- `POST /upload-git` - clone repository + scan + async docs pipeline trigger
+
+### Project Management and Sharing (Protected)
+
+- `GET /projects` - list owned and shared projects
+- `GET /projects/share/suggestions?q=<email-fragment>`
+- `GET /projects/:id/status`
+- `GET /projects/:id/share` - owner only
+- `PATCH /projects/:id/share` - owner only
+- `DELETE /projects/:id` - owner only
+
+### Overview Page APIs (Protected)
+
+- `GET /projects/:id/overview`
+- `GET /projects/:id/overview/progress` (SSE)
+- `POST /projects/:id/overview/regenerate`
+- `POST /projects/:id/overview/regenerate/feature`
+- `POST /projects/:id/overview/regenerate/file`
+
+### Insights, Files, Source APIs (Protected)
+
+- `GET /projects/:id/insights`
+- `GET /projects/:id/files`
+- `GET /projects/:id/files/features`
+- `GET /projects/:id/files/features/:keyword`
+- `GET /projects/:id/source/files`
+- `GET /projects/:id/source/file?path=<relative-file-path>`
+
+### Ask APIs (Protected)
+
+- `POST /projects/:id/ask`
+- `POST /projects/:id/ask/stream` (SSE)
+- `GET /projects/:id/ask/chats`
+- `GET /projects/:id/ask/chats/:chatId`
+- `PATCH /projects/:id/ask/chats/:chatId`
+- `DELETE /projects/:id/ask/chats/:chatId`
+
+### Public Explorer APIs (No Auth)
+
+These routes are limited to the configured `PUBLIC_PROJECT_ID`.
+
+- `GET /public/projects/:id/status`
+- `GET /public/projects/:id/overview`
+- `GET /public/projects/:id/insights`
+- `GET /public/projects/:id/files`
+- `GET /public/projects/:id/source/files`
+- `GET /public/projects/:id/source/file?path=<relative-file-path>`
+- `POST /public/projects/:id/ask/stream`
+
+### Admin APIs (Protected, Admin Only)
+
+- `GET /admin/stats`
+- `GET /admin/users`
+- `POST /admin/users/:id/notify`
+- `PATCH /admin/users/:id/block`
+- `DELETE /admin/users/:id`
+
+## Available Scripts
+
+### Root
+
+```bash
+dev.bat                 # Starts client and server dev processes in separate terminals
+```
+
+### Client
+
+```bash
+npm run dev             # Start Vite dev server
+npm run build           # Build for production
+npm run preview         # Preview production build
+npm run lint            # Run ESLint
+```
+
+### Server
+
+```bash
+npm run dev             # Start server with nodemon
+npm start               # Start server
+npm run seed:admin      # Seed admin user
+npm test                # Placeholder test script
+```
 
 ## Project Structure
 
@@ -196,98 +349,32 @@ CodeAtlas/
 |   |   |-- middleware/
 |   |   |-- models/
 |   |   |-- routes/
+|   |   |-- scripts/
 |   |   |-- services/
 |   |   |-- utils/
 |   |   `-- server.js
 |   `-- package.json
+|-- dev.bat
 `-- README.md
-```
-
-## API Documentation
-
-Base URL: `http://localhost:5000/api`
-
-### Public Endpoints
-
-- `GET /api` - API health message
-- `GET /health` - Service health probe
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/verify-email` - Verify account with code
-- `POST /api/auth/login` - User login
-- `POST /api/auth/resend-code` - Resend email verification code
-
-### Authenticated Endpoints
-
-- `GET /api/auth/me` - Get current user profile
-- `POST /api/upload` - Upload ZIP project for analysis
-- `POST /api/upload-git` - Import project from Git URL
-- `GET /api/projects` - List current user projects
-- `GET /api/project/:id` - Get project summary and analysis output
-- `GET /api/project/:id/status` - Get analysis/documentation status
-- `DELETE /api/project/:id` - Delete a project and related data
-
-### Explorer Endpoints
-
-- `GET /api/project/:id/files` - Get lightweight file list
-- `GET /api/project/:id/file?path=<file-path>` - Get file content and analysis
-- `GET /api/project/:id/features` - Get all detected features
-- `GET /api/project/:id/features/:keyword` - Get a feature with file references
-
-### Documentation Endpoints
-
-- `GET /api/project/:id/docs` - Get project/feature/file AI documentation
-- `GET /api/project/:id/progress` - Stream documentation progress (SSE)
-- `POST /api/project/:id/regenerate/file` - Regenerate a file doc
-- `POST /api/project/:id/regenerate/feature` - Regenerate a feature doc
-- `POST /api/project/:id/regenerate/project` - Regenerate project overview doc
-
-### Chat Endpoints
-
-- `POST /api/project/:id/ask` - Ask a grounded project question
-- `POST /api/project/:id/ask/stream` - Stream grounded answer (SSE)
-- `GET /api/project/:id/chats` - List saved chats
-- `GET /api/project/:id/chats/:chatId` - Get chat with message history
-- `PATCH /api/project/:id/chats/:chatId` - Rename chat title
-- `DELETE /api/project/:id/chats/:chatId` - Delete chat
-
-## Available Scripts
-
-### Client Scripts
-
-```bash
-npm run dev      # Start Vite dev server
-npm run build    # Build for production
-npm run preview  # Preview production build
-npm run lint     # Run ESLint
-```
-
-### Server Scripts
-
-```bash
-npm run dev      # Start server with nodemon
-npm start        # Start server in production mode
-npm test         # Placeholder test script
 ```
 
 ## Security Features
 
-- **JWT Authentication** - Protected API routes and user isolation
-- **Password Hashing** - Secure credential storage with bcrypt
-- **Email Verification** - One-time code verification flow
-- **Rate Limiting** - Throttling on sensitive endpoints
-- **Helmet** - Standard security headers
-- **CORS Policy** - Configurable allowed origins
-- **Upload Validation** - ZIP type checks and file size limits
-- **Centralized Error Handling** - Consistent API error responses
+- JWT-protected APIs
+- Password hashing with bcrypt
+- Email verification and reset OTP flow
+- Account block enforcement
+- Rate limiting for auth/upload routes
+- Helmet + CORS hardening
+- Upload validation for ZIP-only ingestion
+- Centralized API error handling
 
 ## Contributing
 
-Contributions are welcome. Please follow this workflow:
-
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m "Add your feature"`)
-4. Push to your branch (`git push origin feature/your-feature`)
+3. Commit changes (`git commit -m "Add your feature"`)
+4. Push to branch (`git push origin feature/your-feature`)
 5. Open a Pull Request
 
 ## License
