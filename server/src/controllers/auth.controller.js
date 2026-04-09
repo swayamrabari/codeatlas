@@ -14,7 +14,7 @@ function normalizeEmail(email) {
 }
 
 function getEmailDeliveryErrorMessage() {
-  return 'Unable to send OTP email right now. Please verify BREVO_SMTP_USER, BREVO_SMTP_PASS, BREVO_FROM_EMAIL, and sender identity in Brevo.';
+  return 'Unable to send OTP email right now. Please verify BREVO_API_KEY, BREVO_FROM_EMAIL, and sender identity in Brevo.';
 }
 
 /**

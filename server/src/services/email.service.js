@@ -1,18 +1,15 @@
-import nodemailer from 'nodemailer';
 import { logger } from '../utils/logger.js';
 
 const OTP_EXPIRY_MINUTES = 10;
-const DEFAULT_SMTP_HOST = 'smtp-relay.brevo.com';
-const DEFAULT_SMTP_PORT = 587;
+const DEFAULT_BREVO_API_BASE_URL = 'https://api.brevo.com';
 const DEFAULT_RETRY_ATTEMPTS = 2;
 const DEFAULT_RETRY_BACKOFF_MS = 350;
+const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 const MAX_RETRY_ATTEMPTS = 4;
 const MAX_RETRY_BACKOFF_MS = 5000;
+const MAX_REQUEST_TIMEOUT_MS = 30000;
 const INTER_FONT_STACK =
   "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-
-let mailTransporter = null;
-let configuredTransportFingerprint = '';
 
 function getEnvString(name, fallback = '') {
   return String(process.env[name] ?? fallback).trim();
@@ -81,30 +78,21 @@ function escapeHtmlWithLineBreaks(value) {
   return escapeHtml(value).replace(/\r?\n/g, '<br/>');
 }
 
-function getBrevoSmtpConfig() {
-  const host =
-    getEnvString('BREVO_SMTP_HOST', DEFAULT_SMTP_HOST) || DEFAULT_SMTP_HOST;
-  const port = toSafeInteger(
-    process.env.BREVO_SMTP_PORT,
-    DEFAULT_SMTP_PORT,
-    1,
-    65535,
-  );
-  const secure = getEnvBoolean('BREVO_SMTP_SECURE', port === 465);
+function getBrevoApiConfig() {
+  const apiBaseUrl =
+    getEnvString('BREVO_API_BASE_URL', DEFAULT_BREVO_API_BASE_URL) ||
+    DEFAULT_BREVO_API_BASE_URL;
+  const trimmedBaseUrl = apiBaseUrl.replace(/\/+$/, '');
 
-  const user = sanitizeCredential(
-    getEnvString('BREVO_SMTP_USER') || getEnvString('SMTP_USER'),
-  );
-  const pass = sanitizeCredential(
-    getEnvString('BREVO_SMTP_PASS') || getEnvString('SMTP_PASS'),
-  );
+  const explicitEmailUrl = getEnvString('BREVO_EMAIL_API_URL');
+  const emailApiUrl = explicitEmailUrl || `${trimmedBaseUrl}/v3/smtp/email`;
+
+  const apiKey = sanitizeCredential(getEnvString('BREVO_API_KEY'));
 
   return {
-    host,
-    port,
-    secure,
-    user,
-    pass,
+    apiKey,
+    apiBaseUrl: trimmedBaseUrl,
+    emailApiUrl,
   };
 }
 
@@ -112,20 +100,6 @@ function getConfiguredFromEmailCandidate() {
   const primary = normalizeEmailAddress(process.env.BREVO_FROM_EMAIL);
   if (primary) {
     return { email: primary, source: 'BREVO_FROM_EMAIL' };
-  }
-
-  const aliases = [
-    'SENDGRID_FROM_EMAIL',
-    'EMAIL_FROM',
-    'FROM_EMAIL',
-    'MAIL_FROM',
-  ];
-
-  for (const key of aliases) {
-    const value = normalizeEmailAddress(process.env[key]);
-    if (value) {
-      return { email: value, source: key };
-    }
   }
 
   return { email: '', source: 'none' };
@@ -136,7 +110,7 @@ function getFromEmail() {
 
   if (!fromEmail) {
     throw new Error(
-      'BREVO_FROM_EMAIL is required when Brevo SMTP credentials are configured. Add a verified sender email in your environment variables.',
+      'BREVO_FROM_EMAIL is required when Brevo API credentials are configured. Add a verified sender email in your environment variables.',
     );
   }
 
@@ -155,11 +129,10 @@ function getFromEmail() {
 
 function getFromField() {
   const fromEmail = getFromEmail();
-  const fromName =
-    getEnvString('BREVO_FROM_NAME') || getEnvString('SENDGRID_FROM_NAME');
+  const fromName = getEnvString('BREVO_FROM_NAME');
 
   if (!fromName) {
-    return fromEmail;
+    return { email: fromEmail };
   }
 
   return {
@@ -170,19 +143,25 @@ function getFromField() {
 
 function getRetryConfig() {
   const attempts = toSafeInteger(
-    process.env.BREVO_RETRY_ATTEMPTS || process.env.SENDGRID_RETRY_ATTEMPTS,
+    process.env.BREVO_RETRY_ATTEMPTS,
     DEFAULT_RETRY_ATTEMPTS,
     1,
     MAX_RETRY_ATTEMPTS,
   );
   const backoffMs = toSafeInteger(
-    process.env.BREVO_RETRY_BACKOFF_MS || process.env.SENDGRID_RETRY_BACKOFF_MS,
+    process.env.BREVO_RETRY_BACKOFF_MS,
     DEFAULT_RETRY_BACKOFF_MS,
     50,
     MAX_RETRY_BACKOFF_MS,
   );
+  const requestTimeoutMs = toSafeInteger(
+    process.env.BREVO_REQUEST_TIMEOUT_MS,
+    DEFAULT_REQUEST_TIMEOUT_MS,
+    1000,
+    MAX_REQUEST_TIMEOUT_MS,
+  );
 
-  return { attempts, backoffMs };
+  return { attempts, backoffMs, requestTimeoutMs };
 }
 
 function delay(ms) {
@@ -191,77 +170,31 @@ function delay(ms) {
   });
 }
 
-function getTransportFingerprint(config) {
-  return [
-    config.host,
-    String(config.port),
-    String(config.secure),
-    config.user,
-    config.pass,
-  ].join('|');
-}
-
-function ensureBrevoTransporter() {
-  const smtp = getBrevoSmtpConfig();
-
-  if (!smtp.user || !smtp.pass) {
-    configuredTransportFingerprint = '';
-    mailTransporter = null;
-    return {
-      ready: false,
-      reason: 'BREVO_SMTP_USER or BREVO_SMTP_PASS is missing',
-    };
-  }
-
-  const fingerprint = getTransportFingerprint(smtp);
-
-  if (mailTransporter && configuredTransportFingerprint === fingerprint) {
-    return { ready: true };
-  }
-
-  mailTransporter = nodemailer.createTransport({
-    host: smtp.host,
-    port: smtp.port,
-    secure: smtp.secure,
-    auth: {
-      user: smtp.user,
-      pass: smtp.pass,
-    },
-  });
-
-  configuredTransportFingerprint = fingerprint;
-  logger.info(
-    `Email provider configured (Brevo SMTP user=${getCredentialFingerprint(smtp.user)}, host=${smtp.host}:${smtp.port})`,
-  );
-
-  return { ready: true };
-}
-
 function resolveProviderMode(contextLabel) {
-  const smtp = getBrevoSmtpConfig();
+  const api = getBrevoApiConfig();
   const fallbackEnabled = isConsoleFallbackEnabled();
 
-  if (!smtp.user || !smtp.pass) {
+  if (!api.apiKey) {
     if (fallbackEnabled) {
       logger.warn(
-        `WARNING: Brevo SMTP credentials are not set. Using console fallback for ${contextLabel}.`,
+        `WARNING: Brevo API key is not set. Using console fallback for ${contextLabel}.`,
       );
       return {
         mode: 'console',
-        reason: 'BREVO_SMTP_USER or BREVO_SMTP_PASS is not set',
+        reason: 'BREVO_API_KEY is not set',
       };
     }
 
     throw new Error(
-      'Brevo SMTP credentials are required for email delivery. Configure BREVO_SMTP_USER, BREVO_SMTP_PASS, and BREVO_FROM_EMAIL, or set ALLOW_EMAIL_CONSOLE_FALLBACK=true for local development only.',
+      'Brevo API credentials are required for email delivery. Configure BREVO_API_KEY and BREVO_FROM_EMAIL, or set ALLOW_EMAIL_CONSOLE_FALLBACK=true for local development only.',
     );
   }
 
-  return { mode: 'brevo-smtp' };
+  return { mode: 'brevo-api' };
 }
 
-function extractSmtpErrorDetails(error) {
-  const statusCode = Number(error?.responseCode) || 0;
+function extractBrevoApiErrorDetails(error) {
+  const statusCode = Number(error?.statusCode || error?.responseCode) || 0;
   const code = String(error?.code || '')
     .trim()
     .toUpperCase();
@@ -276,25 +209,35 @@ function extractSmtpErrorDetails(error) {
   return {
     statusCode,
     code,
-    message: parts.join(' - ') || 'Unknown Brevo SMTP error',
+    message: parts.join(' - ') || 'Unknown Brevo API error',
   };
 }
 
-function isSmtpAuthError(details) {
-  return (
-    details.code === 'EAUTH' ||
-    details.statusCode === 530 ||
-    details.statusCode === 535
-  );
+function isBrevoAuthError(details) {
+  return [401, 403].includes(details.statusCode);
 }
 
-function isSmtpSenderError(details) {
-  return [550, 551, 552, 553, 554].includes(details.statusCode);
+function isBrevoSenderError(details) {
+  if (![400, 422].includes(details.statusCode)) {
+    return false;
+  }
+
+  return /sender|from/i.test(details.message);
 }
 
-function isRetryableSmtpError(details) {
-  const retryableCodes = ['ETIMEDOUT', 'ECONNECTION', 'ESOCKET', 'EPROTOCOL'];
-  const retryableStatuses = [421, 429, 450, 451, 452];
+function isRetryableBrevoApiError(details) {
+  const retryableCodes = [
+    'ETIMEOUT',
+    'ETIMEDOUT',
+    'ECONNECTION',
+    'ESOCKET',
+    'EPROTOCOL',
+    'ECONNRESET',
+    'ECONNREFUSED',
+    'ENOTFOUND',
+    'EAI_AGAIN',
+  ];
+  const retryableStatuses = [408, 409, 421, 425, 429];
 
   if (retryableCodes.includes(details.code)) {
     return true;
@@ -308,7 +251,7 @@ function isRetryableSmtpError(details) {
 }
 
 function withBrevoAuthHint(message) {
-  return `${message}. Verify BREVO_SMTP_USER and BREVO_SMTP_PASS are valid and the service was restarted after secret updates.`;
+  return `${message}. Verify BREVO_API_KEY is valid and the service was restarted after secret updates.`;
 }
 
 function withBrevoSenderHint(message) {
@@ -316,47 +259,124 @@ function withBrevoSenderHint(message) {
 }
 
 function buildDeliveryErrorMessage(details) {
-  if (isSmtpAuthError(details)) {
+  if (isBrevoAuthError(details)) {
     return withBrevoAuthHint(details.message);
   }
 
-  if (isSmtpSenderError(details)) {
+  if (isBrevoSenderError(details)) {
     return withBrevoSenderHint(details.message);
   }
 
   return details.message;
 }
 
-function extractSmtpAcceptanceMetadata(sendResult) {
-  const accepted = Array.isArray(sendResult?.accepted)
-    ? sendResult.accepted
-    : [];
-  const rejected = Array.isArray(sendResult?.rejected)
-    ? sendResult.rejected
-    : [];
+function createBrevoApiError({ statusCode, code = '', message = '' }) {
+  const normalizedCode = String(code || '')
+    .trim()
+    .toUpperCase();
+  const normalizedMessage = String(message || '').trim();
 
-  return {
-    acceptedCount: accepted.length,
-    rejectedCount: rejected.length,
-    messageId: sendResult?.messageId || 'unknown',
-    response: sendResult?.response || '',
-  };
+  const parts = [];
+  if (statusCode) parts.push(`status=${statusCode}`);
+  if (normalizedCode) parts.push(`code=${normalizedCode}`);
+  if (normalizedMessage) parts.push(normalizedMessage);
+
+  const error = new Error(parts.join(' - ') || 'Unknown Brevo API error');
+  error.statusCode = Number(statusCode) || 0;
+  error.code = normalizedCode;
+  error.response = normalizedMessage;
+  return error;
 }
 
-async function sendThroughBrevoSmtp({ contextLabel, payload }) {
-  const { attempts, backoffMs } = getRetryConfig();
+function parseJsonSafely(rawBody) {
+  if (!rawBody) return null;
+
+  try {
+    return JSON.parse(rawBody);
+  } catch {
+    return null;
+  }
+}
+
+function extractBrevoMessageId(parsedBody) {
+  const single = String(parsedBody?.messageId || '').trim();
+  if (single) return single;
+
+  const multiple = Array.isArray(parsedBody?.messageIds)
+    ? parsedBody.messageIds
+    : [];
+  if (multiple.length === 0) return 'unknown';
+
+  return String(multiple[0] || '').trim() || 'unknown';
+}
+
+async function postToBrevoEmailApi({ apiConfig, payload, requestTimeoutMs }) {
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => {
+    controller.abort();
+  }, requestTimeoutMs);
+
+  try {
+    const response = await fetch(apiConfig.emailApiUrl, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': apiConfig.apiKey,
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    const rawBody = await response.text();
+    const parsedBody = parseJsonSafely(rawBody);
+
+    if (!response.ok) {
+      throw createBrevoApiError({
+        statusCode: response.status,
+        code: parsedBody?.code || parsedBody?.errorCode,
+        message:
+          parsedBody?.message ||
+          parsedBody?.error ||
+          rawBody ||
+          'Brevo API request failed',
+      });
+    }
+
+    return {
+      acceptedCount: 1,
+      rejectedCount: 0,
+      messageId: extractBrevoMessageId(parsedBody),
+      response: rawBody,
+    };
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw createBrevoApiError({
+        code: 'ETIMEOUT',
+        message: `Request timeout after ${requestTimeoutMs}ms`,
+      });
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
+}
+
+async function sendThroughBrevoApi({ contextLabel, payload }) {
+  const apiConfig = getBrevoApiConfig();
+  const { attempts, backoffMs, requestTimeoutMs } = getRetryConfig();
   let lastErrorMessage = '';
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      const sendResult = await mailTransporter.sendMail(payload);
-      const acceptedMeta = extractSmtpAcceptanceMetadata(sendResult);
+      const acceptedMeta = await postToBrevoEmailApi({
+        apiConfig,
+        payload,
+        requestTimeoutMs,
+      });
 
-      if (acceptedMeta.acceptedCount === 0) {
-        throw new Error('No recipients accepted by SMTP relay.');
-      }
-
-      logger.info(`Brevo SMTP accepted ${contextLabel}`, {
+      logger.info(`Brevo API accepted ${contextLabel}`, {
         acceptedCount: acceptedMeta.acceptedCount,
         rejectedCount: acceptedMeta.rejectedCount,
         messageId: acceptedMeta.messageId,
@@ -371,15 +391,15 @@ async function sendThroughBrevoSmtp({ contextLabel, payload }) {
 
       return acceptedMeta;
     } catch (error) {
-      const details = extractSmtpErrorDetails(error);
+      const details = extractBrevoApiErrorDetails(error);
       const enrichedMessage = buildDeliveryErrorMessage(details);
       lastErrorMessage = enrichedMessage;
 
-      const retryable = isRetryableSmtpError(details);
+      const retryable = isRetryableBrevoApiError(details);
       const canRetry = retryable && attempt < attempts;
 
       logger.error(
-        `Brevo SMTP ${contextLabel} attempt ${attempt}/${attempts} failed`,
+        `Brevo API ${contextLabel} attempt ${attempt}/${attempts} failed`,
         {
           statusCode: details.statusCode || 'unknown',
           code: details.code || 'unknown',
@@ -395,7 +415,7 @@ async function sendThroughBrevoSmtp({ contextLabel, payload }) {
     }
   }
 
-  throw new Error(lastErrorMessage || `Brevo SMTP ${contextLabel} failed`);
+  throw new Error(lastErrorMessage || `Brevo API ${contextLabel} failed`);
 }
 
 async function sendEmail({
@@ -415,14 +435,6 @@ async function sendEmail({
   let providerMode;
   try {
     providerMode = resolveProviderMode(contextLabel);
-    if (providerMode.mode === 'brevo-smtp') {
-      const initResult = ensureBrevoTransporter();
-      if (!initResult.ready) {
-        throw new Error(
-          initResult.reason || 'Brevo SMTP transporter is not ready',
-        );
-      }
-    }
   } catch (error) {
     if (!isConsoleFallbackEnabled()) {
       throw error;
@@ -438,27 +450,27 @@ async function sendEmail({
   }
 
   try {
-    await sendThroughBrevoSmtp({
+    await sendThroughBrevoApi({
       contextLabel,
       payload: {
-        to: recipient,
-        from: getFromField(),
+        sender: getFromField(),
+        to: [{ email: recipient }],
         subject,
-        html,
-        text,
+        htmlContent: html,
+        textContent: text,
       },
     });
 
     logger.info(`Email sent (${consoleLabel}) to ${recipient}`);
-    return { delivered: true, mode: 'brevo-smtp' };
+    return { delivered: true, mode: 'brevo-api' };
   } catch (error) {
     const detail = String(error?.message || error);
     if (isConsoleFallbackEnabled()) {
-      fallbackLogger(`Brevo SMTP failed (${detail})`);
+      fallbackLogger(`Brevo API failed (${detail})`);
       return { delivered: false, mode: 'console-fallback' };
     }
 
-    throw new Error(`Brevo SMTP ${contextLabel} failed: ${detail}`);
+    throw new Error(`Brevo API ${contextLabel} failed: ${detail}`);
   }
 }
 
@@ -553,21 +565,18 @@ export function generateVerificationCode() {
 }
 
 export function logEmailProviderStatus() {
-  const smtp = getBrevoSmtpConfig();
-  const { email: fromEmail, source: fromEmailSource } =
-    getConfiguredFromEmailCandidate();
+  const api = getBrevoApiConfig();
+  const { email: fromEmail } = getConfiguredFromEmailCandidate();
 
-  if (!smtp.user || !smtp.pass) {
+  if (!api.apiKey) {
     if (isConsoleFallbackEnabled()) {
       logger.warn(
-        'Email provider in console fallback mode: Brevo SMTP credentials are missing.',
+        'Email provider in console fallback mode: Brevo API key is missing.',
       );
       return;
     }
 
-    logger.warn(
-      'Email provider not configured: BREVO_SMTP_USER or BREVO_SMTP_PASS is missing.',
-    );
+    logger.warn('Email provider not configured: BREVO_API_KEY is missing.');
     return;
   }
 
@@ -586,7 +595,7 @@ export function logEmailProviderStatus() {
   }
 
   logger.info(
-    `Email provider ready (Brevo SMTP user=${getCredentialFingerprint(smtp.user)}, host=${smtp.host}:${smtp.port}, from=${fromEmail}, source=${fromEmailSource})`,
+    `Email provider ready (Brevo API key=${getCredentialFingerprint(api.apiKey)}, endpoint=${api.emailApiUrl}, from=${fromEmail})`,
   );
 }
 

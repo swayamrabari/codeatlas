@@ -81,7 +81,7 @@ You can ingest projects from ZIP uploads or Git URLs, then explore them through 
 - **Multer** (ZIP uploads)
 - **simple-git** (Git import)
 - **jsonwebtoken + bcrypt**
-- **@sendgrid/mail**
+- **Brevo REST Email API**
 - **helmet + cors + express-rate-limit**
 
 ### AI Layer
@@ -98,7 +98,7 @@ You can ingest projects from ZIP uploads or Git URLs, then explore them through 
 - npm
 - MongoDB instance
 - OpenAI API key (required for AI docs/chat)
-- SendGrid API key + verified sender (required for production email delivery)
+- Brevo API key, sender email, and sender name configured in server env
 
 ### Installation
 
@@ -132,6 +132,7 @@ You can ingest projects from ZIP uploads or Git URLs, then explore them through 
    PORT=5000
    NODE_ENV=development
    JWT_EXPIRES_IN=7d
+   # Required: comma-separated frontend origins. No hardcoded fallback in code.
    CORS_ORIGINS=http://localhost:5173,https://your-frontend-domain
    UPLOAD_DIR=./src/temp
 
@@ -142,11 +143,20 @@ You can ingest projects from ZIP uploads or Git URLs, then explore them through 
    SELF_PING_URL=https://your-backend-domain/health
    SELF_PING_INTERVAL_MS=600000
 
-   # Email
-   SENDGRID_API_KEY=your-sendgrid-key
-   SENDGRID_FROM_EMAIL=no-reply@your-verified-domain.com
+   # Email (Brevo REST API)
+   # Required by email service:
+   BREVO_API_KEY=your-brevo-api-key
+   BREVO_FROM_EMAIL=no-reply@your-verified-domain.com
+   BREVO_FROM_NAME=CodeAtlas
 
-   # Dev-only fallback to console logs when SendGrid is unavailable
+   # Optional Brevo API tuning:
+   # BREVO_API_BASE_URL=https://api.brevo.com
+   # BREVO_EMAIL_API_URL=https://api.brevo.com/v3/smtp/email
+   # BREVO_RETRY_ATTEMPTS=2
+   # BREVO_RETRY_BACKOFF_MS=350
+   # BREVO_REQUEST_TIMEOUT_MS=10000
+
+   # Dev-only fallback to console logs when Brevo API delivery is unavailable
    ALLOW_EMAIL_CONSOLE_FALLBACK=false
    ```
 
