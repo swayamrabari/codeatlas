@@ -13,8 +13,11 @@ const Home = lazy(() => import('./pages/Home.jsx'));
 const Login = lazy(() => import('./pages/Login.jsx'));
 const Register = lazy(() => import('./pages/Register.jsx'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail.jsx'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
 const UploadProject = lazy(() => import('./pages/UploadProject.jsx'));
 const ProjectDashboard = lazy(() => import('./pages/ProjectDashboard.jsx'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
 const PublicProjectDashboard = lazy(
   () => import('./pages/PublicProjectDashboard.jsx'),
 );
@@ -36,7 +39,7 @@ function RedirectIfAuthenticated({ children }) {
   }
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={user?.isAdmin ? '/admin' : '/dashboard'} replace />;
   }
 
   return children;
@@ -44,6 +47,16 @@ function RedirectIfAuthenticated({ children }) {
 
 function RootRoute() {
   return <Home />;
+}
+
+function DashboardEntry() {
+  const { user } = useAuth();
+
+  if (user?.isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return <UserDashboard />;
 }
 
 function AppRoutes() {
@@ -69,20 +82,36 @@ function AppRoutes() {
         }
       />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route
+        path="/forgot-password"
+        element={
+          <RedirectIfAuthenticated>
+            <ForgotPassword />
+          </RedirectIfAuthenticated>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <RedirectIfAuthenticated>
+            <ResetPassword />
+          </RedirectIfAuthenticated>
+        }
+      />
 
       {/* Protected routes */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <UserDashboard />
+            <DashboardEntry />
           </ProtectedRoute>
         }
       />
       <Route
         path="/upload"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requireNonAdmin>
             <UploadProject />
           </ProtectedRoute>
         }
@@ -92,6 +121,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ProjectDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireAdmin>
+            <AdminDashboard />
           </ProtectedRoute>
         }
       />

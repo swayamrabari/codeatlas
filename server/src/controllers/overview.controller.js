@@ -1,4 +1,3 @@
-import Project from '../models/Project.js';
 import File from '../models/File.js';
 import Feature from '../models/Feature.js';
 import progressEmitter from '../analysis/progressEmitter.js';
@@ -7,6 +6,10 @@ import {
   regenerateSingleFeatureDoc,
   regenerateProjectOverviewDoc,
 } from '../analysis/docGenerator.js';
+import {
+  findAccessibleProject,
+  isProjectOwner,
+} from '../utils/projectAccess.js';
 
 /**
  * Get full AI documentation for a project — project overview, features with docs, files grouped by feature.
@@ -16,17 +19,15 @@ export async function getOverviewPageData(req, res) {
     const { id } = req.params;
     const userId = req.user._id;
 
-    const project = await Project.findOne(
-      { _id: id, userId },
-      {
-        name: 1,
-        aiDocumentation: 1,
-        'stats.projectType': 1,
-        'stats.frameworks': 1,
-        'stats.totalFiles': 1,
-        'stats.featureCount': 1,
-      },
-    );
+    const project = await findAccessibleProject(id, userId, {
+      userId: 1,
+      name: 1,
+      aiDocumentation: 1,
+      'stats.projectType': 1,
+      'stats.frameworks': 1,
+      'stats.totalFiles': 1,
+      'stats.featureCount': 1,
+    });
 
     if (!project) {
       return res
@@ -97,11 +98,12 @@ export async function streamOverviewProgress(req, res) {
   const { id } = req.params;
   const userId = req.user._id;
 
-  // Verify the user owns this project
-  const project = await Project.findOne(
-    { _id: id, userId },
-    { status: 1, docProgress: 1, name: 1 },
-  );
+  // Verify the user has access to this project
+  const project = await findAccessibleProject(id, userId, {
+    status: 1,
+    docProgress: 1,
+    name: 1,
+  });
 
   if (!project) {
     return res.status(404).json({ error: 'Project not found' });
@@ -197,12 +199,22 @@ export async function regenerateOverviewFileDoc(req, res) {
         .json({ success: false, error: 'filePath is required' });
     }
 
-    // Verify project ownership
-    const project = await Project.findOne({ _id: id, userId }, { _id: 1 });
+    // Verify project ownership for mutation endpoints.
+    const project = await findAccessibleProject(id, userId, {
+      _id: 1,
+      userId: 1,
+    });
     if (!project) {
       return res
         .status(404)
         .json({ success: false, error: 'Project not found' });
+    }
+
+    if (!isProjectOwner(project, userId)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only the project proprietor can regenerate documentation',
+      });
     }
 
     // Find the file
@@ -241,11 +253,21 @@ export async function regenerateOverviewFeatureDoc(req, res) {
         .json({ success: false, error: 'keyword is required' });
     }
 
-    const project = await Project.findOne({ _id: id, userId }, { _id: 1 });
+    const project = await findAccessibleProject(id, userId, {
+      _id: 1,
+      userId: 1,
+    });
     if (!project) {
       return res
         .status(404)
         .json({ success: false, error: 'Project not found' });
+    }
+
+    if (!isProjectOwner(project, userId)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only the project proprietor can regenerate documentation',
+      });
     }
 
     const feature = await Feature.findOne(
@@ -278,11 +300,21 @@ export async function regenerateOverviewDoc(req, res) {
     const { id } = req.params;
     const userId = req.user._id;
 
-    const project = await Project.findOne({ _id: id, userId }, { _id: 1 });
+    const project = await findAccessibleProject(id, userId, {
+      _id: 1,
+      userId: 1,
+    });
     if (!project) {
       return res
         .status(404)
         .json({ success: false, error: 'Project not found' });
+    }
+
+    if (!isProjectOwner(project, userId)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Only the project proprietor can regenerate documentation',
+      });
     }
 
     const aiDocumentation = await regenerateProjectOverviewDoc(id);

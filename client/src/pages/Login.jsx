@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AUTH_NOTICE_STORAGE_KEY, authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,47 @@ import LogoIcon from '../assets/logo';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const buildBlockedErrorMessage = (message, reason) => {
+    const base =
+      message || 'Your account has been blocked. Please contact support.';
+    return reason
+      ? `${base}\nReason: ${reason}`
+      : `${base}\nReason: Please contact support.`;
+  };
+
+  useEffect(() => {
+    let appliedStoredNotice = false;
+
+    try {
+      const rawNotice = localStorage.getItem(AUTH_NOTICE_STORAGE_KEY);
+      if (rawNotice) {
+        const notice = JSON.parse(rawNotice);
+        if (notice?.type === 'blocked') {
+          appliedStoredNotice = true;
+          setError(buildBlockedErrorMessage(notice?.message, notice?.reason));
+        }
+      }
+    } catch {
+      // Ignore malformed notice payloads.
+    } finally {
+      localStorage.removeItem(AUTH_NOTICE_STORAGE_KEY);
+    }
+
+    if (!appliedStoredNotice) {
+      const params = new URLSearchParams(location.search);
+      if (params.get('blocked') === '1') {
+        setError(buildBlockedErrorMessage());
+      }
+    }
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,10 +61,16 @@ export default function Login() {
     try {
       const data = await authAPI.login(email, password);
       login(data.token, data.user);
-      navigate('/dashboard');
+      navigate(data?.user?.isAdmin ? '/admin' : '/dashboard');
     } catch (err) {
       const msg =
         err.response?.data?.error || 'Login failed. Please try again.';
+
+      if (err.response?.data?.blocked) {
+        const reason = err.response?.data?.blockReason;
+        setError(buildBlockedErrorMessage(msg, reason));
+        return;
+      }
 
       if (err.response?.data?.needsVerification) {
         navigate(
@@ -63,7 +104,7 @@ export default function Login() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3">
           {error && (
-            <div className="rounded-md bg-red-500/10 px-3 py-2.5 border-[1.5px] font-semibold border-red-500/20 text-sm text-red-400">
+            <div className="rounded-md bg-red-500/10 px-3 py-2.5 border-[1.5px] font-semibold border-red-500/20 text-sm text-red-400 whitespace-pre-line">
               {error}
             </div>
           )}
@@ -117,6 +158,14 @@ export default function Login() {
                   <Eye className="h-4 w-4" />
                 )}
               </button>
+            </div>
+            <div className="flex justify-end pt-1">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-primary font-medium hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
           </div>
 

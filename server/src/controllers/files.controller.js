@@ -1,9 +1,9 @@
-import Project from '../models/Project.js';
 import File from '../models/File.js';
 import Feature from '../models/Feature.js';
+import { findAccessibleProject } from '../utils/projectAccess.js';
 
-async function ensureOwnedProject(projectId, userId) {
-  return Project.findOne({ _id: projectId, userId }, { _id: 1 }).lean();
+async function ensureAccessibleProject(projectId, userId) {
+  return findAccessibleProject(projectId, userId, { _id: 1 }).lean();
 }
 
 /**
@@ -15,8 +15,8 @@ export async function getProjectFileList(req, res) {
     const { id } = req.params;
     const userId = req.user._id;
 
-    // Verify project ownership
-    const project = await ensureOwnedProject(id, userId);
+    // Verify the user has access to this project.
+    const project = await ensureAccessibleProject(id, userId);
     if (!project) {
       return res
         .status(404)
@@ -56,7 +56,7 @@ export async function getFilesPageFileList(req, res) {
     const { id } = req.params;
     const userId = req.user._id;
 
-    const project = await ensureOwnedProject(id, userId);
+    const project = await ensureAccessibleProject(id, userId);
     if (!project) {
       return res
         .status(404)
@@ -119,7 +119,7 @@ export async function getSourceFileList(req, res) {
     const { id } = req.params;
     const userId = req.user._id;
 
-    const project = await ensureOwnedProject(id, userId);
+    const project = await ensureAccessibleProject(id, userId);
     if (!project) {
       return res
         .status(404)
@@ -171,8 +171,8 @@ export async function getSourceFileContent(req, res) {
       });
     }
 
-    // Verify project ownership
-    const project = await ensureOwnedProject(id, userId);
+    // Verify the user has access to this project.
+    const project = await ensureAccessibleProject(id, userId);
     if (!project) {
       return res
         .status(404)
@@ -226,8 +226,8 @@ export async function getFilesPageFeatures(req, res) {
     const { id } = req.params;
     const userId = req.user._id;
 
-    // Verify project ownership
-    const project = await ensureOwnedProject(id, userId);
+    // Verify the user has access to this project.
+    const project = await ensureAccessibleProject(id, userId);
     if (!project) {
       return res
         .status(404)
@@ -253,8 +253,8 @@ export async function getFilesPageFeatureDetail(req, res) {
     const { id, keyword } = req.params;
     const userId = req.user._id;
 
-    // Verify project ownership
-    const project = await ensureOwnedProject(id, userId);
+    // Verify the user has access to this project.
+    const project = await ensureAccessibleProject(id, userId);
     if (!project) {
       return res
         .status(404)

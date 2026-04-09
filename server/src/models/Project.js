@@ -92,6 +92,28 @@ const projectSchema = new mongoose.Schema(
       completedSteps: { type: [String], default: [] },
     },
 
+    // ── Project Sharing ──
+    sharedWith: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        email: {
+          type: String,
+          required: true,
+          trim: true,
+          lowercase: true,
+        },
+        sharedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        _id: false,
+      },
+    ],
+
     // ── Processing Metadata ──
     metadata: {
       uploadedAt: { type: Date, default: null },
@@ -110,5 +132,6 @@ const projectSchema = new mongoose.Schema(
 projectSchema.index({ userId: 1 });
 projectSchema.index({ createdAt: -1 });
 projectSchema.index({ userId: 1, status: 1 });
+projectSchema.index({ 'sharedWith.userId': 1 });
 
 export default mongoose.model('Project', projectSchema);

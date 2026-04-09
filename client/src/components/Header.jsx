@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LayoutDashboard, LogOut, Upload } from 'lucide-react';
+import { LayoutDashboard, LogOut, ShieldCheck, Upload } from 'lucide-react';
 
 export default function Header({ projectName = '' }) {
   const { user, logout } = useAuth();
@@ -19,6 +19,7 @@ export default function Header({ projectName = '' }) {
   const location = useLocation();
 
   const isDashboard = location.pathname === '/dashboard';
+  const isAdminPage = location.pathname === '/admin';
 
   const handleLogout = () => {
     logout();
@@ -48,26 +49,40 @@ export default function Header({ projectName = '' }) {
           {user ? (
             <>
               {/* Desktop buttons */}
-              {!isDashboard && (
-                <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
+                {!isDashboard && (
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate('/dashboard')}
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Button>
+                    {!user?.isAdmin ? (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => navigate('/upload')}
+                      >
+                        <Upload className="h-4 w-4" />
+                        New Project
+                      </Button>
+                    ) : null}
+                  </>
+                )}
+                {user?.isAdmin && !isAdminPage && (
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate('/admin')}
                   >
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
+                    <ShieldCheck className="h-4 w-4" />
+                    Admin
                   </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => navigate('/upload')}
-                  >
-                    <Upload className="h-4 w-4" />
-                    New Project
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Dropdown menu */}
               <DropdownMenu>
@@ -87,25 +102,38 @@ export default function Header({ projectName = '' }) {
                   </div>
                   <DropdownMenuSeparator />
                   {/* Mobile buttons */}
-                  {!isDashboard && (
-                    <div className="md:hidden">
+                  <div className="md:hidden">
+                    {!isDashboard && (
+                      <>
+                        <DropdownMenuItem
+                          onClick={() => navigate('/dashboard')}
+                          className="cursor-pointer"
+                        >
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </DropdownMenuItem>
+                        {!user?.isAdmin ? (
+                          <DropdownMenuItem
+                            onClick={() => navigate('/upload')}
+                            className="cursor-pointer"
+                          >
+                            <Upload className="h-4 w-4" />
+                            New Project
+                          </DropdownMenuItem>
+                        ) : null}
+                      </>
+                    )}
+                    {user?.isAdmin && !isAdminPage && (
                       <DropdownMenuItem
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/admin')}
                         className="cursor-pointer"
                       >
-                        <LayoutDashboard className="h-4 w-4" />
-                        Dashboard
+                        <ShieldCheck className="h-4 w-4" />
+                        Admin Panel
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => navigate('/upload')}
-                        className="cursor-pointer"
-                      >
-                        <Upload className="h-4 w-4" />
-                        New Project
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </div>
-                  )}
+                    )}
+                    <DropdownMenuSeparator />
+                  </div>
                   <DropdownMenuItem
                     variant="destructive"
                     onClick={handleLogout}

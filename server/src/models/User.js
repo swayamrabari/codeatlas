@@ -39,11 +39,47 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    resetPasswordCode: {
+      type: String,
+      select: false,
+    },
+    resetPasswordCodeExpires: {
+      type: Date,
+      select: false,
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    blockedAt: {
+      type: Date,
+      default: null,
+    },
+    blockReason: {
+      type: String,
+      default: null,
+      maxlength: [500, 'Block reason must be at most 500 characters'],
+    },
+    lastAdminNotificationAt: {
+      type: Date,
+      default: null,
+    },
+    adminNotificationCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   {
     timestamps: true,
   },
 );
+
+userSchema.index({ isBlocked: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function () {
@@ -64,6 +100,8 @@ userSchema.methods.toJSON = function () {
   delete obj.password;
   delete obj.verificationCode;
   delete obj.verificationCodeExpires;
+  delete obj.resetPasswordCode;
+  delete obj.resetPasswordCodeExpires;
   delete obj.__v;
   return obj;
 };

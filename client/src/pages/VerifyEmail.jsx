@@ -1,10 +1,11 @@
-﻿import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import LogoIcon from '../assets/logo';
+import { Input } from '@/components/ui/input';
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -18,7 +19,6 @@ export default function VerifyEmail() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [success, setSuccess] = useState('');
-  const inputRefs = useRef([]);
 
   useEffect(() => {
     if (!email) navigate('/register', { replace: true });
@@ -31,34 +31,12 @@ export default function VerifyEmail() {
     }
   }, [resendCooldown]);
 
-  useEffect(() => {
-    inputRefs.current[0]?.focus();
-  }, []);
-
-  const handleChange = (index, value) => {
-    if (value && !/^\d$/.test(value)) return;
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
+  const handleChange = (value) => {
+    const normalized = String(value || '')
+      .replace(/\D/g, '')
+      .slice(0, 6);
+    setCode(normalized.split(''));
     setError('');
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData('text').trim();
-    if (/^\d{6}$/.test(pasted)) {
-      setCode(pasted.split(''));
-      inputRefs.current[5]?.focus();
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -76,13 +54,12 @@ export default function VerifyEmail() {
     try {
       const data = await authAPI.verifyEmail(email, fullCode);
       login(data.token, data.user);
-      navigate('/dashboard');
+      navigate(data?.user?.isAdmin ? '/admin' : '/dashboard');
     } catch (err) {
       const msg =
         err.response?.data?.error || 'Verification failed. Please try again.';
       setError(msg);
-      setCode(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
+      setCode([]);
     } finally {
       setLoading(false);
     }
@@ -98,8 +75,7 @@ export default function VerifyEmail() {
       await authAPI.resendCode(email);
       setSuccess('A new code has been sent to your email.');
       setResendCooldown(60);
-      setCode(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
+      setCode([]);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to resend code.');
     } finally {
@@ -139,22 +115,15 @@ export default function VerifyEmail() {
           )}
 
           {/* OTP Inputs */}
-          <div className="flex justify-center gap-2.5" onPaste={handlePaste}>
-            {code.map((digit, index) => (
-              <input
-                key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleChange(index, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(index, e)}
-                className="h-14 w-11 rounded-lg bg-zinc-900 border border-zinc-800 text-center text-xl font-bold text-white outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-colors caret-transparent"
-                autoComplete="one-time-code"
-              />
-            ))}
-          </div>
+          <Input
+            value={code.join('')}
+            onChange={(e) => handleChange(e.target.value)}
+            placeholder="Enter 6-digit code"
+            inputMode="numeric"
+            maxLength={6}
+            autoComplete="one-time-code"
+            className="text-center font-semibold"
+          />
 
           <Button
             type="submit"

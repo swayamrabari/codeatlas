@@ -8,6 +8,7 @@ import filesRoutes from './files.route.js';
 import sourceRoutes from './source.route.js';
 import askRoutes from './ask.route.js';
 import publicRoutes from './public.route.js';
+import adminRoutes from './admin.route.js';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use(insightsRoutes);
 router.use(filesRoutes);
 router.use(sourceRoutes);
 router.use(askRoutes);
+router.use(adminRoutes);
 
 export default router;

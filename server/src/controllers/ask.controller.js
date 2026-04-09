@@ -1,10 +1,10 @@
-import Project from '../models/Project.js';
 import Chat from '../models/Chat.js';
 import {
   askQuestionForProject,
   streamAnswerForProject,
 } from '../services/chat.service.js';
 import { generateChatTitle } from '../analysis/ai.service.js';
+import { findAccessibleProject } from '../utils/projectAccess.js';
 
 const LEGACY_PROJECT_USAGE_NOTE =
   'Project usage note: No relevant files found in this project for this topic.';
@@ -58,7 +58,7 @@ export async function listAskChats(req, res) {
     const { id } = req.params;
     const userId = req.user._id;
 
-    const project = await Project.findOne({ _id: id, userId }, { _id: 1 });
+    const project = await findAccessibleProject(id, userId, { _id: 1 });
     if (!project) {
       return res
         .status(404)
@@ -97,7 +97,7 @@ export async function getAskChat(req, res) {
     const { id, chatId } = req.params;
     const userId = req.user._id;
 
-    const project = await Project.findOne({ _id: id, userId }, { _id: 1 });
+    const project = await findAccessibleProject(id, userId, { _id: 1 });
     if (!project) {
       return res
         .status(404)
@@ -158,7 +158,7 @@ export async function renameAskChat(req, res) {
       });
     }
 
-    const project = await Project.findOne({ _id: id, userId }, { _id: 1 });
+    const project = await findAccessibleProject(id, userId, { _id: 1 });
     if (!project) {
       return res
         .status(404)
@@ -202,7 +202,7 @@ export async function deleteAskChat(req, res) {
     const { id, chatId } = req.params;
     const userId = req.user._id;
 
-    const project = await Project.findOne({ _id: id, userId }, { _id: 1 });
+    const project = await findAccessibleProject(id, userId, { _id: 1 });
     if (!project) {
       return res
         .status(404)
@@ -256,10 +256,10 @@ export async function askQuestion(req, res) {
       });
     }
 
-    const project = await Project.findOne(
-      { _id: id, userId },
-      { _id: 1, status: 1 },
-    );
+    const project = await findAccessibleProject(id, userId, {
+      _id: 1,
+      status: 1,
+    });
     if (!project) {
       return res
         .status(404)
@@ -401,10 +401,10 @@ export async function streamAskQuestion(req, res) {
       });
     }
 
-    const project = await Project.findOne(
-      { _id: id, userId },
-      { _id: 1, status: 1 },
-    );
+    const project = await findAccessibleProject(id, userId, {
+      _id: 1,
+      status: 1,
+    });
     if (!project) {
       return res
         .status(404)

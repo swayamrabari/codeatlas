@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,11 @@ import {
   ArrowRight,
   Sparkles,
   AlertCircle,
+  Check,
+  Share2,
+  User2,
+  Users,
+  X,
 } from 'lucide-react';
 
 /* ── Palette: one accent colour per card slot (cycles) ── */
@@ -135,6 +141,13 @@ export default function UserDashboard() {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [shareTarget, setShareTarget] = useState(null);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareSaving, setShareSaving] = useState(false);
+  const [shareSearch, setShareSearch] = useState('');
+  const [shareSuggestions, setShareSuggestions] = useState([]);
+  const [selectedShareEmails, setSelectedShareEmails] = useState([]);
+  const [shareError, setShareError] = useState('');
   const [error, setError] = useState('');
 
   const {
@@ -151,10 +164,121 @@ export default function UserDashboard() {
 
   const projects = Array.isArray(projectsRes?.data) ? projectsRes.data : [];
 
+  const selectedEmailSet = useMemo(
+    () => new Set(selectedShareEmails.map((e) => e.toLowerCase())),
+    [selectedShareEmails],
+  );
+
   const openDeleteDialog = (e, project) => {
     e.stopPropagation();
     setDeleteTarget(project);
   };
+
+  const openShareDialog = async (e, project) => {
+    e.stopPropagation();
+    if (project.accessType !== 'owner') return;
+
+    setShareError('');
+    setShareTarget(project);
+    setShareSearch('');
+    setShareSuggestions([]);
+    setSelectedShareEmails([]);
+    setShareLoading(true);
+
+    try {
+      const response = await projectAPI.getProjectShares(project._id);
+      const emails = Array.isArray(response?.data?.sharedWith)
+        ? response.data.sharedWith
+            .map((entry) =>
+              String(entry?.email || '')
+                .trim()
+                .toLowerCase(),
+            )
+            .filter(Boolean)
+        : [];
+      setSelectedShareEmails([...new Set(emails)]);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.error ||
+        'Failed to load sharing settings. Please try again.';
+      setShareError(msg);
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const closeShareDialog = () => {
+    setShareTarget(null);
+    setShareSearch('');
+    setShareSuggestions([]);
+    setSelectedShareEmails([]);
+    setShareError('');
+    setShareLoading(false);
+    setShareSaving(false);
+  };
+
+  const addShareEmail = (email) => {
+    const normalized = String(email || '')
+      .trim()
+      .toLowerCase();
+    if (!normalized || selectedEmailSet.has(normalized)) return;
+    setSelectedShareEmails((prev) => [...prev, normalized]);
+    setShareSearch('');
+    setShareSuggestions([]);
+  };
+
+  const removeShareEmail = (email) => {
+    const normalized = String(email || '')
+      .trim()
+      .toLowerCase();
+    setSelectedShareEmails((prev) =>
+      prev.filter((item) => item !== normalized),
+    );
+  };
+
+  const saveProjectShares = async () => {
+    if (!shareTarget) return;
+
+    setShareSaving(true);
+    setShareError('');
+
+    try {
+      await projectAPI.updateProjectShares(
+        shareTarget._id,
+        selectedShareEmails,
+      );
+      queryClient.invalidateQueries({ queryKey: ['userProjects'] });
+      closeShareDialog();
+    } catch (err) {
+      const msg =
+        err?.response?.data?.error ||
+        'Failed to update sharing. Please try again.';
+      setShareError(msg);
+    } finally {
+      setShareSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!shareTarget) return;
+
+    const handle = setTimeout(async () => {
+      try {
+        const response = await projectAPI.getShareSuggestions(shareSearch);
+        const suggestions = Array.isArray(response?.data) ? response.data : [];
+        setShareSuggestions(
+          suggestions.filter(
+            (entry) =>
+              !selectedEmailSet.has(String(entry.email || '').toLowerCase()),
+          ),
+        );
+      } catch {
+        setShareSuggestions([]);
+      }
+    }, 180);
+
+    return () => clearTimeout(handle);
+  }, [shareSearch, shareTarget, selectedEmailSet]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -285,24 +409,41 @@ export default function UserDashboard() {
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {projects.map((project) => {
                 const isGit = project.uploadType === 'github';
+                const isOwner = project.accessType === 'owner';
+                const proprietorName =
+                  project.proprietor?.name ||
+                  project.proprietor?.email ||
+                  'Unknown';
                 return (
                   <div
                     key={project._id}
                     onClick={() =>
-                      project.status === 'documenting'
+                      project.status === 'documenting' && isOwner
                         ? navigate(`/upload?resume=${project._id}`)
                         : navigate(`/project/${project._id}`)
                     }
                     className={`group relative flex flex-col rounded-2xl border border-border bg-card overflow-hidden cursor-pointer transition-all duration-200`}
                   >
-                    {/* Delete button */}
-                    <button
-                      onClick={(e) => openDeleteDialog(e, project)}
-                      className="absolute top-4 p-1 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-md text-destructive bg-destructive/10 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive transition-all"
-                      title="Delete project"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {isOwner ? (
+                      <>
+                        <button
+                          onClick={(e) => openShareDialog(e, project)}
+                          className="absolute top-4 p-1 right-12 z-10 flex h-7 w-7 items-center justify-center rounded-md text-blue-400 bg-blue-500/10 opacity-0 group-hover:opacity-100 hover:bg-blue-500/20 transition-all"
+                          title="Share project"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
+
+                        {/* Delete button */}
+                        <button
+                          onClick={(e) => openDeleteDialog(e, project)}
+                          className="absolute top-4 p-1 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-md text-destructive bg-destructive/10 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive transition-all"
+                          title="Delete project"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </>
+                    ) : null}
 
                     <div className="flex flex-col flex-1 p-6 gap-4">
                       {/* Icon + name */}
@@ -337,6 +478,20 @@ export default function UserDashboard() {
                           } project with ${project.stats?.totalFiles || 0} files analyzed.`}
                       </p>
 
+                      <div className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
+                        {isOwner ? (
+                          <>
+                            <Users className="h-3 w-3" />
+                            Proprietor · Shared with {project.sharedCount || 0}
+                          </>
+                        ) : (
+                          <>
+                            <User2 className="h-3 w-3" />
+                            Shared by {proprietorName}
+                          </>
+                        )}
+                      </div>
+
                       {/* Divider */}
                       <div className="border-t border-border" />
 
@@ -344,6 +499,15 @@ export default function UserDashboard() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <StatusBadge status={project.status} />
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide ring-1 ${
+                              isOwner
+                                ? 'bg-indigo-500/15 text-indigo-300 ring-indigo-500/30'
+                                : 'bg-cyan-500/15 text-cyan-300 ring-cyan-500/30'
+                            }`}
+                          >
+                            {isOwner ? 'Proprietor' : 'Shared'}
+                          </span>
                           <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
                             <FileCode2 className="h-3 w-3" />
                             {project.stats?.totalFiles ?? 0}
@@ -395,6 +559,114 @@ export default function UserDashboard() {
               ) : (
                 <span className="flex items-center gap-2">Delete</span>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Share Dialog ── */}
+      <Dialog
+        open={!!shareTarget}
+        onOpenChange={(open) => !open && closeShareDialog()}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              Share Project
+            </DialogTitle>
+            <DialogDescription>
+              Share {shareTarget?.name} by selecting user emails from
+              suggestions.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <Input
+              value={shareSearch}
+              onChange={(e) => setShareSearch(e.target.value)}
+              placeholder="Search users by email"
+              disabled={shareLoading || shareSaving}
+            />
+
+            {shareError ? (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {shareError}
+              </div>
+            ) : null}
+
+            {shareSearch && (
+              <div className="max-h-36 overflow-auto rounded-md">
+                {shareLoading ? (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    Loading current share settings...
+                  </div>
+                ) : shareSuggestions.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">
+                    No users found.
+                  </div>
+                ) : (
+                  shareSuggestions.map((entry) => (
+                    <button
+                      key={entry._id}
+                      type="button"
+                      onClick={() => addShareEmail(entry.email)}
+                      className="w-full px-3 py-2 text-left bg-accent transition-colors"
+                    >
+                      <p className="text-sm rounded-2xl font-medium text-foreground">
+                        {entry.email}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {entry.name}
+                      </p>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {selectedShareEmails.length === 0 ? (
+                <div className="text-sm text-muted-foreground">
+                  No users selected.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {selectedShareEmails.map((email) => (
+                    <span
+                      key={email}
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-1 text-xs"
+                    >
+                      <Check className="h-3 w-3" />
+                      {email}
+                      <button
+                        type="button"
+                        onClick={() => removeShareEmail(email)}
+                        className="rounded-full p-0.5 hover:bg-background"
+                        aria-label={`Remove ${email}`}
+                        disabled={shareSaving}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={closeShareDialog}
+              disabled={shareSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={saveProjectShares}
+              disabled={shareLoading || shareSaving}
+            >
+              {shareSaving ? 'Saving...' : 'Save Sharing'}
             </Button>
           </DialogFooter>
         </DialogContent>

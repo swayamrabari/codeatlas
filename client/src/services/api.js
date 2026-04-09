@@ -3,6 +3,60 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 export const PUBLIC_PROJECT_ID =
   import.meta.env.VITE_PUBLIC_PROJECT_ID || '69a7ead0e60d8f73871a5801';
+export const AUTH_FORCED_LOGOUT_EVENT = 'codeatlas:auth-forced-logout';
+export const AUTH_NOTICE_STORAGE_KEY = 'auth_notice';
+
+let forcedLogoutDispatched = false;
+
+function isBlockedErrorPayload(payload) {
+  return payload?.blocked === true || payload?.code === 'ACCOUNT_BLOCKED';
+}
+
+function persistAuthNotice(notice) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    localStorage.setItem(AUTH_NOTICE_STORAGE_KEY, JSON.stringify(notice));
+  } catch {
+    // Ignore storage errors in restricted environments.
+  }
+}
+
+function dispatchForcedLogoutEvent(payload = {}) {
+  if (typeof window === 'undefined' || forcedLogoutDispatched) return;
+
+  forcedLogoutDispatched = true;
+  localStorage.removeItem('token');
+
+  const notice = {
+    type: 'blocked',
+    code: payload.code || 'ACCOUNT_BLOCKED',
+    message:
+      payload.error || 'Your account has been blocked. Please contact support.',
+    reason: payload.blockReason || null,
+    at: new Date().toISOString(),
+  };
+
+  persistAuthNotice(notice);
+  window.dispatchEvent(
+    new CustomEvent(AUTH_FORCED_LOGOUT_EVENT, {
+      detail: notice,
+    }),
+  );
+}
+
+export function resetAuthForcedLogoutSignal() {
+  forcedLogoutDispatched = false;
+}
+
+export function handleAuthBlock(status, payload = {}) {
+  if (status === 403 && isBlockedErrorPayload(payload)) {
+    dispatchForcedLogoutEvent(payload);
+    return true;
+  }
+
+  return false;
+}
 
 const api = axios.create({
   baseURL: API_URL,
@@ -23,7 +77,12 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error),
+  (error) => {
+    const status = error?.response?.status;
+    const payload = error?.response?.data || {};
+    handleAuthBlock(status, payload);
+    return Promise.reject(error);
+  },
 );
 
 export const authAPI = {
@@ -33,7 +92,9 @@ export const authAPI = {
   register: async (name, email, password) => {
     const response = await api.post('/auth/register', {
       name,
-      email,
+      email: String(email || '')
+        .trim()
+        .toLowerCase(),
       password,
     });
     return response.data;
@@ -43,7 +104,12 @@ export const authAPI = {
    * Verify email with 6-digit code
    */
   verifyEmail: async (email, code) => {
-    const response = await api.post('/auth/verify-email', { email, code });
+    const response = await api.post('/auth/verify-email', {
+      email: String(email || '')
+        .trim()
+        .toLowerCase(),
+      code,
+    });
     return response.data;
   },
 
@@ -51,7 +117,12 @@ export const authAPI = {
    * Login with email and password
    */
   login: async (email, password) => {
-    const response = await api.post('/auth/login', { email, password });
+    const response = await api.post('/auth/login', {
+      email: String(email || '')
+        .trim()
+        .toLowerCase(),
+      password,
+    });
     return response.data;
   },
 
@@ -67,7 +138,50 @@ export const authAPI = {
    * Resend verification code
    */
   resendCode: async (email) => {
-    const response = await api.post('/auth/resend-code', { email });
+    const response = await api.post('/auth/resend-code', {
+      email: String(email || '')
+        .trim()
+        .toLowerCase(),
+    });
+    return response.data;
+  },
+
+  /**
+   * Request a password reset OTP
+   */
+  forgotPassword: async (email) => {
+    const response = await api.post('/auth/forgot-password', {
+      email: String(email || '')
+        .trim()
+        .toLowerCase(),
+    });
+    return response.data;
+  },
+
+  /**
+   * Verify password reset OTP
+   */
+  verifyResetCode: async (email, code) => {
+    const response = await api.post('/auth/verify-reset-code', {
+      email: String(email || '')
+        .trim()
+        .toLowerCase(),
+      code,
+    });
+    return response.data;
+  },
+
+  /**
+   * Reset password with email + OTP + new password
+   */
+  resetPassword: async (email, code, password) => {
+    const response = await api.post('/auth/reset-password', {
+      email: String(email || '')
+        .trim()
+        .toLowerCase(),
+      code,
+      password,
+    });
     return response.data;
   },
 };
@@ -105,6 +219,34 @@ export const projectAPI = {
    */
   listProjects: async () => {
     const response = await api.get('/projects');
+    return response.data;
+  },
+
+  /**
+   * Suggest users by stored email for sharing.
+   */
+  getShareSuggestions: async (query = '') => {
+    const response = await api.get('/projects/share/suggestions', {
+      params: { q: query },
+    });
+    return response.data;
+  },
+
+  /**
+   * Get current share settings for a project (owner only).
+   */
+  getProjectShares: async (id) => {
+    const response = await api.get(`/projects/${id}/share`);
+    return response.data;
+  },
+
+  /**
+   * Update project share list (owner only).
+   */
+  updateProjectShares: async (id, emails = []) => {
+    const response = await api.patch(`/projects/${id}/share`, {
+      emails,
+    });
     return response.data;
   },
 
@@ -250,6 +392,7 @@ export const projectAPI = {
 
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
+      handleAuthBlock(response.status, errorBody);
       throw {
         response: {
           data: errorBody,
@@ -436,6 +579,54 @@ export const projectAPI = {
       history,
       chatId,
     });
+    return response.data;
+  },
+};
+
+export const adminAPI = {
+  /**
+   * Fetch global admin dashboard statistics.
+   */
+  getStats: async () => {
+    const response = await api.get('/admin/stats');
+    return response.data;
+  },
+
+  /**
+   * Fetch all users with admin counters.
+   */
+  getUsers: async () => {
+    const response = await api.get('/admin/users');
+    return response.data;
+  },
+
+  /**
+   * Send admin notification email to user.
+   */
+  notifyUser: async (userId, subject, message) => {
+    const response = await api.post(`/admin/users/${userId}/notify`, {
+      subject,
+      message,
+    });
+    return response.data;
+  },
+
+  /**
+   * Block or unblock a user.
+   */
+  setUserBlocked: async (userId, blocked, reason = '') => {
+    const response = await api.patch(`/admin/users/${userId}/block`, {
+      blocked,
+      reason,
+    });
+    return response.data;
+  },
+
+  /**
+   * Permanently remove a user and associated data.
+   */
+  removeUser: async (userId) => {
+    const response = await api.delete(`/admin/users/${userId}`);
     return response.data;
   },
 };

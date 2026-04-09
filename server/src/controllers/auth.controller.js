@@ -2,8 +2,19 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import {
   generateVerificationCode,
+  sendPasswordResetEmail,
   sendVerificationEmail,
 } from '../services/email.service.js';
+
+function normalizeEmail(email) {
+  return String(email || '')
+    .trim()
+    .toLowerCase();
+}
+
+function getEmailDeliveryErrorMessage() {
+  return 'Unable to send OTP email right now. Please verify SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, and sender identity in SendGrid.';
+}
 
 /**
  * Generate a JWT token for a user
@@ -21,9 +32,10 @@ function signToken(userId) {
 export async function register(req, res) {
   try {
     const { name, email, password } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
     // Validate input
-    if (!name || !email || !password) {
+    if (!name || !normalizedEmail || !password) {
       return res
         .status(400)
         .json({ error: 'Name, email, and password are required.' });
@@ -37,14 +49,14 @@ export async function register(req, res) {
 
     // Check email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return res
         .status(400)
         .json({ error: 'Please enter a valid email address.' });
     }
 
     // Check if email already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       // If user exists but isn't verified, allow re-registration
       if (!existingUser.isVerified) {
@@ -57,7 +69,18 @@ export async function register(req, res) {
         );
         await existingUser.save();
 
-        await sendVerificationEmail(email, name, code);
+        try {
+          await sendVerificationEmail(normalizedEmail, name, code);
+        } catch (mailErr) {
+          console.error('❌ Verification resend during register failed:', {
+            email: normalizedEmail,
+            message: mailErr.message,
+          });
+
+          return res
+            .status(502)
+            .json({ error: getEmailDeliveryErrorMessage() });
+        }
 
         return res.status(200).json({
           message: 'Verification code resent. Please check your email.',
@@ -76,7 +99,7 @@ export async function register(req, res) {
     // Create user
     const user = new User({
       name,
-      email,
+      email: normalizedEmail,
       password,
       verificationCode: code,
       verificationCodeExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
@@ -85,9 +108,18 @@ export async function register(req, res) {
     await user.save();
 
     // Send verification email
-    await sendVerificationEmail(email, name, code);
+    try {
+      await sendVerificationEmail(normalizedEmail, name, code);
+    } catch (mailErr) {
+      console.error('❌ Verification email send failed during register:', {
+        email: normalizedEmail,
+        message: mailErr.message,
+      });
 
-    console.log(`✅ New user registered: ${email}`);
+      return res.status(502).json({ error: getEmailDeliveryErrorMessage() });
+    }
+
+    console.log(`✅ New user registered: ${normalizedEmail}`);
 
     res.status(201).json({
       message:
@@ -114,19 +146,23 @@ export async function register(req, res) {
 export async function verifyEmail(req, res) {
   try {
     const { email, code } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email || !code) {
+    if (!normalizedEmail || !code) {
       return res
         .status(400)
         .json({ error: 'Email and verification code are required.' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select(
+    const user = await User.findOne({ email: normalizedEmail }).select(
       '+verificationCode +verificationCodeExpires',
     );
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
+      return res.status(404).json({
+        error:
+          'No pending verification found for this email. Please login again or resend a code.',
+      });
     }
 
     if (user.isVerified) {
@@ -134,19 +170,15 @@ export async function verifyEmail(req, res) {
     }
 
     if (!user.verificationCode || !user.verificationCodeExpires) {
-      return res
-        .status(400)
-        .json({
-          error: 'No verification code found. Please request a new one.',
-        });
+      return res.status(400).json({
+        error: 'No verification code found. Please request a new one.',
+      });
     }
 
     if (user.verificationCodeExpires < new Date()) {
-      return res
-        .status(400)
-        .json({
-          error: 'Verification code has expired. Please request a new one.',
-        });
+      return res.status(400).json({
+        error: 'Verification code has expired. Please request a new one.',
+      });
     }
 
     if (user.verificationCode !== code) {
@@ -162,7 +194,7 @@ export async function verifyEmail(req, res) {
     // Generate token and auto-login
     const token = signToken(user._id);
 
-    console.log(`✅ Email verified: ${email}`);
+    console.log(`✅ Email verified: ${normalizedEmail}`);
 
     res.status(200).json({
       message: 'Email verified successfully!',
@@ -182,20 +214,30 @@ export async function verifyEmail(req, res) {
 export async function login(req, res) {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return res
         .status(400)
         .json({ error: 'Email and password are required.' });
     }
 
     // Find user and include password for comparison
-    const user = await User.findOne({ email: email.toLowerCase() }).select(
+    const user = await User.findOne({ email: normalizedEmail }).select(
       '+password',
     );
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        code: 'ACCOUNT_BLOCKED',
+        error: 'Your account has been blocked. Contact support for help.',
+        blocked: true,
+        blockReason: user.blockReason || null,
+      });
     }
 
     // Compare password
@@ -205,7 +247,7 @@ export async function login(req, res) {
     }
 
     // Check if email is verified
-    if (!user.isVerified) {
+    if (!user.isVerified && !user.isAdmin) {
       return res.status(403).json({
         error: 'Please verify your email before logging in.',
         needsVerification: true,
@@ -216,7 +258,7 @@ export async function login(req, res) {
     // Generate token
     const token = signToken(user._id);
 
-    console.log(`✅ User logged in: ${email}`);
+    console.log(`✅ User logged in: ${normalizedEmail}`);
 
     res.status(200).json({
       message: 'Login successful!',
@@ -249,12 +291,13 @@ export async function getMe(req, res) {
 export async function resendCode(req, res) {
   try {
     const { email } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!email) {
+    if (!normalizedEmail) {
       return res.status(400).json({ error: 'Email is required.' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
@@ -270,9 +313,18 @@ export async function resendCode(req, res) {
     user.verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendVerificationEmail(email, user.name, code);
+    try {
+      await sendVerificationEmail(normalizedEmail, user.name, code);
+    } catch (mailErr) {
+      console.error('❌ Verification resend failed:', {
+        email: normalizedEmail,
+        message: mailErr.message,
+      });
 
-    console.log(`📧 Verification code resent to: ${email}`);
+      return res.status(502).json({ error: getEmailDeliveryErrorMessage() });
+    }
+
+    console.log(`📧 Verification code resent to: ${normalizedEmail}`);
 
     res.status(200).json({
       message: 'Verification code resent. Please check your email.',
@@ -280,5 +332,199 @@ export async function resendCode(req, res) {
   } catch (err) {
     console.error('❌ Resend code error:', err.message);
     res.status(500).json({ error: 'Failed to resend code. Please try again.' });
+  }
+}
+
+/**
+ * POST /api/auth/forgot-password
+ * Send password reset OTP to the user's email.
+ */
+export async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedEmail) {
+      return res.status(400).json({ error: 'Email is required.' });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      '+resetPasswordCode +resetPasswordCodeExpires',
+    );
+
+    // Always return success for unknown emails to avoid account enumeration.
+    if (!user) {
+      return res.status(200).json({
+        message:
+          'If this email is registered, a password reset code has been sent.',
+      });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        code: 'ACCOUNT_BLOCKED',
+        error: 'Your account has been blocked. Contact support for help.',
+        blocked: true,
+        blockReason: user.blockReason || null,
+      });
+    }
+
+    const code = generateVerificationCode();
+    user.resetPasswordCode = code;
+    user.resetPasswordCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    try {
+      await sendPasswordResetEmail(normalizedEmail, user.name, code);
+    } catch (mailErr) {
+      console.error('❌ Password reset email send failed:', {
+        email: normalizedEmail,
+        message: mailErr.message,
+      });
+
+      return res.status(502).json({ error: getEmailDeliveryErrorMessage() });
+    }
+
+    return res.status(200).json({
+      message:
+        'If this email is registered, a password reset code has been sent.',
+    });
+  } catch (err) {
+    console.error('❌ Forgot password error:', err.message);
+    return res
+      .status(500)
+      .json({ error: 'Failed to start password reset. Please try again.' });
+  }
+}
+
+/**
+ * POST /api/auth/verify-reset-code
+ * Verify forgot-password OTP before showing new password fields.
+ */
+export async function verifyResetCode(req, res) {
+  try {
+    const { email, code } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedEmail || !code) {
+      return res
+        .status(400)
+        .json({ error: 'Email and reset code are required.' });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      '+resetPasswordCode +resetPasswordCodeExpires',
+    );
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid email or reset code.' });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        code: 'ACCOUNT_BLOCKED',
+        error: 'Your account has been blocked. Contact support for help.',
+        blocked: true,
+        blockReason: user.blockReason || null,
+      });
+    }
+
+    if (!user.resetPasswordCode || !user.resetPasswordCodeExpires) {
+      return res.status(400).json({
+        error: 'No reset code found. Please request a new password reset OTP.',
+      });
+    }
+
+    if (user.resetPasswordCodeExpires < new Date()) {
+      return res
+        .status(400)
+        .json({ error: 'Reset code has expired. Please request a new one.' });
+    }
+
+    if (String(user.resetPasswordCode) !== String(code)) {
+      return res.status(400).json({ error: 'Invalid reset code.' });
+    }
+
+    return res.status(200).json({
+      message: 'OTP verified successfully. You can now set a new password.',
+      verified: true,
+    });
+  } catch (err) {
+    console.error('❌ Verify reset code error:', err.message);
+    return res
+      .status(500)
+      .json({ error: 'Failed to verify reset code. Please try again.' });
+  }
+}
+
+/**
+ * POST /api/auth/reset-password
+ * Reset user password using email + OTP code + new password.
+ */
+export async function resetPassword(req, res) {
+  try {
+    const { email, code, password } = req.body;
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedEmail || !code || !password) {
+      return res
+        .status(400)
+        .json({ error: 'Email, code, and new password are required.' });
+    }
+
+    if (String(password).length < 8) {
+      return res
+        .status(400)
+        .json({ error: 'Password must be at least 8 characters.' });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      '+password +resetPasswordCode +resetPasswordCodeExpires',
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    if (user.isBlocked) {
+      return res.status(403).json({
+        code: 'ACCOUNT_BLOCKED',
+        error: 'Your account has been blocked. Contact support for help.',
+        blocked: true,
+        blockReason: user.blockReason || null,
+      });
+    }
+
+    if (!user.resetPasswordCode || !user.resetPasswordCodeExpires) {
+      return res.status(400).json({
+        error: 'No reset code found. Please request a new password reset OTP.',
+      });
+    }
+
+    if (user.resetPasswordCodeExpires < new Date()) {
+      return res
+        .status(400)
+        .json({ error: 'Reset code has expired. Please request a new one.' });
+    }
+
+    if (String(user.resetPasswordCode) !== String(code)) {
+      return res.status(400).json({ error: 'Invalid reset code.' });
+    }
+
+    user.password = password;
+    user.resetPasswordCode = undefined;
+    user.resetPasswordCodeExpires = undefined;
+    await user.save();
+
+    console.log(`✅ Password reset successful: ${normalizedEmail}`);
+
+    return res.status(200).json({
+      message: 'Password reset successful. You can now log in.',
+    });
+  } catch (err) {
+    console.error('❌ Reset password error:', err.message);
+    return res
+      .status(500)
+      .json({ error: 'Failed to reset password. Please try again.' });
   }
 }

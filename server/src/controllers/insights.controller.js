@@ -1,6 +1,6 @@
-import Project from '../models/Project.js';
 import File from '../models/File.js';
 import Feature from '../models/Feature.js';
+import { findAccessibleProject } from '../utils/projectAccess.js';
 
 /**
  * Get full project with relationships and stats.
@@ -17,16 +17,13 @@ export async function getInsightsPageData(req, res) {
         .json({ success: false, error: 'Project ID is required' });
     }
 
-    const project = await Project.findOne(
-      { _id: id, userId },
-      {
-        name: 1,
-        'stats.totalFiles': 1,
-        'stats.frameworks': 1,
-        'stats.projectType': 1,
-        'stats.relationshipStats': 1,
-      },
-    ).lean();
+    const project = await findAccessibleProject(id, userId, {
+      name: 1,
+      'stats.totalFiles': 1,
+      'stats.frameworks': 1,
+      'stats.projectType': 1,
+      'stats.relationshipStats': 1,
+    }).lean();
 
     if (!project) {
       return res
