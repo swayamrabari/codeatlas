@@ -200,15 +200,15 @@ export default function AdminDashboard() {
       <main className="mx-auto max-w-7xl px-6 py-12 space-y-8">
         <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold tracking-wide text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5" />
+            <Badge className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold tracking-wide text-muted-foreground">
               Admin Control Center
-            </div>
+            </Badge>
             <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
-              Platform Intelligence Dashboard
+              Admin Dashboard
             </h1>
             <p className="text-sm text-muted-foreground">
-              Live platform totals, AI usage, and MongoDB health in one place.
+              Monitor platform usage, manage users, and oversee project
+              analytics
             </p>
             <p className="text-xs text-muted-foreground">
               Last updated: {formatDateTime(payload?.generatedAt)}
