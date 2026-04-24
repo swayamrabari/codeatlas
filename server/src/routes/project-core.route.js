@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   listProjects,
   getProjectStatus,
+  cancelProjectUpload,
   deleteProject,
   getShareSuggestions,
   getProjectShareSettings,
@@ -17,6 +18,11 @@ router.use(authenticate);
 router.get('/projects', listProjects);
 router.get('/projects/share/suggestions', getShareSuggestions);
 router.get('/projects/:id/status', validateObjectId('id'), getProjectStatus);
+router.post(
+  '/projects/:id/cancel',
+  validateObjectId('id'),
+  cancelProjectUpload,
+);
 router.get(
   '/projects/:id/share',
   validateObjectId('id'),

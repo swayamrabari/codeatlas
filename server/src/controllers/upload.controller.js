@@ -16,6 +16,7 @@ import {
   failProject,
 } from '../services/storage.service.js';
 import { triggerDocumentation } from '../analysis/index.js';
+import { validateMERNProjectBalanced } from '../services/mernValidator.service.js';
 import { logger } from '../utils/logger.js';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './src/temp';
@@ -96,7 +97,31 @@ export async function handleZipUpload(req, res) {
       req.file.originalname.replace(/\.zip$/i, '') ||
       'Untitled Project';
 
-    // Step 1: Create project in MongoDB
+    // Step 1: Extract ZIP (before creating project in DB)
+    const extractDir = path.resolve(UPLOAD_DIR, 'projects', tempId);
+    const projectPath = await extractZip(zipPath, extractDir);
+    await cleanupZip(zipPath);
+
+    // Step 2: Validate MERN Stack BEFORE creating project (unless skipped)
+    const skipValidation = req.headers['x-skip-mern-validation'] === 'true';
+    if (!skipValidation) {
+      const validation = await validateMERNProjectBalanced(projectPath);
+      if (!validation.isValid) {
+        // Cleanup immediately
+        cleanupTempFiles(extractDir);
+
+        return res.status(422).json({
+          success: false,
+          error: validation.reason,
+          details: validation.details,
+          detected: validation.detected,
+          suspiciousImports: validation.suspiciousImports,
+          hint: 'CodeAtlas supports MERN stack projects (Node.js + Express/NestJS + React/Vue + MongoDB/PostgreSQL)',
+        });
+      }
+    }
+
+    // Step 3: Create project in MongoDB (now safe)
     project = await createProject(userId, {
       name: projectName,
       description: req.body.description || '',
@@ -104,12 +129,7 @@ export async function handleZipUpload(req, res) {
     });
     const projectId = project._id;
 
-    // Step 2: Extract ZIP
-    const extractDir = path.resolve(UPLOAD_DIR, 'projects', tempId);
-    const projectPath = await extractZip(zipPath, extractDir);
-    await cleanupZip(zipPath);
-
-    // Step 3: Scan and analyze
+    // Step 4: Scan and analyze
     await project.updateOne({ status: 'scanning' });
     const scanResult = await scanProject(projectPath);
     const { files, metadata, relationships, features } = scanResult;
@@ -210,7 +230,30 @@ export async function handleGitUpload(req, res) {
     const userId = req.user._id;
     const repoName = getRepoName(trimmedUrl);
 
-    // Step 1: Create project in MongoDB
+    // Step 1: Clone repository
+    const cloneDir = path.resolve(UPLOAD_DIR, 'projects', tempId);
+    const projectPath = await cloneRepository(trimmedUrl, cloneDir);
+
+    // Step 2: Validate MERN Stack BEFORE creating project (unless skipped)
+    const skipValidation = req.headers['x-skip-mern-validation'] === 'true';
+    if (!skipValidation) {
+      const validation = await validateMERNProjectBalanced(projectPath);
+      if (!validation.isValid) {
+        // Cleanup immediately
+        cleanupTempFiles(cloneDir);
+
+        return res.status(422).json({
+          success: false,
+          error: validation.reason,
+          details: validation.details,
+          detected: validation.detected,
+          suspiciousImports: validation.suspiciousImports,
+          hint: 'CodeAtlas supports MERN stack projects (Node.js + Express/NestJS + React/Vue + MongoDB/PostgreSQL)',
+        });
+      }
+    }
+
+    // Step 3: Create project in MongoDB (now safe)
     project = await createProject(userId, {
       name: req.body.name || repoName || 'Git Project',
       description: req.body.description || `Cloned from ${trimmedUrl}`,
@@ -218,18 +261,14 @@ export async function handleGitUpload(req, res) {
     });
     const projectId = project._id;
 
-    // Step 2: Clone repository
-    const cloneDir = path.resolve(UPLOAD_DIR, 'projects', tempId);
-    const projectPath = await cloneRepository(trimmedUrl, cloneDir);
-
-    // Step 3: Scan and analyze
+    // Step 4: Scan and analyze
     await project.updateOne({ status: 'scanning' });
     const scanResult = await scanProject(projectPath);
     const { files, metadata, relationships, features } = scanResult;
 
     const responseFiles = buildFileResponse(files);
 
-    // Step 4: Store files in MongoDB
+    // Step 5: Store files in MongoDB
     await project.updateOne({ status: 'analyzing' });
     const filePathToId = await storeFiles(
       projectId,
@@ -238,10 +277,10 @@ export async function handleGitUpload(req, res) {
       projectPath,
     );
 
-    // Step 5: Store features
+    // Step 6: Store features
     await storeFeatures(projectId, userId, features, filePathToId);
 
-    // Step 6: Finalize
+    // Step 7: Finalize
     await finalizeProject(projectId, scanResult, files.length);
 
     const response = {

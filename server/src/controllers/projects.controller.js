@@ -137,6 +137,69 @@ export async function getProjectStatus(req, res) {
 }
 
 /**
+ * ⭐ NEW: Cancel/Abort an in-progress upload
+ * Deletes the project and all associated data
+ */
+export async function cancelProjectUpload(req, res) {
+  try {
+    const { id: projectId } = req.params;
+    const userId = req.user._id;
+
+    // Find the project
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: 'Project not found',
+      });
+    }
+
+    // Verify ownership
+    if (project.userId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        error: 'Unauthorized',
+      });
+    }
+
+    // Only allow cancelling projects that are still processing
+    if (
+      !['uploading', 'scanning', 'analyzing', 'documenting'].includes(
+        project.status,
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Project is not in a cancellable state',
+      });
+    }
+
+    // Delete associated data
+    await File.deleteMany({ projectId });
+    await Feature.deleteMany({ projectId });
+    await Embedding.deleteMany({ projectId });
+    await Chat.deleteMany({ projectId });
+
+    // Delete project document
+    await Project.findByIdAndDelete(projectId);
+
+    logger.info(`Project ${projectId} cancelled by user ${userId}`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Project upload cancelled successfully',
+    });
+  } catch (err) {
+    logger.error('Cancel project error', err.message);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to cancel project',
+      message: err.message,
+    });
+  }
+}
+
+/**
  * Delete a project and all associated data.
  */
 export async function deleteProject(req, res) {
@@ -266,12 +329,10 @@ export async function getProjectShareSettings(req, res) {
     });
   } catch (error) {
     console.error('Error fetching project share settings:', error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: 'Failed to fetch project share settings',
-      });
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch project share settings',
+    });
   }
 }
 

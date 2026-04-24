@@ -230,7 +230,18 @@ export default function UploadProject() {
   const [projectName, setProjectName] = useState('');
   const sseRef = useRef(null);
   const pollRef = useRef(null);
+  const abortControllerRef = useRef(null); // ⭐ NEW: For aborting upload
   const [searchParams] = useSearchParams();
+
+  // ⭐ NEW: Validation dialog state
+  const [validationDialog, setValidationDialog] = useState({
+    open: false,
+    reason: '',
+    details: '',
+    detected: {},
+    suspiciousImports: [],
+  });
+  const [skipValidation, setSkipValidation] = useState(false);
 
   /* keep ref in sync */
   useEffect(() => {
@@ -468,8 +479,23 @@ export default function UploadProject() {
       _enterDocPhase(result.projectId);
     } catch (err) {
       console.error('Upload error:', err);
-      setError(err.response?.data?.error || err.message || 'Upload failed');
-      setUploading(false);
+
+      // ⭐ NEW: Handle validation errors (422)
+      if (err.response?.status === 422) {
+        setValidationDialog({
+          open: true,
+          reason: err.response.data?.error || 'Project validation failed',
+          details:
+            err.response.data?.details ||
+            'This project may not be a MERN stack project',
+          detected: err.response.data?.detected || {},
+          suspiciousImports: err.response.data?.suspiciousImports || [],
+        });
+        setUploading(false);
+      } else {
+        setError(err.response?.data?.error || err.message || 'Upload failed');
+        setUploading(false);
+      }
     }
   };
 
@@ -499,20 +525,127 @@ export default function UploadProject() {
       _enterDocPhase(result.projectId);
     } catch (err) {
       console.error('Git upload error:', err);
-      let errorMessage = 'Failed to clone repository';
-      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
-        errorMessage =
-          'Request timed out. The repository might be too large or your connection is slow.';
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.response?.data?.error) {
-        errorMessage = err.response.data.error;
-      } else if (err.message) {
-        errorMessage = err.message;
+
+      // ⭐ NEW: Handle validation errors (422)
+      if (err.response?.status === 422) {
+        setValidationDialog({
+          open: true,
+          reason: err.response.data?.error || 'Project validation failed',
+          details:
+            err.response.data?.details ||
+            'This project may not be a MERN stack project',
+          detected: err.response.data?.detected || {},
+          suspiciousImports: err.response.data?.suspiciousImports || [],
+        });
+        setUploading(false);
+      } else {
+        let errorMessage = 'Failed to clone repository';
+        if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+          errorMessage =
+            'Request timed out. The repository might be too large or your connection is slow.';
+        } else if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response?.data?.error) {
+          errorMessage = err.response.data.error;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        setError(errorMessage);
+        setUploading(false);
       }
-      setError(errorMessage);
-      setUploading(false);
     }
+  };
+
+  /* ── Validation dialog handlers ── */
+  const handleValidationCancel = async () => {
+    setValidationDialog({ ...validationDialog, open: false });
+    setUploading(false);
+    setError('');
+    setSkipValidation(false);
+
+    // ⭐ NEW: Abort upload if in progress
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // Cleanup all resources
+    _cleanupAll();
+
+    // Small delay before redirect to ensure UI updates
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 300);
+  };
+
+  const handleValidationContinue = async () => {
+    // User wants to continue despite validation warning
+    setValidationDialog({ ...validationDialog, open: false });
+    setUploading(true);
+    setError('');
+
+    // Retry the upload with validation bypass
+    if (method === 'zip' && file) {
+      try {
+        const result = await projectAPI.uploadZip(
+          file,
+          (progressEvent) => {
+            const pct = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total,
+            );
+            setUploadProgress(pct);
+            if (pct >= 100) {
+              setPipelineIndex(1);
+              setPipelineDetail('Analyzing project structure...');
+            }
+          },
+          true,
+        ); // skipValidation = true
+        setResultData(result);
+        setProjectName(result.projectName || '');
+        _enterDocPhase(result.projectId);
+      } catch (err) {
+        console.error('Upload error on continue:', err);
+        setError(err.response?.data?.error || err.message || 'Upload failed');
+        setUploading(false);
+      }
+    } else if (method === 'git' && gitUrl.trim()) {
+      try {
+        const result = await projectAPI.uploadGit(gitUrl.trim(), true); // skipValidation = true
+        setResultData(result);
+        setProjectName(result.projectName || '');
+        _enterDocPhase(result.projectId);
+      } catch (err) {
+        console.error('Git upload error on continue:', err);
+        setError(err.response?.data?.error || err.message || 'Upload failed');
+        setUploading(false);
+      }
+    }
+  };
+
+  /* ── Cancel during processing (Step 3) ── */
+  const handleProcessingCancel = async () => {
+    setUploading(false);
+
+    // Abort SSE connection
+    _disconnectSSE();
+
+    // Cancel the project on backend
+    if (projectId) {
+      try {
+        await projectAPI.cancelProjectUpload(projectId);
+      } catch (err) {
+        console.error('Error cancelling project:', err);
+      }
+    }
+
+    // Cleanup all resources
+    _cleanupAll();
+
+    // Small delay before redirect to ensure UI updates
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 300);
   };
 
   /* ── reset ── */
@@ -536,6 +669,103 @@ export default function UploadProject() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+
+      {/* ⭐ NEW: Validation Dialog */}
+      {validationDialog.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6">
+              <div className="mb-4 flex items-start gap-3">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                <div>
+                  <h2 className="font-semibold text-foreground">
+                    {validationDialog.reason}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {validationDialog.details}
+                  </p>
+                </div>
+              </div>
+
+              {/* Detection Summary */}
+              {Object.keys(validationDialog.detected).length > 0 && (
+                <div className="mb-4 rounded-lg bg-muted/50 p-3 text-xs">
+                  <p className="mb-2 font-medium text-foreground">Detected:</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    {validationDialog.detected.backend && (
+                      <li>✓ Backend: {validationDialog.detected.backend}</li>
+                    )}
+                    {!validationDialog.detected.backend && (
+                      <li>✗ Backend: Not found</li>
+                    )}
+                    {validationDialog.detected.frontend && (
+                      <li>✓ Frontend: {validationDialog.detected.frontend}</li>
+                    )}
+                    {!validationDialog.detected.frontend && (
+                      <li>✗ Frontend: Not found</li>
+                    )}
+                    {validationDialog.detected.database && (
+                      <li>✓ Database: {validationDialog.detected.database}</li>
+                    )}
+                    {!validationDialog.detected.database && (
+                      <li>✗ Database: Not found</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              {/* Suspicious Imports */}
+              {validationDialog.suspiciousImports &&
+                validationDialog.suspiciousImports.length > 0 && (
+                  <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs">
+                    <p className="mb-2 font-medium text-amber-900">
+                      ⚠ Suspicious imports (not in package.json):
+                    </p>
+                    <ul className="space-y-1 text-amber-800">
+                      {validationDialog.suspiciousImports
+                        .slice(0, 3)
+                        .map((imp, i) => (
+                          <li key={i}>
+                            {imp.import} (in {imp.file})
+                          </li>
+                        ))}
+                      {validationDialog.suspiciousImports.length > 3 && (
+                        <li>
+                          ... and{' '}
+                          {validationDialog.suspiciousImports.length - 3} more
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+              <p className="mb-5 text-xs text-muted-foreground">
+                You can still continue if you believe this is a valid MERN
+                project. Your choice!
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <Button
+                  variant="default"
+                  className="flex-1"
+                  onClick={handleValidationCancel}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleValidationContinue}
+                >
+                  Continue Anyway
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <main className="mx-auto max-w-2xl px-6 py-10">
         <h1 className="mb-2 text-center text-3xl font-bold tracking-tight text-foreground">
           Upload Your Project
@@ -873,9 +1103,20 @@ export default function UploadProject() {
                 )}
 
                 {!error && (
-                  <p className="mt-5 text-xs text-muted-foreground text-center animate-pulse">
-                    Please wait — progress updates automatically in real-time
-                  </p>
+                  <div className="mt-5 space-y-3">
+                    <p className="text-xs text-muted-foreground text-center animate-pulse">
+                      Please wait — progress updates automatically in real-time
+                    </p>
+                    {uploading && projectId && (
+                      <Button
+                        variant="outline"
+                        className="w-full text-destructive border-destructive/50 hover:bg-destructive/10"
+                        onClick={() => handleProcessingCancel()}
+                      >
+                        <X className="mr-2 h-4 w-4" /> Cancel Upload
+                      </Button>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>

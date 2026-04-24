@@ -190,11 +190,13 @@ export const projectAPI = {
   /**
    * Upload a ZIP file for analysis
    */
-  uploadZip: async (file, onUploadProgress) => {
+  uploadZip: async (file, onUploadProgress, skipValidation = false) => {
     const formData = new FormData();
     formData.append('project', file);
+    const headers = skipValidation ? { 'X-Skip-MERN-Validation': 'true' } : {};
     const response = await api.post('/upload', formData, {
       onUploadProgress,
+      headers,
       timeout: 120000,
     });
     return response.data;
@@ -203,11 +205,13 @@ export const projectAPI = {
   /**
    * Clone and analyze a Git repository
    */
-  uploadGit: async (gitUrl) => {
+  uploadGit: async (gitUrl, skipValidation = false) => {
+    const headers = skipValidation ? { 'X-Skip-MERN-Validation': 'true' } : {};
     const response = await api.post(
       '/upload-git',
       { gitUrl },
       {
+        headers,
         timeout: 120000,
       },
     );
@@ -247,6 +251,14 @@ export const projectAPI = {
     const response = await api.patch(`/projects/${id}/share`, {
       emails,
     });
+    return response.data;
+  },
+
+  /**
+   * ⭐ NEW: Cancel an in-progress upload
+   */
+  cancelProjectUpload: async (projectId) => {
+    const response = await api.post(`/projects/${projectId}/cancel`);
     return response.data;
   },
 
