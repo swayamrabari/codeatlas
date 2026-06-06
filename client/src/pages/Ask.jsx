@@ -678,6 +678,7 @@ export default function Ask({ projectId, isPublic }) {
       return;
     }
 
+    // Load snapshot immediately to display cached content
     if (
       snapshot?.chatId === storedChatId &&
       Array.isArray(snapshot.messages) &&
@@ -689,12 +690,14 @@ export default function Ask({ projectId, isPublic }) {
       setStickToBottom(true);
     }
 
+    // Stop showing spinner immediately - display cached content
+    setIsRestoringChat(false);
+
+    // Fetch fresh data in the background
     onOpenRecentChat(storedChatId, {
       closeRecent: false,
       silent: true,
       instantScroll: true,
-    }).finally(() => {
-      setIsRestoringChat(false);
     });
   }, [
     chatIdStorageKey,
