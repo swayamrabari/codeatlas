@@ -170,6 +170,20 @@ export default function Ask({ projectId, isPublic }) {
     (queryError?.message || (queryError ? 'Failed to load recent chats.' : ''));
   const recentChats = Array.isArray(chatsRes?.data) ? chatsRes.data : [];
 
+  // Cache individual chat data with React Query
+  const {
+    data: cachedChatRes,
+    isLoading: cachedChatLoading,
+    error: cachedChatError,
+  } = useQuery({
+    queryKey: ['projectChat', projectId, currentChatId, cacheScope],
+    queryFn: () => projectAPI.getProjectChat(projectId, currentChatId),
+    enabled: !!projectId && !!currentChatId && !isPublicMode,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   const [loadingChatId, setLoadingChatId] = useState('');
   const [deletingChatId, setDeletingChatId] = useState('');
 
@@ -542,6 +556,11 @@ export default function Ask({ projectId, isPublic }) {
               setCurrentChatId(data.chat._id);
               setCurrentChatTitle(data.chat.title || 'New chat');
               upsertRecentChat(data.chat);
+              // Cache the new chat for instant loading when switching tabs
+              queryClient.setQueryData(
+                ['projectChat', projectId, data.chat._id, cacheScope],
+                { data: data.chat },
+              );
             }
           } else if (eventType === 'error') {
             setError(data.error || 'Failed to get answer. Please try again.');
@@ -600,7 +619,13 @@ export default function Ask({ projectId, isPublic }) {
       streamBufferRef.current = '';
       streamMessageIdRef.current = '';
       try {
-        const response = await projectAPI.getProjectChat(projectId, chatId);
+        // Use React Query cache for better performance when switching tabs
+        const response = await queryClient.ensureQueryData({
+          queryKey: ['projectChat', projectId, chatId, cacheScope],
+          queryFn: () => projectAPI.getProjectChat(projectId, chatId),
+          staleTime: 5 * 60 * 1000,
+          gcTime: 30 * 60 * 1000,
+        });
         const chat = response?.data?.data || response?.data;
         if (!chat?._id) return;
 
@@ -614,11 +639,14 @@ export default function Ask({ projectId, isPublic }) {
         if (closeRecent) setRecentOpen(false);
         setStickToBottom(true);
         upsertRecentChat(chat);
+        // Clear restoring state once data is loaded
+        setIsRestoringChat(false);
       } catch (err) {
         if (silent) {
           setCurrentChatId(null);
           setCurrentChatTitle('New chat');
           setMessages([]);
+          setIsRestoringChat(false);
         } else {
           const apiError = err?.response?.data?.error;
           setError(apiError || 'Failed to load chat. Please try again.');
@@ -636,6 +664,8 @@ export default function Ask({ projectId, isPublic }) {
       setCurrentChatTitle,
       setQuestion,
       upsertRecentChat,
+      queryClient,
+      cacheScope,
     ],
   );
 
@@ -679,35 +709,69 @@ export default function Ask({ projectId, isPublic }) {
     }
 
     // Load snapshot immediately to display cached content
+    let hasLoadedSnapshot = false;
     if (
       snapshot?.chatId === storedChatId &&
       Array.isArray(snapshot.messages) &&
       snapshot.messages.length > 0
     ) {
+      hasLoadedSnapshot = true;
       suppressNextAutoScrollRef.current = true;
       setCurrentChatTitle(snapshot.title || 'New chat');
       setMessages(mapStoredMessages(snapshot.messages));
       setStickToBottom(true);
+      // Cache the snapshot so we don't lose it while fetching fresh data
+      queryClient.setQueryData(
+        ['projectChat', projectId, storedChatId, cacheScope],
+        {
+          data: {
+            _id: storedChatId,
+            title: snapshot.title,
+            messages: snapshot.messages,
+          },
+        },
+      );
     }
 
-    // Stop showing spinner immediately - display cached content
-    setIsRestoringChat(false);
-
-    // Fetch fresh data in the background
-    onOpenRecentChat(storedChatId, {
-      closeRecent: false,
-      silent: true,
-      instantScroll: true,
-    });
+    // Only stop showing spinner if we actually loaded a snapshot with messages
+    if (hasLoadedSnapshot) {
+      setIsRestoringChat(false);
+    }
+    // Otherwise keep spinner visible while fetching data
+    // The cachedChatRes query will automatically fetch fresh data
   }, [
     chatIdStorageKey,
     currentChatId,
     isPublicMode,
-    onOpenRecentChat,
     projectId,
-    setCurrentChatTitle,
     snapshotStorageKey,
+    queryClient,
+    cacheScope,
   ]);
+
+  // Update messages when cached chat data loads
+  useEffect(() => {
+    if (!cachedChatRes?.data || !currentChatId || isPublicMode) return;
+
+    const chat = cachedChatRes.data?.data || cachedChatRes.data;
+    if (!chat?._id || chat._id !== currentChatId) return;
+
+    // Update messages with fresh data from query
+    suppressNextAutoScrollRef.current = true;
+    setCurrentChatTitle(chat.title || 'New chat');
+    setMessages(mapStoredMessages(chat.messages));
+    setStickToBottom(true);
+    upsertRecentChat(chat);
+    setIsRestoringChat(false);
+  }, [cachedChatRes, currentChatId, isPublicMode, upsertRecentChat]);
+
+  // Handle query errors
+  useEffect(() => {
+    if (cachedChatError && isRestoringChat && !isPublicMode) {
+      setIsRestoringChat(false);
+      setError('Failed to load chat.');
+    }
+  }, [cachedChatError, isRestoringChat, isPublicMode]);
 
   // ── Rename helpers ──
   const onStartRename = (chat) => {
@@ -733,6 +797,10 @@ export default function Ask({ projectId, isPublic }) {
       );
       const updated = response?.data?.data || response?.data;
       if (updated?._id) {
+        // Invalidate the cache for this chat so it reloads if switched to again
+        queryClient.invalidateQueries({
+          queryKey: ['projectChat', projectId, editingChatId, cacheScope],
+        });
         upsertRecentChat(updated);
         if (updated._id === currentChatId) {
           setCurrentChatTitle(updated.title || 'New chat');
@@ -761,6 +829,11 @@ export default function Ask({ projectId, isPublic }) {
     setError('');
     try {
       await projectAPI.deleteProjectChat(projectId, chatId);
+
+      // Invalidate the individual chat cache
+      queryClient.removeQueries({
+        queryKey: ['projectChat', projectId, chatId, cacheScope],
+      });
 
       queryClient.setQueryData(
         ['projectChats', projectId, cacheScope],
@@ -930,7 +1003,7 @@ export default function Ask({ projectId, isPublic }) {
                 messages.length > 0 && 'space-y-6',
               )}
             >
-              {isRestoringChat ? (
+              {isRestoringChat || cachedChatLoading ? (
                 <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center text-muted-foreground">
                   <Spinner className="h-8 w-8" />
                   <p className="text-sm font-medium">Restoring last chat…</p>
