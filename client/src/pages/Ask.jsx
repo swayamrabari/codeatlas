@@ -224,6 +224,7 @@ export default function Ask({ projectId, isPublic }) {
   const streamMessageIdRef = useRef('');
   const restoredProjectRef = useRef('');
   const suppressNextAutoScrollRef = useRef(false);
+  const justSentMessageRef = useRef(false);
 
   const history = useMemo(
     () =>
@@ -553,13 +554,26 @@ export default function Ask({ projectId, isPublic }) {
             );
           } else if (eventType === 'done' && !isPublicMode) {
             if (data.chat?._id) {
+              justSentMessageRef.current = true;
               setCurrentChatId(data.chat._id);
               setCurrentChatTitle(data.chat.title || 'New chat');
               upsertRecentChat(data.chat);
-              // Cache the new chat for instant loading when switching tabs
+
+              // Build complete chat object with all messages including the ones we just sent
+              const completeChat = {
+                ...data.chat,
+                messages: messages.map((msg) => ({
+                  role: msg.role,
+                  content: msg.content,
+                  citations: msg.citations,
+                  createdAt: msg.createdAt || new Date().toISOString(),
+                })),
+              };
+
+              // Cache the complete chat for instant loading when switching tabs
               queryClient.setQueryData(
                 ['projectChat', projectId, data.chat._id, cacheScope],
-                { data: data.chat },
+                { data: completeChat },
               );
             }
           } else if (eventType === 'error') {
@@ -756,7 +770,14 @@ export default function Ask({ projectId, isPublic }) {
     const chat = cachedChatRes.data?.data || cachedChatRes.data;
     if (!chat?._id || chat._id !== currentChatId) return;
 
-    // Update messages with fresh data from query
+    // If we just sent a message, don't overwrite with potentially incomplete server data
+    if (justSentMessageRef.current) {
+      justSentMessageRef.current = false;
+      setIsRestoringChat(false);
+      return;
+    }
+
+    // Update messages with fresh data from query (during restoration or opening recent chat)
     suppressNextAutoScrollRef.current = true;
     setCurrentChatTitle(chat.title || 'New chat');
     setMessages(mapStoredMessages(chat.messages));

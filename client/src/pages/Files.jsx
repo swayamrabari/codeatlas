@@ -7,10 +7,17 @@ import {
 } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Spinner } from '@/components/ui/spinner';
 import { FileDetails } from '@/components/FileDetails';
-import { File, FolderClosed, FolderOpen, AlertCircle } from 'lucide-react';
+import {
+  File,
+  FolderClosed,
+  FolderOpen,
+  AlertCircle,
+  ArrowLeft,
+} from 'lucide-react';
 import {
   buildProjectTabStateKey,
   usePersistentState,
@@ -26,6 +33,7 @@ export default function Files({ projectId, isPublic = false }) {
     selectedFileStorageKey,
     null,
   );
+  const [navigationHistory, setNavigationHistory] = useState([]);
 
   const {
     data: resData,
@@ -47,6 +55,18 @@ export default function Files({ projectId, isPublic = false }) {
   const deferredData = useDeferredValue(data);
   const isPreparingData = !!data && deferredData !== data;
   const error = queryError?.message ? 'Failed to load project data.' : null;
+
+  // Update history when project changes
+  useEffect(() => {
+    setNavigationHistory([]);
+  }, [projectId]);
+
+  // Clear history when tab changes
+  useEffect(() => {
+    return () => {
+      setNavigationHistory([]);
+    };
+  }, []);
 
   // ---------------- DATA PREPROCESSING ----------------
   const processedFiles = useMemo(() => {
@@ -79,6 +99,36 @@ export default function Files({ projectId, isPublic = false }) {
     [setSelectedFilePath],
   );
 
+  const handleFileNavigation = useCallback(
+    (filePath) => {
+      if (selectedFilePath) {
+        // Add current file to history before navigating
+        setNavigationHistory((prev) => [...prev, selectedFilePath]);
+      }
+      setSelectedFilePath(filePath);
+    },
+    [selectedFilePath, setSelectedFilePath],
+  );
+
+  const handleGoBack = useCallback(() => {
+    setNavigationHistory((prev) => {
+      if (prev.length === 0) return prev;
+      const newHistory = [...prev];
+      const previousFilePath = newHistory.pop();
+      setSelectedFilePath(previousFilePath);
+      return newHistory;
+    });
+  }, [setSelectedFilePath]);
+
+  // Check if a file path exists in the project
+  const isValidFilePath = useCallback(
+    (filePath) => {
+      if (!filePath) return false;
+      return processedFiles.some((f) => f.path === filePath);
+    },
+    [processedFiles],
+  );
+
   useEffect(() => {
     if (!selectedFilePath || !processedFiles.length) return;
     const stillExists = processedFiles.some((f) => f.path === selectedFilePath);
@@ -92,7 +142,11 @@ export default function Files({ projectId, isPublic = false }) {
       <div className="flex h-full w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-muted-foreground">
           <Spinner className="h-8 w-8" />
-          <p className="text-sm font-medium">{isPreparingData ? 'Preparing file index…' : 'Loading analysis data…'}</p>
+          <p className="text-sm font-medium">
+            {isPreparingData
+              ? 'Preparing file index…'
+              : 'Loading analysis data…'}
+          </p>
         </div>
       </div>
     );
@@ -141,8 +195,21 @@ export default function Files({ projectId, isPublic = false }) {
           >
             <div className="flex flex-1 w-full flex-col">
               {selectedFile ? (
-                <div className="w-full">
-                  <FileDetails file={selectedFile} />
+                <div className="w-full relative">
+                  {navigationHistory.length > 0 && (
+                    <div className="fixed bottom-8 right-8 z-50">
+                      <Button onClick={handleGoBack} variant="secondary">
+                        <ArrowLeft />
+                        Back
+                      </Button>
+                    </div>
+                  )}
+                  <FileDetails
+                    file={selectedFile}
+                    onFileClick={handleFileNavigation}
+                    source="files"
+                    isValidFilePath={isValidFilePath}
+                  />
                 </div>
               ) : (
                 <div className="grid flex-1 w-full place-items-center px-4">

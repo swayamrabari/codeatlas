@@ -3,7 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/components/SectionHeader';
 import { TintedBadge } from '@/components/TintedBadge';
 
-export function FileDetails({ file }) {
+export function FileDetails({ file, onFileClick, source, isValidFilePath }) {
+  const isClickableSource = source === 'files';
   return (
     <div className="mx-auto max-w-4xl space-y-10 animate-in fade-in duration-300 p-10 md:p-16 lg:p-20">
       {/* HEADER */}
@@ -117,7 +118,7 @@ export function FileDetails({ file }) {
               return (
                 <div
                   key={i}
-                  className="flex items-center gap-2 text-base text-foreground cursor-pointer"
+                  className="flex items-center gap-2 text-base text-foreground"
                 >
                   {hasNames ? (
                     <>
@@ -125,10 +126,26 @@ export function FileDetails({ file }) {
                         {names.join(', ')}
                       </span>
                       <span className="text-muted-foreground shrink-0">-</span>
-                      <span className="text-muted-foreground font-mono">
-                        {imp.path}
-                      </span>
+                      {isClickableSource && isValidFilePath?.(imp.path) ? (
+                        <button
+                          onClick={() => onFileClick && onFileClick(imp.path)}
+                          className="font-mono text-muted-foreground hover:underline cursor-pointer truncate text-left"
+                        >
+                          {imp.path}
+                        </button>
+                      ) : (
+                        <span className="font-mono text-muted-foreground truncate">
+                          {imp.path}
+                        </span>
+                      )}
                     </>
+                  ) : isClickableSource && isValidFilePath?.(imp.path) ? (
+                    <button
+                      onClick={() => onFileClick && onFileClick(imp.path)}
+                      className="font-mono text-muted-foreground hover:underline cursor-pointer"
+                    >
+                      {imp.path}
+                    </button>
                   ) : (
                     <span className="font-mono text-muted-foreground">
                       {imp.path}
@@ -166,14 +183,24 @@ export function FileDetails({ file }) {
         <section className="space-y-2">
           <SectionHeader title="Imported By" />
           <div className="space-y-1">
-            {file.importedBy.map((imp, i) => (
-              <div
-                key={i}
-                className="font-mono text-base text-foreground truncate cursor-pointer"
-              >
-                {imp}
-              </div>
-            ))}
+            {file.importedBy.map((imp, i) =>
+              isClickableSource && isValidFilePath?.(imp) ? (
+                <button
+                  key={i}
+                  onClick={() => onFileClick && onFileClick(imp)}
+                  className="font-mono text-base text-muted-foreground hover:underline cursor-pointer truncate text-left w-full"
+                >
+                  {imp}
+                </button>
+              ) : (
+                <div
+                  key={i}
+                  className="font-mono text-base text-muted-foreground truncate"
+                >
+                  {imp}
+                </div>
+              ),
+            )}
           </div>
         </section>
       )}
