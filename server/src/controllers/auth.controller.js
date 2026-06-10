@@ -26,6 +26,22 @@ function signToken(userId) {
   });
 }
 
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days to match JWT_EXPIRES_IN
+  path: '/',
+};
+
+function setTokenCookie(res, token) {
+  res.cookie('token', token, COOKIE_OPTIONS);
+}
+
+function clearTokenCookie(res) {
+  res.clearCookie('token', { ...COOKIE_OPTIONS, maxAge: 0 });
+}
+
 /**
  * POST /api/auth/register
  * Register a new user and send verification email
@@ -194,12 +210,12 @@ export async function verifyEmail(req, res) {
 
     // Generate token and auto-login
     const token = signToken(user._id);
+    setTokenCookie(res, token);
 
     logger.info('Email verified', { email: normalizedEmail });
 
     res.status(200).json({
       message: 'Email verified successfully!',
-      token,
       user: user.toJSON(),
     });
   } catch (err) {
@@ -256,14 +272,14 @@ export async function login(req, res) {
       });
     }
 
-    // Generate token
+    // Generate token and set as HttpOnly cookie
     const token = signToken(user._id);
+    setTokenCookie(res, token);
 
     logger.info('User logged in successfully');
 
     res.status(200).json({
       message: 'Login successful!',
-      token,
       user: user.toJSON(),
     });
   } catch (err) {
@@ -282,6 +298,20 @@ export async function getMe(req, res) {
   } catch (err) {
     logger.error('Get user error', err.message);
     res.status(500).json({ error: 'Failed to get user data.' });
+  }
+}
+
+/**
+ * POST /api/auth/logout
+ * Clear the JWT cookie to log out.
+ */
+export async function logout(req, res) {
+  try {
+    clearTokenCookie(res);
+    res.status(200).json({ message: 'Logged out successfully.' });
+  } catch (err) {
+    logger.error('Logout error', err.message);
+    res.status(500).json({ error: 'Logout failed.' });
   }
 }
 

@@ -53,7 +53,7 @@ export default function VerifyEmail() {
 
     try {
       const data = await authAPI.verifyEmail(email, fullCode);
-      login(data.token, data.user);
+      login(data.user);
       navigate(data?.user?.isAdmin ? '/admin' : '/dashboard');
     } catch (err) {
       const msg =

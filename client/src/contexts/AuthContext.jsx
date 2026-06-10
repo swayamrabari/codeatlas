@@ -17,51 +17,52 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const login = useCallback((token, userData) => {
-    localStorage.setItem('token', token);
+  const login = useCallback((userData) => {
     resetAuthForcedLogoutSignal();
     setUser(userData);
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
+  const logout = useCallback(async () => {
+    try {
+      await authAPI.logout();
+    } catch {
+      // Clear local state even if the API call fails.
+    }
     resetAuthForcedLogoutSignal();
     setUser(null);
   }, []);
 
-  // On mount, check if token exists and hydrate user.
+  // On mount, check if the user has a valid session cookie and hydrate user.
+  // Skip on the login page with ?blocked=1 to avoid a redirect loop after
+  // a forced logout — the blocked notice is already shown from the URL param.
   useEffect(() => {
     let mounted = true;
 
-    const token = localStorage.getItem('token');
-    if (token) {
-      authAPI
-        .getMe()
-        .then((data) => {
-          if (!mounted) return;
-          resetAuthForcedLogoutSignal();
-          setUser(data.user);
-        })
-        .catch((err) => {
-          if (!mounted) return;
+    const isOnLoginPage =
+      window.location.pathname === '/login' &&
+      window.location.search.includes('blocked=1');
 
-          // Blocked responses are handled globally by API interceptors.
-          if (!err?.response?.data?.blocked) {
-            localStorage.removeItem('token');
-            resetAuthForcedLogoutSignal();
-          }
-
-          setUser(null);
-        })
-        .finally(() => {
-          if (mounted) {
-            setLoading(false);
-          }
-        });
-    } else {
-      resetAuthForcedLogoutSignal();
+    if (isOnLoginPage) {
       setLoading(false);
+      return;
     }
+
+    authAPI
+      .getMe()
+      .then((data) => {
+        if (!mounted) return;
+        resetAuthForcedLogoutSignal();
+        setUser(data.user);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setUser(null);
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      });
 
     return () => {
       mounted = false;
@@ -69,12 +70,19 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Handle forced logout events emitted by the API layer (e.g. blocked account).
+  // Guards against redirecting if already on the login page to prevent a loop.
   useEffect(() => {
     const handleForcedLogout = () => {
-      localStorage.removeItem('token');
       setUser(null);
       setLoading(false);
-      window.location.assign('/login?blocked=1');
+
+      const isOnLoginPage =
+        window.location.pathname === '/login' &&
+        window.location.search.includes('blocked=1');
+
+      if (!isOnLoginPage) {
+        window.location.assign('/login?blocked=1');
+      }
     };
 
     window.addEventListener(AUTH_FORCED_LOGOUT_EVENT, handleForcedLogout);
@@ -83,41 +91,20 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  // Periodically revalidate current session so blocked users are logged out quickly
-  // even if they are idle and not triggering other API requests.
+  // Periodically revalidate session for idle users (blocked accounts, etc.).
+  // Active users catch blocked status instantly via the Axios response interceptor
+  // on any real API call — this is only a safety net for completely idle tabs.
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token || !user) return;
-
-    const validateSession = () => {
-      authAPI.getMe().catch(() => {
-        // Global interceptors handle blocked/invalid sessions.
-      });
-    };
+    if (!user) return;
 
     const intervalId = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
-        validateSession();
+        authAPI.getMe().catch(() => {});
       }
-    }, 15000);
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        validateSession();
-      }
-    };
-
-    const onWindowFocus = () => {
-      validateSession();
-    };
-
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    window.addEventListener('focus', onWindowFocus);
+    }, 300000); // 5 minutes
 
     return () => {
       window.clearInterval(intervalId);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      window.removeEventListener('focus', onWindowFocus);
     };
   }, [user]);
 

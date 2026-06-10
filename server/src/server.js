@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import apiRoutes from './routes/api.route.js';
@@ -70,9 +71,12 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 app.use(requestLogger);
 app.use(helmet());
 
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: allowedOrigins,
+    credentials: true,
   }),
 );
 

@@ -335,14 +335,9 @@ export default function UploadProject() {
   const _connectSSE = useCallback(
     (pid) => {
       _disconnectSSE();
-      const token = localStorage.getItem('token');
-      if (!token) {
-        _startFallbackPolling(pid);
-        return;
-      }
 
-      const url = `${API_URL}/projects/${pid}/overview/progress?token=${encodeURIComponent(token)}`;
-      const es = new EventSource(url);
+      const url = `${API_URL}/projects/${pid}/overview/progress`;
+      const es = new EventSource(url, { withCredentials: true });
       sseRef.current = es;
 
       es.onmessage = (event) => {

@@ -3,17 +3,21 @@ import User from '../models/User.js';
 
 /**
  * JWT authentication middleware.
- * Extracts the token from the Authorization header (or ?token= query param for SSE),
- * verifies it, and attaches the user to req.user.
+ * Extracts the token from the HttpOnly cookie, Authorization header,
+ * or ?token= query param (for SSE). Checks cookies first.
  */
 export async function authenticate(req, res, next) {
   try {
-    const authHeader = req.headers.authorization;
-    let token = null;
+    let token = req.cookies?.token || null;
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    } else if (req.query.token) {
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
+    }
+
+    if (!token && req.query.token) {
       // Support token via query param (needed for SSE / EventSource)
       token = req.query.token;
     }

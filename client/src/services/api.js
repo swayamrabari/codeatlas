@@ -26,7 +26,6 @@ function dispatchForcedLogoutEvent(payload = {}) {
   if (typeof window === 'undefined' || forcedLogoutDispatched) return;
 
   forcedLogoutDispatched = true;
-  localStorage.removeItem('token');
 
   const notice = {
     type: 'blocked',
@@ -61,19 +60,8 @@ export function handleAuthBlock(status, payload = {}) {
 const api = axios.create({
   baseURL: API_URL,
   timeout: 120000, // 2 minutes
+  withCredentials: true, // Send HttpOnly cookie with requests
 });
-
-// Attach JWT token to requests if available
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
 
 api.interceptors.response.use(
   (response) => response,
@@ -123,6 +111,14 @@ export const authAPI = {
         .toLowerCase(),
       password,
     });
+    return response.data;
+  },
+
+  /**
+   * Logout — clears the HttpOnly cookie on the server.
+   */
+  logout: async () => {
+    const response = await api.post('/auth/logout');
     return response.data;
   },
 
@@ -392,13 +388,12 @@ export const projectAPI = {
     history = [],
     chatId = null,
   ) => {
-    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/projects/${id}/ask/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      credentials: 'include',
       body: JSON.stringify({ question, history, chatId }),
     });
 
