@@ -94,6 +94,7 @@ export default function Files({ projectId, isPublic = false }) {
 
   const handleSelectFile = useCallback(
     (fileData) => {
+      setNavigationHistory([]);
       setSelectedFilePath(fileData?.path || null);
     },
     [setSelectedFilePath],
