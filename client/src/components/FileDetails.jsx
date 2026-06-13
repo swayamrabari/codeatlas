@@ -63,11 +63,11 @@ export function FileDetails({ file, onFileClick, source, isValidFilePath }) {
         </section>
       )}
 
-      {/* THIRD-PARTY DEPENDENCIES */}
+      {/* DEPENDENCIES */}
       {file.thirdPartyDeps && file.thirdPartyDeps.length > 0 && (
         <section className="space-y-3">
           <SectionHeader
-            title={`Third-Party Dependencies (${file.thirdPartyDeps.length})`}
+            title={`Dependencies (${file.thirdPartyDeps.length})`}
           />
           <div className="flex flex-wrap gap-2">
             {file.thirdPartyDeps.map((dep) => (
