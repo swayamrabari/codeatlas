@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useDeferredValue } from 'react';
+import { useState, useEffect, useMemo, useDeferredValue, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
 import { Badge } from '@/components/ui/badge';
@@ -100,6 +100,12 @@ export default function Insights({ projectId, isPublic = false }) {
     return processedFiles.find((f) => f.path === activeSelection.key) || null;
   }, [activeSelection, processedFiles]);
 
+  const rightPanelViewportRef = useRef(null);
+
+  useEffect(() => {
+    rightPanelViewportRef.current?.scrollTo(0, 0);
+  }, [activeSelection]);
+
   if (loading || isPreparingData) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -185,7 +191,7 @@ export default function Insights({ projectId, isPublic = false }) {
       </div>
 
       {/* RIGHT CONTENT PANE */}
-      <ScrollArea className="flex-1 h-full" showHorizontalScrollbar>
+      <ScrollArea className="flex-1 h-full" showHorizontalScrollbar viewportRef={rightPanelViewportRef}>
         <div className="flex flex-1 w-full flex-col">
           {activeSelection.type === 'overview' ? (
             <div className="w-full">

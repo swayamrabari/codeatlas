@@ -98,6 +98,12 @@ export default function Overview({ projectId, isPublic = false }) {
     };
   }, [deferredData]);
 
+  const rightPanelViewportRef = useRef(null);
+
+  useEffect(() => {
+    rightPanelViewportRef.current?.scrollTo(0, 0);
+  }, [activeSelection]);
+
   // Get currently selected content
   const selectedContent = useMemo(() => {
     if (!deferredData) return null;
@@ -267,7 +273,7 @@ export default function Overview({ projectId, isPublic = false }) {
       </div>
 
       {/* ── RIGHT CONTENT PANE ── */}
-      <ScrollArea className="flex-1 h-full" showHorizontalScrollbar>
+      <ScrollArea className="flex-1 h-full" showHorizontalScrollbar viewportRef={rightPanelViewportRef}>
         <div className="flex flex-1 w-full flex-col">
           {!hasDocs &&
           !selectedContent?.docs?.shortSummary &&

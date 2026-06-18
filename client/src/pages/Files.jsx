@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useDeferredValue,
+  useRef,
 } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { projectAPI } from '../services/api';
@@ -121,6 +122,12 @@ export default function Files({ projectId, isPublic = false }) {
     });
   }, [setSelectedFilePath]);
 
+  const rightPanelViewportRef = useRef(null);
+
+  useEffect(() => {
+    rightPanelViewportRef.current?.scrollTo(0, 0);
+  }, [selectedFilePath]);
+
   // Check if a file path exists in the project
   const isValidFilePath = useCallback(
     (filePath) => {
@@ -193,6 +200,7 @@ export default function Files({ projectId, isPublic = false }) {
           <ScrollArea
             className="flex-1 min-h-0 bg-background"
             showHorizontalScrollbar
+            viewportRef={rightPanelViewportRef}
           >
             <div className="flex flex-1 w-full flex-col">
               {selectedFile ? (

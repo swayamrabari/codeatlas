@@ -9,6 +9,7 @@ function ScrollArea({
   className,
   children,
   showHorizontalScrollbar = false,
+  viewportRef,
   ...props
 }) {
   return (
@@ -18,6 +19,7 @@ function ScrollArea({
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
+        ref={viewportRef}
         data-slot="scroll-area-viewport"
         className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&>div]:!flex [&>div]:!flex-col [&>div]:min-h-full"
       >
