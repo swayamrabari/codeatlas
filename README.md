@@ -155,9 +155,7 @@ A **Public Explorer** mode provides a read-only demo of any project without requ
 ### AI Layer
 
 - **OpenAI API** — models: `gpt-4o-mini` (docs + chat), `text-embedding-3-small` (1536-dim embeddings)
-- **@langchain/openai** — LangChain integration (not used for core RAG pipeline)
 - Custom chunking with 6 chunk types (code, file-summary, file-docs, feature-summary, feature-docs, project-docs)
-- Two-pass Atlas Vector Search with diversity reranking, tier boosting, and score gap detection
 - Retry wrapper with exponential backoff (2s, 4s, 8s) for AI calls
 
 ---
