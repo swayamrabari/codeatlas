@@ -701,7 +701,13 @@ export default function Ask({ projectId, isPublic }) {
     }
 
     // Wait until the persisted-state hook has synced this project's key.
-    if (currentChatId !== storedChatId) return;
+    if (currentChatId !== storedChatId) {
+      // If both are empty, nothing to restore — bail out and stop spinner.
+      if (!currentChatId && !storedChatId) {
+        setIsRestoringChat(false);
+      }
+      return;
+    }
 
     restoredProjectRef.current = projectId;
 
@@ -793,6 +799,13 @@ export default function Ask({ projectId, isPublic }) {
       setError('Failed to load chat.');
     }
   }, [cachedChatError, isRestoringChat, isPublicMode]);
+
+  // Safety timeout: force restoring off after 8s to prevent infinite spinner
+  useEffect(() => {
+    if (!isRestoringChat || isPublicMode) return;
+    const timer = setTimeout(() => setIsRestoringChat(false), 8000);
+    return () => clearTimeout(timer);
+  }, [isRestoringChat, isPublicMode]);
 
   // ── Rename helpers ──
   const onStartRename = (chat) => {
